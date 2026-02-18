@@ -13,6 +13,13 @@ import '../../features/symptom_logger/symptom_logger_screen.dart';
 import '../../features/pain_diary/pain_diary_screen.dart';
 import '../../features/pain_diary/report_generator_screen.dart';
 import '../../features/medication_tracker/medication_tracker_screen.dart';
+import '../../features/learn/learn_screen.dart';
+import '../../features/learn/learn_module_screen.dart';
+import '../../features/breathe/breathe_screen.dart';
+import '../../features/breathe/breathe_player_screen.dart';
+import '../../features/journey/journey_screen.dart';
+import '../../features/caregiver/caregiver_screen.dart';
+
 /// PalliCare route path constants.
 class AppRoutes {
   AppRoutes._();
@@ -31,7 +38,9 @@ class AppRoutes {
   static const String painReport = '/pain-report';
   static const String medicationTracker = '/medication-tracker';
   static const String learn = '/learn';
+  static const String learnModule = '/learn/module';
   static const String breathe = '/breathe';
+  static const String breathePlayer = '/breathe/player';
   static const String journey = '/journey';
   static const String caregiver = '/caregiver';
   static const String settings = '/settings';
@@ -39,7 +48,7 @@ class AppRoutes {
   static const String notifications = '/notifications';
 }
 
-/// GoRouter configuration with all Sprint 1 screens wired.
+/// GoRouter configuration with Sprint 1 + Sprint 2 screens wired.
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   routes: [
@@ -95,23 +104,39 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.medicationTracker,
       builder: (_, __) => const MedicationTrackerScreen(),
     ),
-    // Placeholder routes for Sprint 2+
+    // Sprint 2: Learn module
     GoRoute(
       path: AppRoutes.learn,
-      builder: (_, __) => const _PlaceholderScreen(title: 'Learn'),
+      builder: (_, __) => const LearnScreen(),
     ),
+    // Sprint 2: Breathe & Comfort module
     GoRoute(
       path: AppRoutes.breathe,
-      builder: (_, __) => const _PlaceholderScreen(title: 'Breathe'),
+      builder: (_, __) => const BreatheScreen(),
     ),
+    GoRoute(
+      path: AppRoutes.breathePlayer,
+      builder: (_, __) => const BreathePlayerScreen(),
+    ),
+    // Sprint 2: Learn module detail (receives moduleId via extra)
+    GoRoute(
+      path: AppRoutes.learnModule,
+      builder: (_, state) {
+        final moduleId = state.extra as String? ?? '';
+        return LearnModuleScreen(moduleId: moduleId);
+      },
+    ),
+    // Sprint 2: My Journey
     GoRoute(
       path: AppRoutes.journey,
-      builder: (_, __) => const _PlaceholderScreen(title: 'My Journey'),
+      builder: (_, __) => const JourneyScreen(),
     ),
+    // Sprint 2: Caregiver Hub
     GoRoute(
       path: AppRoutes.caregiver,
-      builder: (_, __) => const _PlaceholderScreen(title: 'Caregiver Hub'),
+      builder: (_, __) => const CaregiverScreen(),
     ),
+    // Placeholder for Sprint 3+
     GoRoute(
       path: AppRoutes.settings,
       builder: (_, __) => const _PlaceholderScreen(title: 'Settings'),
