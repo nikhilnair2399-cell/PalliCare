@@ -1,94 +1,144 @@
-/// PalliCare route definitions for the patient mobile app.
-///
-/// This file defines named routes for all 10 patient-facing screens.
-/// Replace the placeholder page classes with actual implementations once
-/// the feature modules are built.
-///
-/// Intended for use with GoRouter, AutoRoute, or Navigator 2.0.
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../features/onboarding/splash_screen.dart';
+import '../../features/onboarding/language_screen.dart';
+import '../../features/onboarding/who_setting_up_screen.dart';
+import '../../features/onboarding/emotional_checkin_screen.dart';
+import '../../features/onboarding/what_helps_screen.dart';
+import '../../features/onboarding/quick_profile_screen.dart';
+import '../../features/onboarding/privacy_screen.dart';
+import '../../features/onboarding/welcome_screen.dart';
+import '../../features/home/home_screen.dart';
+import '../../features/symptom_logger/symptom_logger_screen.dart';
+import '../../features/pain_diary/pain_diary_screen.dart';
+import '../../features/pain_diary/report_generator_screen.dart';
+import '../../features/medication_tracker/medication_tracker_screen.dart';
+import '../../features/prehab/prehab_screen.dart';
+
+/// PalliCare route path constants.
 class AppRoutes {
   AppRoutes._();
 
-  // ---------------------------------------------------------------------------
-  // ROUTE PATH CONSTANTS
-  // ---------------------------------------------------------------------------
-
-  /// Splash / loading screen.
   static const String splash = '/';
-
-  /// Onboarding flow (first launch).
-  static const String onboarding = '/onboarding';
-
-  /// OTP-based login.
-  static const String login = '/login';
-
-  /// Home (Today) — hero check-in card, daily summary.
+  static const String onboardingLanguage = '/onboarding/language';
+  static const String onboardingWho = '/onboarding/who';
+  static const String onboardingEmotional = '/onboarding/emotional';
+  static const String onboardingHelps = '/onboarding/helps';
+  static const String onboardingProfile = '/onboarding/profile';
+  static const String onboardingPrivacy = '/onboarding/privacy';
+  static const String onboardingWelcome = '/onboarding/welcome';
   static const String home = '/home';
-
-  /// Quick Symptom Logger — fast pain + mood entry.
   static const String symptomLogger = '/symptom-logger';
-
-  /// Full Symptom Logger — body map, ESAS, triggers.
-  static const String symptomLoggerFull = '/symptom-logger/full';
-
-  /// Pain Diary / Journal — history list + detail view.
   static const String painDiary = '/pain-diary';
-
-  /// Pain Diary single entry detail.
-  static const String painDiaryDetail = '/pain-diary/:logId';
-
-  /// Medication Tracker — schedule, adherence, MEDD.
+  static const String painReport = '/pain-report';
   static const String medicationTracker = '/medication-tracker';
-
-  /// Learn Module — education content, phase progress.
+  static const String prehab = '/prehab';
   static const String learn = '/learn';
-
-  /// Learn Module — specific module detail.
-  static const String learnModule = '/learn/:moduleId';
-
-  /// Breathe Module — breathing exercises, coping tools.
   static const String breathe = '/breathe';
-
-  /// My Journey — goals, gratitude, milestones, legacy.
   static const String journey = '/journey';
-
-  /// Caregiver Hub — linked caregivers, proxy logging.
   static const String caregiver = '/caregiver';
-
-  /// Settings — profile, language, notifications, accessibility.
   static const String settings = '/settings';
-
-  /// Doctor Report — generate and share summary with clinician.
   static const String doctorReport = '/doctor-report';
-
-  /// Notifications centre.
   static const String notifications = '/notifications';
 }
 
-// ---------------------------------------------------------------------------
-// PLACEHOLDER: GoRouter configuration
-// ---------------------------------------------------------------------------
-//
-// import 'package:go_router/go_router.dart';
-//
-// final GoRouter appRouter = GoRouter(
-//   initialLocation: AppRoutes.splash,
-//   routes: [
-//     GoRoute(path: AppRoutes.splash,           builder: (_, __) => const SplashPage()),
-//     GoRoute(path: AppRoutes.onboarding,       builder: (_, __) => const OnboardingPage()),
-//     GoRoute(path: AppRoutes.login,            builder: (_, __) => const LoginPage()),
-//     GoRoute(path: AppRoutes.home,             builder: (_, __) => const HomePage()),
-//     GoRoute(path: AppRoutes.symptomLogger,    builder: (_, __) => const SymptomLoggerPage()),
-//     GoRoute(path: AppRoutes.symptomLoggerFull,builder: (_, __) => const SymptomLoggerFullPage()),
-//     GoRoute(path: AppRoutes.painDiary,        builder: (_, __) => const PainDiaryPage()),
-//     GoRoute(path: AppRoutes.painDiaryDetail,  builder: (_, state) => PainDiaryDetailPage(logId: state.pathParameters['logId']!)),
-//     GoRoute(path: AppRoutes.medicationTracker,builder: (_, __) => const MedicationTrackerPage()),
-//     GoRoute(path: AppRoutes.learn,            builder: (_, __) => const LearnPage()),
-//     GoRoute(path: AppRoutes.learnModule,      builder: (_, state) => LearnModulePage(moduleId: state.pathParameters['moduleId']!)),
-//     GoRoute(path: AppRoutes.breathe,          builder: (_, __) => const BreathePage()),
-//     GoRoute(path: AppRoutes.journey,          builder: (_, __) => const JourneyPage()),
-//     GoRoute(path: AppRoutes.caregiver,        builder: (_, __) => const CaregiverPage()),
-//     GoRoute(path: AppRoutes.settings,         builder: (_, __) => const SettingsPage()),
-//     GoRoute(path: AppRoutes.doctorReport,     builder: (_, __) => const DoctorReportPage()),
-//     GoRoute(path: AppRoutes.notifications,    builder: (_, __) => const NotificationsPage()),
-//   ],
-// );
+/// GoRouter configuration with all Sprint 1 screens wired.
+final GoRouter appRouter = GoRouter(
+  initialLocation: AppRoutes.splash,
+  routes: [
+    GoRoute(
+      path: AppRoutes.splash,
+      builder: (_, __) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingLanguage,
+      builder: (_, __) => const LanguageScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingWho,
+      builder: (_, __) => const WhoSettingUpScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingEmotional,
+      builder: (_, __) => const EmotionalCheckinScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingHelps,
+      builder: (_, __) => const WhatHelpsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingProfile,
+      builder: (_, __) => const QuickProfileScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingPrivacy,
+      builder: (_, __) => const PrivacyScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.onboardingWelcome,
+      builder: (_, __) => const WelcomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.home,
+      builder: (_, __) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.symptomLogger,
+      builder: (_, __) => const SymptomLoggerScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.painDiary,
+      builder: (_, __) => const PainDiaryScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.painReport,
+      builder: (_, __) => const ReportGeneratorScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.medicationTracker,
+      builder: (_, __) => const MedicationTrackerScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.prehab,
+      builder: (_, __) => const PrehabScreen(),
+    ),
+    // Placeholder routes for Sprint 2+
+    GoRoute(
+      path: AppRoutes.learn,
+      builder: (_, __) => const _PlaceholderScreen(title: 'Learn'),
+    ),
+    GoRoute(
+      path: AppRoutes.breathe,
+      builder: (_, __) => const _PlaceholderScreen(title: 'Breathe'),
+    ),
+    GoRoute(
+      path: AppRoutes.journey,
+      builder: (_, __) => const _PlaceholderScreen(title: 'My Journey'),
+    ),
+    GoRoute(
+      path: AppRoutes.caregiver,
+      builder: (_, __) => const _PlaceholderScreen(title: 'Caregiver Hub'),
+    ),
+    GoRoute(
+      path: AppRoutes.settings,
+      builder: (_, __) => const _PlaceholderScreen(title: 'Settings'),
+    ),
+  ],
+);
+
+/// Placeholder for screens not yet built (Sprint 2+).
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const _PlaceholderScreen({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Text('$title — Coming in Sprint 2',
+            style: const TextStyle(fontSize: 18, color: Colors.grey)),
+      ),
+    );
+  }
+}

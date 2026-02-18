@@ -140,6 +140,46 @@ class AppColors {
   static bool useLightTextForPain(int score) => score >= 6;
 
   // ---------------------------------------------------------------------------
+  // LEGACY ALIASES (used across onboarding + widget files)
+  // ---------------------------------------------------------------------------
+
+  /// Alias for surface (Warm Cream background).
+  static const Color warmCream = surface;
+
+  /// Alias for primary (Sage Green).
+  static const Color sageGreen = primary;
+
+  /// Alias for primaryDark (Deep Teal).
+  static const Color deepTeal = primaryDark;
+
+  /// Alias for primary (Sage).
+  static const Color sage = primary;
+
+  /// Alias for primaryDark (Teal).
+  static const Color teal = primaryDark;
+
+  /// Alias for surface (Cream).
+  static const Color cream = surface;
+
+  /// Alias for primaryLight (Sage Light).
+  static const Color sageLightColor = primaryLight;
+
+  /// Alias for textSecondary (Charcoal Light).
+  static const Color charcoalLight = textSecondary;
+
+  /// Alias for accentCalm (Lavender).
+  static const Color lavender = accentCalm;
+
+  /// Lavender light variant.
+  static const Color lavenderLight = Color(0xFFEDE9F5);
+
+  /// Alias for textPrimary (Charcoal).
+  static const Color charcoal = textPrimary;
+
+  /// Teal dark variant.
+  static const Color tealDark = Color(0xFF1E5555);
+
+  // ---------------------------------------------------------------------------
   // DARK MODE VARIANTS
   // ---------------------------------------------------------------------------
 
