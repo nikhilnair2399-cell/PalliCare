@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ── PalliCare Design System Tokens ── */
+/* From: Design_System.md (Output/Technical/) */
+
+@theme {
+  /* Brand Colors */
+  --color-sage: #7BA68C;
+  --color-sage-light: #A8CBB5;
+  --color-sage-dark: #5A8A6E;
+  --color-teal: #2A6B6B;
+  --color-teal-light: #3A8B8B;
+  --color-teal-dark: #1A4A4A;
+  --color-terra: #D4856B;
+  --color-terra-light: #E5A68E;
+  --color-lavender: #D9D4E7;
+  --color-lavender-light: #EDE9F5;
+  --color-amber: #E8A838;
+  --color-amber-light: #F0C56A;
+  --color-cream: #FFF8F0;
+  --color-charcoal: #2D2D2D;
+  --color-charcoal-light: #4A4A4A;
+
+  /* Pain Scale Colors */
+  --color-pain-0: #7BA68C;
+  --color-pain-1: #8DB89A;
+  --color-pain-2: #A0C9A8;
+  --color-pain-3: #C5D68E;
+  --color-pain-4: #E8D86A;
+  --color-pain-5: #E8C44A;
+  --color-pain-6: #E8A838;
+  --color-pain-7: #E08830;
+  --color-pain-8: #D4856B;
+  --color-pain-9: #C25A45;
+  --color-pain-10: #A83232;
+
+  /* Alert Colors */
+  --color-alert-critical: #C25A45;
+  --color-alert-warning: #E8A838;
+  --color-alert-info: #2A6B6B;
+  --color-alert-success: #7BA68C;
+
+  /* Spacing (8dp grid) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  /* Font families */
+  --font-heading: 'Georgia', serif;
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', monospace;
+}
+
+/* ── Base Styles ── */
+body {
+  font-family: var(--font-body);
+  color: var(--color-charcoal);
+  background: #f8faf9;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-teal);
+}
+
+/* ── Scrollbar Styling ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-sage-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sage);
+}
+
+/* ── Focus Ring (Accessibility) ── */
+*:focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Pain Scale Utility Classes ── */
+.pain-bg-0 { background-color: var(--color-pain-0); }
+.pain-bg-1 { background-color: var(--color-pain-1); }
+.pain-bg-2 { background-color: var(--color-pain-2); }
+.pain-bg-3 { background-color: var(--color-pain-3); }
+.pain-bg-4 { background-color: var(--color-pain-4); }
+.pain-bg-5 { background-color: var(--color-pain-5); }
+.pain-bg-6 { background-color: var(--color-pain-6); }
+.pain-bg-7 { background-color: var(--color-pain-7); }
+.pain-bg-8 { background-color: var(--color-pain-8); }
+.pain-bg-9 { background-color: var(--color-pain-9); }
+.pain-bg-10 { background-color: var(--color-pain-10); }

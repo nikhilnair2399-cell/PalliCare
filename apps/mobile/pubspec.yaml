@@ -1,0 +1,84 @@
+name: pallicare
+description: PalliCare — Palliative Care, Pain Management & Prehabilitation App for AIIMS Bhopal
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Code Generation
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.9.0
+
+  # Routing
+  go_router: ^14.6.2
+
+  # Networking
+  dio: ^5.4.3
+  connectivity_plus: ^6.0.5
+
+  # Local Storage (Offline-first)
+  hive: ^4.0.0
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.2
+
+  # UI Components
+  flutter_svg: ^2.0.10+1
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  fl_chart: ^0.69.0
+
+  # Localization
+  intl: ^0.19.0
+
+  # Utilities
+  uuid: ^4.3.3
+  path_provider: ^2.1.2
+  url_launcher: ^6.2.4
+  share_plus: ^7.2.2
+
+  # Notifications
+  firebase_core: ^3.0.0
+  firebase_messaging: ^15.0.0
+  flutter_local_notifications: ^17.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generation
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  riverpod_generator: ^2.4.3
+  build_runner: ^2.4.9
+
+  # Testing
+  mocktail: ^1.0.3
+
+  # Linting
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/fonts/
+    - assets/l10n/
+
+  fonts:
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+        - asset: assets/fonts/NotoSansDevanagari-Bold.ttf
+          weight: 700

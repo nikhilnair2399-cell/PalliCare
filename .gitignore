@@ -1,0 +1,104 @@
+# ============================================================
+# PalliCare Monorepo — .gitignore
+# ============================================================
+
+# ── OS Files ──
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ── Environment & Secrets ──
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+credentials.json
+service-account*.json
+
+# ── Node.js / React / Next.js ──
+node_modules/
+.next/
+out/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# ── Flutter / Dart ──
+.dart_tool/
+.packages
+build/
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+
+# ── Docker ──
+docker-compose.override.yml
+
+# ── Database ──
+*.sqlite
+*.sqlite3
+*.db
+
+# ── Logs ──
+logs/
+*.log
+
+# ── Coverage & Testing ──
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+
+# ── Build Artifacts ──
+*.apk
+*.aab
+*.ipa
+*.app
+*.dmg
+*.exe
+*.msi
+
+# ── Misc ──
+.turbo/
+.vercel/
+.output/
+*.tgz
