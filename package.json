@@ -2,7 +2,7 @@
   "name": "pallicare",
   "version": "2.0.0",
   "private": true,
-  "description": "PalliCare — Palliative Care, Pain Management & Prehabilitation Platform for AIIMS Bhopal",
+  "description": "PalliCare — Palliative Care & Pain Management Platform for AIIMS Bhopal",
   "workspaces": [
     "apps/*",
     "packages/*"

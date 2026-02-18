@@ -89,7 +89,7 @@ const ALERTS: Alert[] = [
     type: 'functional_decline',
     patient: 'Priya Patel',
     message: 'Sit-to-stand count decreased from 10 to 6 over 2 weeks',
-    recommendation: 'Review exercise plan; assess for prehab pathway adjustment',
+    recommendation: 'Review functional status; consider physiotherapy referral',
     time: '4 hrs ago',
     status: 'active',
     data: { metric: 'Sit-to-stand', value: '6 reps', threshold: '<8 or >20% drop' },

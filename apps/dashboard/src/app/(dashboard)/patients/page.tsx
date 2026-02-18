@@ -28,7 +28,6 @@ const PATIENTS = [
     lastLog: '35 min ago',
     adherence: 86,
     alertLevel: 'critical',
-    prehab: null,
   },
   {
     id: '2',
@@ -41,7 +40,6 @@ const PATIENTS = [
     lastLog: '2 hrs ago',
     adherence: 94,
     alertLevel: 'warning',
-    prehab: { daysToSurgery: 8, readiness: 72 },
   },
   {
     id: '3',
@@ -54,7 +52,6 @@ const PATIENTS = [
     lastLog: '15 min ago',
     adherence: 72,
     alertLevel: 'critical',
-    prehab: null,
   },
   {
     id: '4',
@@ -67,7 +64,6 @@ const PATIENTS = [
     lastLog: '4 hrs ago',
     adherence: 98,
     alertLevel: 'info',
-    prehab: { daysToSurgery: 14, readiness: 85 },
   },
   {
     id: '5',
@@ -80,7 +76,6 @@ const PATIENTS = [
     lastLog: '1 hr ago',
     adherence: 88,
     alertLevel: 'warning',
-    prehab: null,
   },
   {
     id: '6',
@@ -93,7 +88,6 @@ const PATIENTS = [
     lastLog: '6 hrs ago',
     adherence: 100,
     alertLevel: null,
-    prehab: { daysToSurgery: 21, readiness: 60 },
   },
   {
     id: '7',
@@ -106,7 +100,6 @@ const PATIENTS = [
     lastLog: '3 hrs ago',
     adherence: 91,
     alertLevel: 'info',
-    prehab: null,
   },
   {
     id: '8',
@@ -119,7 +112,6 @@ const PATIENTS = [
     lastLog: '5 hrs ago',
     adherence: 95,
     alertLevel: null,
-    prehab: { daysToSurgery: 5, readiness: 88 },
   },
 ];
 
@@ -144,7 +136,7 @@ const ALERT_STYLES: Record<string, { bg: string; text: string; dot: string }> = 
 };
 
 type SortKey = 'pain' | 'name' | 'lastLog' | 'adherence';
-type FilterStatus = 'all' | 'critical' | 'prehab';
+type FilterStatus = 'all' | 'critical' | 'warning';
 
 export default function PatientsPage() {
   const [search, setSearch] = useState('');
@@ -154,7 +146,7 @@ export default function PatientsPage() {
   const filtered = PATIENTS.filter((p) => {
     if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter === 'critical') return p.alertLevel === 'critical';
-    if (filter === 'prehab') return p.prehab !== null;
+    if (filter === 'warning') return p.alertLevel === 'warning';
     return true;
   }).sort((a, b) => {
     if (sortBy === 'pain') return b.pain - a.pain;
@@ -164,7 +156,7 @@ export default function PatientsPage() {
   });
 
   const criticalCount = PATIENTS.filter((p) => p.alertLevel === 'critical').length;
-  const prehabCount = PATIENTS.filter((p) => p.prehab).length;
+  const warningCount = PATIENTS.filter((p) => p.alertLevel === 'warning').length;
 
   return (
     <div className="space-y-6">
@@ -178,7 +170,7 @@ export default function PatientsPage() {
             </h1>
             <p className="text-sm text-charcoal/60">
               {PATIENTS.length} active &middot; {criticalCount} critical &middot;{' '}
-              {prehabCount} prehab
+              {warningCount} warning
             </p>
           </div>
         </div>
@@ -198,7 +190,7 @@ export default function PatientsPage() {
         </div>
 
         <div className="flex gap-2">
-          {(['all', 'critical', 'prehab'] as FilterStatus[]).map((f) => (
+          {(['all', 'critical', 'warning'] as FilterStatus[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -208,7 +200,7 @@ export default function PatientsPage() {
                   : 'bg-white text-charcoal/70 hover:bg-sage/10'
               }`}
             >
-              {f === 'all' ? `All (${PATIENTS.length})` : f === 'critical' ? `Critical (${criticalCount})` : `Prehab (${prehabCount})`}
+              {f === 'all' ? `All (${PATIENTS.length})` : f === 'critical' ? `Critical (${criticalCount})` : `Warning (${warningCount})`}
             </button>
           ))}
         </div>
@@ -249,9 +241,6 @@ export default function PatientsPage() {
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-charcoal/60">
                 Last Log
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-charcoal/60">
-                Prehab
               </th>
             </tr>
           </thead>
@@ -342,33 +331,6 @@ export default function PatientsPage() {
                     <span className="flex items-center gap-1 text-xs text-charcoal/50">
                       <Clock className="h-3 w-3" /> {patient.lastLog}
                     </span>
-                  </td>
-
-                  {/* Prehab */}
-                  <td className="px-4 py-3.5 text-center">
-                    {patient.prehab ? (
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="rounded-full bg-teal/10 px-2 py-0.5 text-xs font-semibold text-teal">
-                          T-{patient.prehab.daysToSurgery}d
-                        </span>
-                        <div className="h-1.5 w-12 overflow-hidden rounded-full bg-sage/20">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${patient.prehab.readiness}%`,
-                              backgroundColor:
-                                patient.prehab.readiness >= 80
-                                  ? '#7BA68C'
-                                  : patient.prehab.readiness >= 60
-                                    ? '#E8A838'
-                                    : '#E87461',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-charcoal/30">—</span>
-                    )}
                   </td>
                 </tr>
               );

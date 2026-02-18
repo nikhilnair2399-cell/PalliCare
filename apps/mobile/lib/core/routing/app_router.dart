@@ -13,8 +13,6 @@ import '../../features/symptom_logger/symptom_logger_screen.dart';
 import '../../features/pain_diary/pain_diary_screen.dart';
 import '../../features/pain_diary/report_generator_screen.dart';
 import '../../features/medication_tracker/medication_tracker_screen.dart';
-import '../../features/prehab/prehab_screen.dart';
-
 /// PalliCare route path constants.
 class AppRoutes {
   AppRoutes._();
@@ -32,7 +30,6 @@ class AppRoutes {
   static const String painDiary = '/pain-diary';
   static const String painReport = '/pain-report';
   static const String medicationTracker = '/medication-tracker';
-  static const String prehab = '/prehab';
   static const String learn = '/learn';
   static const String breathe = '/breathe';
   static const String journey = '/journey';
@@ -97,10 +94,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.medicationTracker,
       builder: (_, __) => const MedicationTrackerScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.prehab,
-      builder: (_, __) => const PrehabScreen(),
     ),
     // Placeholder routes for Sprint 2+
     GoRoute(

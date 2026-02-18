@@ -9,9 +9,6 @@ export interface PatientSummary {
   painTrend: 'up' | 'down' | 'stable';
   lastLogAt: string;
   status: 'stable' | 'monitoring' | 'critical';
-  isPrehab: boolean;
-  surgeryDaysUntil?: number;
-  prehabReadiness?: number;
 }
 
 interface PatientStore {

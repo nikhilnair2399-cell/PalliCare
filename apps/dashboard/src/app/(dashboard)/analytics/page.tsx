@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
             Analytics &amp; Research
           </h1>
           <p className="text-sm text-charcoal-light">
-            Department metrics, pain analytics, prehab outcomes
+            Department metrics, pain analytics, medication outcomes
           </p>
         </div>
       </div>
@@ -25,8 +25,8 @@ export default function AnalyticsPage() {
         </h2>
         <p className="mt-2 text-sm text-charcoal-light">
           Pain distribution charts, ESAS trend analysis, medication efficacy
-          tracking, prehab vs non-prehab cohort comparison, and de-identified
-          FHIR export for research.
+          tracking, adherence patterns, and de-identified FHIR export for
+          research.
         </p>
         <p className="mt-4 text-xs text-charcoal-light/60">
           Phase 3 Feature &middot; Months 9-12

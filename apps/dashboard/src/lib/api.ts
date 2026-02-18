@@ -59,26 +59,9 @@ export const alertsApi = {
     api.post(`/clinical-alerts/${id}/escalate`),
 };
 
-/** Prehabilitation */
-export const prehabApi = {
-  listPathways: (params?: { status?: string }) =>
-    api.get('/surgical-pathways', { params }),
-  getPathway: (id: string) => api.get(`/surgical-pathways/${id}`),
-  getAssessments: (pathwayId: string) =>
-    api.get(`/surgical-pathways/${pathwayId}/assessments`),
-  getExerciseLogs: (patientId: string, params?: { from?: string }) =>
-    api.get(`/patients/${patientId}/exercise-logs`, { params }),
-  getNutritionLogs: (patientId: string, params?: { from?: string }) =>
-    api.get(`/patients/${patientId}/nutrition-logs`, { params }),
-  createAssessment: (pathwayId: string, data: unknown) =>
-    api.post(`/surgical-pathways/${pathwayId}/assessments`, data),
-  updatePathwayStatus: (id: string, status: string) =>
-    api.patch(`/surgical-pathways/${id}`, { status }),
-};
-
 /** Analytics */
 export const analyticsApi = {
   departmentSummary: () => api.get('/analytics/department-summary'),
   painDistribution: () => api.get('/analytics/pain-distribution'),
-  prehabOutcomes: () => api.get('/analytics/prehab-outcomes'),
+  medicationAdherence: () => api.get('/analytics/medication-adherence'),
 };

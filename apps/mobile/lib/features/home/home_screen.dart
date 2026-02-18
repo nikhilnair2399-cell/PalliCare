@@ -25,10 +25,6 @@ class HomeScreen extends StatelessWidget {
               _buildHeroCard(context),
               const SizedBox(height: AppSpacing.md),
 
-              // Prehab Countdown (if enrolled)
-              _buildPrehabCountdown(context),
-              const SizedBox(height: AppSpacing.md),
-
               // Medication Strip
               _buildMedicationStrip(context),
               const SizedBox(height: AppSpacing.md),
@@ -145,63 +141,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             child: const Text('Log now'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrehabCountdown(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.teal.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.teal.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.fitness_center, color: AppColors.teal, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Surgery in 8 days',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppColors.teal,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                // Readiness bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: 0.72,
-                    backgroundColor: AppColors.sageLightColor.withValues(alpha: 0.3),
-                    valueColor: const AlwaysStoppedAnimation(AppColors.sage),
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Readiness: 72% • Exercise: 85% • Nutrition: 70%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.charcoalLight,
-                        fontSize: 11,
-                      ),
-                ),
-              ],
-            ),
           ),
         ],
       ),

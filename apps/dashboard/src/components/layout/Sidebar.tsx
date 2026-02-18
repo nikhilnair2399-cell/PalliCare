@@ -9,7 +9,6 @@ import {
   Activity,
   Bell,
   BarChart3,
-  Dumbbell,
   Settings,
   LogOut,
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
-  { name: 'Prehab Pathways', href: '/prehab', icon: Dumbbell },
   { name: 'Alerts', href: '/alerts', icon: Bell },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];

@@ -13,8 +13,6 @@ interface PatientRow {
   painTrend: 'up' | 'down' | 'stable';
   lastLog: string;
   status: 'stable' | 'monitoring' | 'critical';
-  isPrehab: boolean;
-  surgeryIn?: number; // days
 }
 
 const mockPatients: PatientRow[] = [
@@ -27,7 +25,6 @@ const mockPatients: PatientRow[] = [
     painTrend: 'up',
     lastLog: '12 min ago',
     status: 'critical',
-    isPrehab: false,
   },
   {
     id: 'p2',
@@ -38,31 +35,26 @@ const mockPatients: PatientRow[] = [
     painTrend: 'up',
     lastLog: '28 min ago',
     status: 'critical',
-    isPrehab: false,
   },
   {
     id: 'p3',
     name: 'Arjun Mehta',
     age: 62,
-    diagnosis: 'Gastric CA — pre-op',
+    diagnosis: 'Gastric CA',
     painScore: 5,
     painTrend: 'down',
     lastLog: '1 hr ago',
     status: 'monitoring',
-    isPrehab: true,
-    surgeryIn: 8,
   },
   {
     id: 'p4',
     name: 'Sunita Devi',
     age: 55,
-    diagnosis: 'Breast CA — pre-op',
+    diagnosis: 'Breast CA (Stage IV)',
     painScore: 4,
     painTrend: 'stable',
     lastLog: '2 hr ago',
     status: 'monitoring',
-    isPrehab: true,
-    surgeryIn: 3,
   },
   {
     id: 'p5',
@@ -73,19 +65,16 @@ const mockPatients: PatientRow[] = [
     painTrend: 'down',
     lastLog: '3 hr ago',
     status: 'stable',
-    isPrehab: false,
   },
   {
     id: 'p6',
     name: 'Meera Joshi',
     age: 48,
-    diagnosis: 'Colorectal CA — post-op',
+    diagnosis: 'Colorectal CA',
     painScore: 4,
     painTrend: 'down',
     lastLog: '4 hr ago',
     status: 'stable',
-    isPrehab: true,
-    surgeryIn: -5, // post-op
   },
 ];
 
@@ -155,7 +144,6 @@ export function PatientListPreview() {
               <th className="px-3 py-3 text-center">Pain</th>
               <th className="px-3 py-3 text-center">Trend</th>
               <th className="px-3 py-3">Last Log</th>
-              <th className="px-3 py-3 text-center">Prehab</th>
               <th className="px-3 py-3" />
             </tr>
           </thead>
@@ -189,20 +177,6 @@ export function PatientListPreview() {
                 </td>
                 <td className="px-3 py-3 text-xs text-charcoal-light">
                   {patient.lastLog}
-                </td>
-                <td className="px-3 py-3 text-center">
-                  {patient.isPrehab ? (
-                    <span className="inline-flex items-center rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold text-teal">
-                      {patient.surgeryIn !== undefined && patient.surgeryIn > 0
-                        ? `T-${patient.surgeryIn}d`
-                        : patient.surgeryIn !== undefined &&
-                            patient.surgeryIn <= 0
-                          ? 'Post-op'
-                          : 'Active'}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-charcoal-light/40">—</span>
-                  )}
                 </td>
                 <td className="px-3 py-3">
                   <ChevronRight className="h-4 w-4 text-charcoal-light/40" />

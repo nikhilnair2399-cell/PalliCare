@@ -1,6 +1,6 @@
 # PalliCare
 
-> **Palliative Care, Pain Management & Prehabilitation Platform**
+> **Palliative Care & Pain Management Platform**
 > For AIIMS Bhopal — Department of Palliative Medicine & Anaesthesiology
 
 ## Architecture
@@ -48,7 +48,6 @@ npm run db:migrate
 
 # Apply migrations
 docker exec -i pallicare-db psql -U pallicare -d pallicare < packages/db/001_initial_schema.sql
-docker exec -i pallicare-db psql -U pallicare -d pallicare < packages/db/002_prehabilitation_schema.sql
 ```
 
 ## Design Documentation

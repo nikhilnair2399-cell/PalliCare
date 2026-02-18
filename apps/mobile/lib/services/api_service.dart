@@ -80,17 +80,6 @@ class ApiService {
         'limit': limit,
       });
 
-  // ---- Prehab APIs ----
-
-  Future<Response> getPrehabPathway(String patientId) =>
-      _dio.get('/patients/$patientId/prehab/pathway');
-
-  Future<Response> logExercise(Map<String, dynamic> log) =>
-      _dio.post('/prehab/exercise-logs', data: log);
-
-  Future<Response> logNutrition(Map<String, dynamic> log) =>
-      _dio.post('/prehab/nutrition-logs', data: log);
-
   // ---- Report APIs ----
 
   Future<Response> generateReport(Map<String, dynamic> config) =>

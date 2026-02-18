@@ -140,63 +140,6 @@ export type {
   DoctorReport,
 } from './doctor-report';
 
-// ── Surgical Pathway ─────────────────────────────────────────────────────────
-export type {
-  ProcedureType,
-  SurgicalIntent,
-  AnaestheticTechnique,
-  PostOpDisposition,
-  SurgicalPathwayStatus,
-  SurgicalPathway,
-} from './surgical-pathway';
-
-// ── Prehab Assessment ────────────────────────────────────────────────────────
-export type {
-  AssessmentType,
-  ReadinessVerdict,
-  FunctionalScores,
-  NutritionalScores,
-  PsychologicalScores,
-  MedicalScores,
-  PrehabAssessment,
-} from './prehab-assessment';
-
-// ── Exercise Plan & Log ──────────────────────────────────────────────────────
-export type {
-  ExerciseType,
-  DifficultyLevel,
-  ExerciseIntensity,
-  ExercisePlanStatus,
-  ExerciseLoggedByRole,
-  ExerciseSkipReason,
-  PrescribedExercise,
-  ExercisePlan,
-  ExerciseLog,
-} from './exercise';
-
-// ── Nutrition Log & Target ───────────────────────────────────────────────────
-export type {
-  MealType,
-  PortionSize,
-  AppetiteScore,
-  NauseaLevel,
-  DietaryPreference,
-  FoodItem,
-  NutritionLog,
-  NutritionTarget,
-} from './nutrition';
-
-// ── Advance Directive ────────────────────────────────────────────────────────
-export type {
-  TreatmentChoice,
-  DirectiveStatus,
-  SurrogateRelationship,
-  PreferredCareLocation,
-  SurrogateDecisionMaker,
-  TreatmentPreferences,
-  AdvanceDirective,
-} from './advance-directive';
-
 // ── API Types ──────────────────────────────────────────────────────────────
 export type {
   // Common

@@ -31,14 +31,14 @@ const mockAlerts: Alert[] = [
     id: '3',
     patientName: 'Arjun M.',
     type: 'warning',
-    message: 'Prehab exercise compliance dropped to 40%',
+    message: 'Gabapentin adherence dropped to 60% this week',
     time: '1 hr ago',
   },
   {
     id: '4',
     patientName: 'Sunita D.',
     type: 'warning',
-    message: 'Surgery in 3 days — NPO not confirmed',
+    message: 'Mood reported as "Low" for 3 consecutive days',
     time: '2 hr ago',
   },
   {

@@ -1,8 +1,7 @@
 import { StatCard } from '@/components/ui/StatCard';
 import { PatientListPreview } from '@/components/patients/PatientListPreview';
 import { AlertsPreview } from '@/components/ui/AlertsPreview';
-import { PrehabOverview } from '@/components/prehab/PrehabOverview';
-import { Users, AlertTriangle, Activity, Dumbbell } from 'lucide-react';
+import { Users, AlertTriangle, Activity, Pill } from 'lucide-react';
 
 export default function DashboardPage() {
   return (
@@ -41,11 +40,11 @@ export default function DashboardPage() {
           icon={<Activity className="h-5 w-5" />}
         />
         <StatCard
-          title="Prehab Patients"
-          value="8"
-          change="5 surgery < 14 days"
-          changeType="info"
-          icon={<Dumbbell className="h-5 w-5" />}
+          title="Medication Adherence"
+          value="87%"
+          change="+2% from last week"
+          changeType="increase"
+          icon={<Pill className="h-5 w-5" />}
         />
       </div>
 
@@ -59,7 +58,6 @@ export default function DashboardPage() {
         {/* Right Column */}
         <div className="space-y-6">
           <AlertsPreview />
-          <PrehabOverview />
         </div>
       </div>
     </div>

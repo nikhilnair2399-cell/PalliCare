@@ -16,10 +16,3 @@ export 'medication_log.dart';
 export 'notification.dart';
 export 'clinical_alert.dart';
 export 'doctor_report.dart';
-
-// ── Prehabilitation ──────────────────────────────────────────────────────────
-export 'surgical_pathway.dart';
-export 'prehab_assessment.dart';
-export 'exercise_plan.dart';
-export 'nutrition_log.dart';
-export 'advance_directive.dart';
