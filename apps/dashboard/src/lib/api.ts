@@ -36,32 +36,64 @@ api.interceptors.response.use(
 );
 
 // ── API Functions ────────────────────────────────────────
+// Endpoint paths match the NestJS backend routes (apps/api)
 
-/** Patients */
+/** Auth */
+export const authApi = {
+  requestOtp: (phone: string) => api.post('/auth/otp/request', { phone }),
+  verifyOtp: (phone: string, otp: string) =>
+    api.post('/auth/otp/verify', { phone, otp }),
+  refreshToken: (refreshToken: string) =>
+    api.post('/auth/token/refresh', { refresh_token: refreshToken }),
+};
+
+/** Patients (clinician view) */
 export const patientsApi = {
-  list: (params?: { status?: string; search?: string }) =>
-    api.get('/patients', { params }),
-  get: (id: string) => api.get(`/patients/${id}`),
+  list: (params?: { status?: string; search?: string; sort_by?: string; page?: number }) =>
+    api.get('/clinician/patients', { params }),
+  get: (id: string) => api.get(`/clinician/patients/${id}`),
   getSymptomLogs: (id: string, params?: { from?: string; to?: string }) =>
-    api.get(`/patients/${id}/symptom-logs`, { params }),
-  getMedications: (id: string) => api.get(`/patients/${id}/medications`),
+    api.get(`/clinician/patients/${id}/symptom-logs`, { params }),
+  getMedications: (id: string) => api.get(`/clinician/patients/${id}/medications`),
   getPainTrends: (id: string, days?: number) =>
-    api.get(`/patients/${id}/pain-trends`, { params: { days: days || 30 } }),
+    api.get(`/clinician/patients/${id}/pain-trends`, { params: { days: days || 30 } }),
 };
 
 /** Alerts */
 export const alertsApi = {
-  list: (params?: { priority?: string; acknowledged?: boolean }) =>
+  list: (params?: { severity?: string; status?: string }) =>
     api.get('/clinical-alerts', { params }),
+  get: (id: string) => api.get(`/clinical-alerts/${id}`),
+  counts: () => api.get('/clinical-alerts/counts'),
   acknowledge: (id: string) =>
     api.patch(`/clinical-alerts/${id}/acknowledge`),
-  escalate: (id: string) =>
-    api.post(`/clinical-alerts/${id}/escalate`),
+  resolve: (id: string, notes?: string) =>
+    api.patch(`/clinical-alerts/${id}/resolve`, { notes }),
+  escalate: (id: string, escalateTo: string) =>
+    api.post(`/clinical-alerts/${id}/escalate`, { escalate_to: escalateTo }),
 };
 
 /** Analytics */
 export const analyticsApi = {
   departmentSummary: () => api.get('/analytics/department-summary'),
   painDistribution: () => api.get('/analytics/pain-distribution'),
-  medicationAdherence: () => api.get('/analytics/medication-adherence'),
+  medicationAdherence: (weeks?: number) =>
+    api.get('/analytics/medication-adherence', { params: { weeks } }),
+  meddDistribution: () => api.get('/analytics/medd-distribution'),
+  qualityMetrics: () => api.get('/analytics/quality-metrics'),
+};
+
+/** Notifications */
+export const notificationsApi = {
+  list: (params?: { unread_only?: boolean; type?: string }) =>
+    api.get('/notifications', { params }),
+  unreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.post('/notifications/read-all'),
+};
+
+/** Health */
+export const healthApi = {
+  check: () => api.get('/health'),
+  ready: () => api.get('/health/ready'),
 };
