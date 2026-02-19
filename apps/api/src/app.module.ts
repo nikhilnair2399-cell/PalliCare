@@ -11,6 +11,7 @@ import { ClinicalAlertsModule } from './clinical-alerts/clinical-alerts.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SyncModule } from './sync/sync.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SyncModule } from './sync/sync.module';
     NotificationsModule,
     AnalyticsModule,
     SyncModule,
+    GatewayModule,
   ],
   providers: [
     {

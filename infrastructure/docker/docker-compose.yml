@@ -179,20 +179,20 @@ services:
   # ============================================================================
   api:
     build:
-      context: ../../..
+      context: ../../apps/api
       dockerfile: Dockerfile
       target: development
     container_name: pallicare-api
     restart: unless-stopped
     ports:
-      - "3000:3000"   # REST API
-      - "3001:3001"   # WebSocket (Socket.IO)
+      - "3001:3001"   # REST API
+      - "3002:3002"   # WebSocket (Socket.IO)
       - "9090:9090"   # Prometheus metrics
       - "9229:9229"   # Node.js debugger
     environment:
       NODE_ENV: local
-      APP_PORT: 3000
-      WS_PORT: 3001
+      APP_PORT: 3001
+      WS_PORT: 3002
       # Database
       DB_HOST: postgres
       DB_PORT: 5432
@@ -218,7 +218,7 @@ services:
       S3_BUCKET_MEDIA: pallicare-media
       S3_FORCE_PATH_STYLE: "true"
       # Auth
-      JWT_ALGORITHM: RS256
+      JWT_SECRET: pallicare-dev-secret-key-change-in-production
       JWT_ACCESS_TOKEN_EXPIRY: 1h
       JWT_REFRESH_TOKEN_EXPIRY: 30d
       JWT_ISSUER: pallicare.aiims.edu
@@ -240,8 +240,11 @@ services:
       METRICS_PORT: 9090
     volumes:
       # Bind mount source code for hot-reload
-      - ../../../backend/src:/app/src:ro
-      - ../../../backend/package.json:/app/package.json:ro
+      - ../../apps/api/src:/app/src:ro
+      - ../../apps/api/package.json:/app/package.json:ro
+      - ../../apps/api/tsconfig.json:/app/tsconfig.json:ro
+      - ../../apps/api/tsconfig.build.json:/app/tsconfig.build.json:ro
+      - ../../apps/api/nest-cli.json:/app/nest-cli.json:ro
       # Persist node_modules in named volume (faster than bind mount)
       - api_node_modules:/app/node_modules
       # JWT keys for local development
@@ -257,7 +260,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -f http://localhost:3000/health || exit 1",
+          "curl -f http://localhost:3001/api/v1/health || exit 1",
         ]
       interval: 15s
       timeout: 10s
