@@ -19,6 +19,8 @@ import '../../features/breathe/breathe_screen.dart';
 import '../../features/breathe/breathe_player_screen.dart';
 import '../../features/journey/journey_screen.dart';
 import '../../features/caregiver/caregiver_screen.dart';
+import '../../features/settings/settings_screen.dart';
+import '../../features/notifications/notification_screen.dart';
 
 /// PalliCare route path constants.
 class AppRoutes {
@@ -136,27 +138,15 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.caregiver,
       builder: (_, __) => const CaregiverScreen(),
     ),
-    // Placeholder for Sprint 3+
+    // Sprint 4: Settings & Profile
     GoRoute(
       path: AppRoutes.settings,
-      builder: (_, __) => const _PlaceholderScreen(title: 'Settings'),
+      builder: (_, __) => const SettingsScreen(),
+    ),
+    // Sprint 4: Notification Center
+    GoRoute(
+      path: AppRoutes.notifications,
+      builder: (_, __) => const NotificationScreen(),
     ),
   ],
 );
-
-/// Placeholder for screens not yet built (Sprint 2+).
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text('$title — Coming in Sprint 2',
-            style: const TextStyle(fontSize: 18, color: Colors.grey)),
-      ),
-    );
-  }
-}

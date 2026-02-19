@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import {
   LayoutDashboard,
   Users,
+  Users2,
   Activity,
   Bell,
   BarChart3,
@@ -17,6 +18,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
   { name: 'Alerts', href: '/alerts', icon: Bell },
+  { name: 'MDT', href: '/mdt', icon: Users2 },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
