@@ -24,11 +24,11 @@ import { cn } from '@/lib/utils';
 
 // -- Mock data ----------------------------------------------------------------
 const PROFILE = {
-  name: 'Dr. Vaishali Waghmare',
+  name: 'Dr. Nikhil Nair',
   department: 'Anaesthesiology & Palliative Medicine',
   affiliation: 'AIIMS Bhopal',
-  role: 'Senior Resident',
-  email: 'vaishali.w@aiims.edu',
+  role: 'Lead Creator & Senior Resident',
+  email: 'nikhil.nair@aiims.edu',
   mciReg: 'MCI-2019-MP-4521',
   phone: '+91 98765 12345',
 };
@@ -98,7 +98,7 @@ export default function SettingsPage() {
         <div className="mt-5 flex items-start gap-6">
           {/* Avatar */}
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-teal text-2xl font-bold text-white flex-shrink-0">
-            VW
+            NN
           </div>
           <div className="flex-1 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>

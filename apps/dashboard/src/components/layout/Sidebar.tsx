@@ -95,11 +95,11 @@ export function Sidebar() {
       <div className="border-t border-sage-light/30 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sage text-xs font-bold text-white">
-            VW
+            NN
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-charcoal">
-              Dr. Vaishali W.
+              Dr. Nikhil Nair
             </p>
             <p className="truncate text-xs text-charcoal-light">
               Anaesthesiology

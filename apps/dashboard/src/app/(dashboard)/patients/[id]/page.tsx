@@ -140,7 +140,7 @@ const PATIENT_ALERTS: PatientAlert[] = [
 const CLINICAL_NOTES = [
   {
     id: 'cn1',
-    author: 'Dr. Vaishali W.',
+    author: 'Dr. Nikhil N.',
     role: 'Palliative Medicine',
     date: '17 Feb 2026',
     content:

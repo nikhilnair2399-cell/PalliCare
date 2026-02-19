@@ -43,7 +43,7 @@ const CARE_PLAN = {
     'Consider opioid rotation if MEDD exceeds 300mg or intolerable side effects',
   ],
   teamTasks: [
-    { id: 't1', text: 'Review breakthrough dose frequency and adjust background dose', assignee: 'Dr. Vaishali W.', role: 'Palliative Medicine', done: false },
+    { id: 't1', text: 'Review breakthrough dose frequency and adjust background dose', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false },
     { id: 't2', text: 'Train caregiver on PRN timing and pain diary recording', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
     { id: 't3', text: 'Schedule palliative RT consultation for T10 vertebral met', assignee: 'Dr. Anil K.', role: 'Oncology', done: false },
     { id: 't4', text: 'Assess for depression using PHQ-9 (low mood 3+ days)', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
@@ -63,7 +63,7 @@ const SBAR = {
 const TEAM_MESSAGES = [
   {
     id: 'm1',
-    author: 'Dr. Vaishali W.',
+    author: 'Dr. Nikhil N.',
     role: 'Palliative Medicine',
     badge: 'Dr.',
     badgeColor: 'bg-teal text-white',
@@ -129,7 +129,7 @@ export default function MDTPage() {
     if (!messageText.trim()) return;
     const newMsg = {
       id: `m${messages.length + 1}`,
-      author: 'Dr. Vaishali W.',
+      author: 'Dr. Nikhil N.',
       role: 'Palliative Medicine',
       badge: 'Dr.',
       badgeColor: 'bg-teal text-white',
