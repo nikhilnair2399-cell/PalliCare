@@ -24,9 +24,14 @@ async function bootstrap() {
   app.use(helmet());
   app.enableCors({
     origin: configService
-      .get<string>('CORS_ORIGINS', 'http://localhost:3000')
+      .get<string>(
+        'CORS_ORIGINS',
+        'http://localhost:3000,http://localhost:3005,http://localhost:3008',
+      )
       .split(','),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // Global pipes
@@ -64,10 +69,20 @@ async function bootstrap() {
       .addTag('patients', 'Patient data management')
       .addTag('medications', 'Medication tracking & MEDD')
       .addTag('clinical-alerts', 'Clinical alert system')
+      .addTag('clinical-notes', 'Clinical documentation (SOAP, SBAR, progress)')
+      .addTag('care-plans', 'Versioned care plans with goals & interventions')
+      .addTag('caregivers', 'Caregiver management, schedules & handover')
+      .addTag('messages', 'Care team communication threads')
+      .addTag('wellness', 'Goals, gratitude, intentions, milestones')
+      .addTag('education', 'Learn modules & breathe sessions')
+      .addTag('medication-database', 'Drug reference with MEDD conversion')
+      .addTag('consent', 'DPDPA 2023 consent management')
+      .addTag('uploads', 'S3/MinIO pre-signed URL generation')
+      .addTag('devices', 'FCM/APNS push token registration')
       .addTag('notifications', 'Push & in-app notifications')
-      .addTag('analytics', 'Department analytics')
+      .addTag('analytics', 'Department analytics & quality metrics')
       .addTag('sync', 'Offline data synchronisation')
-      .addTag('health', 'Service health checks')
+      .addTag('health', 'Service health & readiness checks')
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
