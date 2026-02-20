@@ -92,6 +92,73 @@ export const notificationsApi = {
   markAllAsRead: () => api.post('/notifications/read-all'),
 };
 
+/** Clinical Notes */
+export const clinicalNotesApi = {
+  list: (patientId: string, params?: { note_type?: string; page?: number }) =>
+    api.get(`/clinician/patients/${patientId}/notes`, { params }),
+  get: (id: string) => api.get(`/clinician/notes/${id}`),
+  create: (patientId: string, data: { note_type: string; content: string; structured_data?: any }) =>
+    api.post(`/clinician/patients/${patientId}/notes`, data),
+  update: (id: string, data: { content?: string; structured_data?: any }) =>
+    api.patch(`/clinician/notes/${id}`, data),
+  myNotes: (params?: { page?: number }) =>
+    api.get('/clinician/notes', { params }),
+};
+
+/** Care Plans */
+export const carePlansApi = {
+  list: (patientId: string, status?: string) =>
+    api.get(`/clinician/patients/${patientId}/care-plans`, { params: { status } }),
+  getActive: (patientId: string) =>
+    api.get(`/clinician/patients/${patientId}/care-plans/active`),
+  get: (id: string) => api.get(`/clinician/care-plans/${id}`),
+  create: (patientId: string, data: any) =>
+    api.post(`/clinician/patients/${patientId}/care-plans`, data),
+  update: (id: string, data: any) =>
+    api.patch(`/clinician/care-plans/${id}`, data),
+  newVersion: (id: string) =>
+    api.post(`/clinician/care-plans/${id}/new-version`),
+};
+
+/** Caregivers */
+export const caregiversApi = {
+  listByPatient: (patientId: string) =>
+    api.get(`/clinician/patients/${patientId}/caregivers`),
+  update: (id: string, data: any) =>
+    api.patch(`/clinician/caregivers/${id}`, data),
+  getSchedules: (patientId: string, params?: { start_date?: string; end_date?: string }) =>
+    api.get(`/clinician/patients/${patientId}/schedules`, { params }),
+  createSchedule: (patientId: string, data: any) =>
+    api.post(`/clinician/patients/${patientId}/schedules`, data),
+  getHandoverNotes: (patientId: string) =>
+    api.get(`/clinician/patients/${patientId}/handover-notes`),
+  createHandoverNote: (patientId: string, data: { content: string; to_caregiver_id?: string }) =>
+    api.post(`/clinician/patients/${patientId}/handover-notes`, data),
+};
+
+/** Messages */
+export const messagesApi = {
+  getPatientMessages: (patientId: string, params?: { thread_id?: string; page?: number }) =>
+    api.get(`/messages/patient/${patientId}`, { params }),
+  getThreads: (patientId: string) =>
+    api.get(`/messages/patient/${patientId}/threads`),
+  send: (data: { patient_id: string; recipient_id?: string; content: string; message_type?: string }) =>
+    api.post('/messages', data),
+  markRead: (id: string) =>
+    api.patch(`/messages/${id}/read`),
+  unreadCount: () =>
+    api.get('/messages/unread-count'),
+};
+
+/** Medication Database (Reference) */
+export const medicationDbApi = {
+  search: (query: string, limit?: number) =>
+    api.get('/medication-db/search', { params: { q: query, limit } }),
+  get: (id: string) => api.get(`/medication-db/${id}`),
+  palliative: () => api.get('/medication-db/palliative'),
+  opioidReference: () => api.get('/medication-db/opioid-reference'),
+};
+
 /** Health */
 export const healthApi = {
   check: () => api.get('/health'),

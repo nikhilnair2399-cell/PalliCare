@@ -11,7 +11,7 @@ class ApiEndpoints {
 
   static const String production = 'https://api.pallicare.aiims.edu/v1';
   static const String staging = 'https://staging-api.pallicare.aiims.edu/v1';
-  static const String local = 'http://localhost:8000/v1';
+  static const String local = 'http://localhost:3001/api/v1';
 
   // ---------------------------------------------------------------------------
   // AUTH
@@ -65,17 +65,28 @@ class ApiEndpoints {
   // EDUCATION (Learn Module)
   // ---------------------------------------------------------------------------
 
-  static const String educationModules = '/education/modules';
+  static const String educationModules = '/learn/modules';
 
-  /// Progress for a specific education module.
+  /// Get a specific education module.
+  static String educationModuleById(String moduleId) =>
+      '/learn/modules/$moduleId';
+
+  /// Get modules with my progress.
+  static const String educationMyProgress = '/patients/me/learn';
+
+  /// Get overall education progress.
+  static const String educationOverview = '/patients/me/learn/overview';
+
+  /// Update progress for a specific module.
   static String educationModuleProgress(String moduleId) =>
-      '/education/modules/$moduleId/progress';
+      '/patients/me/learn/$moduleId/progress';
 
   // ---------------------------------------------------------------------------
   // BREATHE
   // ---------------------------------------------------------------------------
 
-  static const String breatheSessions = '/patients/me/breathe/sessions';
+  static const String breatheSessions = '/patients/me/breathe';
+  static const String breatheStats = '/patients/me/breathe/stats';
 
   // ---------------------------------------------------------------------------
   // JOURNEY (Goals, Gratitude, Intentions, Milestones, Legacy)
@@ -87,8 +98,23 @@ class ApiEndpoints {
   static String goalLog(String goalId) => '/patients/me/goals/$goalId/log';
 
   static const String gratitude = '/patients/me/gratitude';
+  static const String gratitudeToday = '/patients/me/gratitude/today';
+  static const String gratitudeStreak = '/patients/me/gratitude/streak';
   static const String intentions = '/patients/me/intentions';
+  static const String intentionToday = '/patients/me/intentions/today';
+
+  /// Update intention completion status for a date.
+  static String intentionStatus(String date) =>
+      '/patients/me/intentions/$date/status';
+
   static const String milestones = '/patients/me/milestones';
+  static const String milestonesUnseenCount = '/patients/me/milestones/unseen-count';
+
+  /// Mark a specific milestone as seen.
+  static String milestoneSeen(String id) => '/patients/me/milestones/$id/seen';
+  static const String milestonesMarkAllSeen = '/patients/me/milestones/mark-all-seen';
+
+  static const String wellnessSummary = '/patients/me/wellness/summary';
   static const String legacy = '/patients/me/legacy';
 
   // ---------------------------------------------------------------------------
@@ -136,10 +162,49 @@ class ApiEndpoints {
       '/patients/me/reports/$reportId/share';
 
   // ---------------------------------------------------------------------------
-  // FILES
+  // MESSAGES
   // ---------------------------------------------------------------------------
 
-  static const String filesUpload = '/files/upload';
+  static const String messages = '/messages';
+  static const String messagesUnreadCount = '/messages/unread-count';
+
+  /// Mark a message as read.
+  static String messageRead(String id) => '/messages/$id/read';
+
+  // ---------------------------------------------------------------------------
+  // CONSENT (DPDPA 2023)
+  // ---------------------------------------------------------------------------
+
+  static const String consent = '/consent';
+  static const String consentAll = '/consent/all';
+
+  /// Grant consent.
+  static String consentGrant = '/consent';
+
+  /// Revoke consent by type.
+  static String consentRevoke(String type) => '/consent/$type';
+
+  // ---------------------------------------------------------------------------
+  // DEVICES
+  // ---------------------------------------------------------------------------
+
+  static const String devices = '/devices';
+  static const String deviceRegister = '/devices/register';
+
+  // ---------------------------------------------------------------------------
+  // FILES / UPLOADS
+  // ---------------------------------------------------------------------------
+
+  static const String uploadsPresign = '/uploads/presign';
+  static const String uploadsPresignDownload = '/uploads/presign/download';
+
+  // ---------------------------------------------------------------------------
+  // MEDICATION DATABASE (Reference)
+  // ---------------------------------------------------------------------------
+
+  static const String medicationDbSearch = '/medication-db/search';
+  static const String medicationDbPalliative = '/medication-db/palliative';
+  static const String medicationDbOpioidRef = '/medication-db/opioid-reference';
 
   // ---------------------------------------------------------------------------
   // SYNC
