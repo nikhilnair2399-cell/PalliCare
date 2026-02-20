@@ -12,6 +12,16 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SyncModule } from './sync/sync.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { WellnessModule } from './wellness/wellness.module';
+import { EducationModule } from './education/education.module';
+import { MessagesModule } from './messages/messages.module';
+import { ClinicalNotesModule } from './clinical-notes/clinical-notes.module';
+import { CarePlansModule } from './care-plans/care-plans.module';
+import { CaregiversModule } from './caregivers/caregivers.module';
+import { DevicesModule } from './devices/devices.module';
+import { MedicationDbModule } from './medication-db/medication-db.module';
+import { ConsentModule } from './consent/consent.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -39,7 +49,7 @@ import { GatewayModule } from './gateway/gateway.module';
     DatabaseModule,
     HealthModule,
 
-    // Feature modules
+    // Feature modules — Auth & Core
     AuthModule,
     PatientsModule,
     MedicationsModule,
@@ -48,6 +58,18 @@ import { GatewayModule } from './gateway/gateway.module';
     AnalyticsModule,
     SyncModule,
     GatewayModule,
+
+    // Feature modules — Sprint 8
+    WellnessModule,
+    EducationModule,
+    MessagesModule,
+    ClinicalNotesModule,
+    CarePlansModule,
+    CaregiversModule,
+    DevicesModule,
+    MedicationDbModule,
+    ConsentModule,
+    UploadsModule,
   ],
   providers: [
     {
