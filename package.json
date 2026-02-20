@@ -19,9 +19,11 @@
     "dev:types": "npm run build --workspace=packages/shared-types",
     "db:migrate": "cd infrastructure/docker && docker compose up -d postgres",
     "db:seed": "npx ts-node apps/api/src/database/seed.ts",
+    "db:reset": "cd infrastructure/docker && docker compose down -v && docker compose up -d postgres redis minio minio-init",
     "infra:up": "cd infrastructure/docker && docker compose up -d",
     "infra:down": "cd infrastructure/docker && docker compose down",
     "infra:logs": "cd infrastructure/docker && docker compose logs -f",
+    "infra:reset": "cd infrastructure/docker && docker compose down -v && docker compose up -d",
     "clean": "npm run clean --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
