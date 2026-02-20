@@ -10,8 +10,14 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { clinicalNotesApi } from '@/lib/api';
+import { useWithFallback } from '@/lib/use-api-status';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const NOTE_TYPES = [
   { value: 'all', label: 'All Types' },
@@ -46,12 +52,42 @@ const NOTES = [
   { id: '6', patient: 'Kavita Gupta', type: 'mdt_meeting', date: '17 Feb 2026, 11:00', content: 'MDT discussed treatment options. Consensus: continue current palliative chemotherapy with dose modification. Palliative radiotherapy to abdominal mass considered.' },
 ];
 
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hrs ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function mapApiNote(n: any) {
+  return {
+    id: n.id,
+    patient: n.patient_name || n.patient || 'Unknown',
+    type: n.note_type || n.type || 'progress',
+    date: n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
+    content: n.content || '',
+  };
+}
+
 export default function ClinicalNotesPage() {
   const [selectedType, setSelectedType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
 
-  const filteredNotes = NOTES.filter((note) => {
+  // Fetch my notes from API — fallback to mock
+  const myNotesQuery = useQuery({
+    queryKey: ['notes', 'mine', selectedType],
+    queryFn: () => clinicalNotesApi.myNotes({ page: 1 }).then((r) => r.data),
+  });
+  const { data: rawNotes, isLoading, isFromApi } = useWithFallback(myNotesQuery, NOTES);
+
+  const allNotes = isFromApi
+    ? (Array.isArray(rawNotes) ? rawNotes : (rawNotes as any)?.data || []).map(mapApiNote)
+    : NOTES;
+
+  const filteredNotes: any[] = allNotes.filter((note: any) => {
     const matchesType = selectedType === 'all' || note.type === selectedType;
     const matchesSearch =
       !searchQuery ||
@@ -71,6 +107,10 @@ export default function ClinicalNotesPage() {
           <p className="mt-1 text-sm text-charcoal/60">
             View and manage clinical notes across all patients
           </p>
+          {isLoading && <Loader2 className="mt-1 h-4 w-4 animate-spin text-teal" />}
+          {!isFromApi && !isLoading && (
+            <span className="mt-1 inline-block rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-semibold text-amber">Demo Data</span>
+          )}
         </div>
         <button className="flex items-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal/90 transition-colors">
           <Plus className="h-4 w-4" />

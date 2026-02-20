@@ -12,8 +12,12 @@ import {
   Paperclip,
   Phone,
   Video,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnreadMessageCount } from '@/lib/hooks';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* ------------------------------------------------------------------ */
 /*  Mock data                                                          */
@@ -178,6 +182,10 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedThread, setSelectedThread] = useState<string>(THREADS[0]?.id || '');
   const [newMessage, setNewMessage] = useState('');
+
+  // Fetch unread count from API (real-time polling)
+  const unreadCountQuery = useUnreadMessageCount();
+  const totalUnread = (unreadCountQuery.data as any)?.count ?? THREADS.reduce((s, t) => s + t.unread, 0);
 
   const filteredThreads = THREADS.filter(
     (t) =>

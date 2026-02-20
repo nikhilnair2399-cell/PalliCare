@@ -12,8 +12,13 @@ import {
   Calculator,
   Shield,
   Info,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePalliativeMedications, useMedicationSearch } from '@/lib/hooks';
+import { useWithFallback } from '@/lib/use-api-status';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* ------------------------------------------------------------------ */
 /*  Mock data — matches seed.ts medication_database entries            */
@@ -239,12 +244,53 @@ const WHO_STEP_COLORS: Record<number, string> = {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
+function mapApiMed(m: any): Medication {
+  return {
+    id: m.id,
+    generic_name: m.generic_name || m.name || '',
+    brand_names: m.brand_names || [],
+    hindi_name: m.hindi_name || '',
+    drug_class: m.drug_class || m.category || '',
+    category: m.category || 'adjuvant',
+    route: m.routes || m.route || [],
+    dosage_forms: m.dosage_forms || '',
+    indication_palliative: m.indication_palliative || m.indications || '',
+    common_doses: m.common_doses || m.dosing || '',
+    max_dose: m.max_dose || '',
+    renal_adjustment: m.renal_adjustment || '',
+    hepatic_adjustment: m.hepatic_adjustment || '',
+    side_effects: m.side_effects || [],
+    interactions: m.interactions || [],
+    is_opioid: m.is_opioid || false,
+    medd_factor: m.medd_factor ?? null,
+    who_ladder_step: m.who_ladder_step ?? null,
+    schedule: m.schedule || '',
+    nlem: m.nlem || false,
+  };
+}
+
 export default function MedicationDbPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const filtered = MEDICATIONS.filter((med) => {
+  // Fetch from API — fallback to mock
+  const palliativeQuery = usePalliativeMedications();
+  const searchApiQuery = useMedicationSearch(searchQuery);
+  const { data: rawMeds, isLoading, isFromApi } = useWithFallback(palliativeQuery, MEDICATIONS);
+
+  const apiMedications: Medication[] = isFromApi
+    ? (Array.isArray(rawMeds) ? rawMeds : (rawMeds as any)?.data || []).map(mapApiMed)
+    : MEDICATIONS;
+
+  // If user is searching and API is live, prefer search results
+  const searchResults = searchQuery.length >= 2 && searchApiQuery.data
+    ? (Array.isArray(searchApiQuery.data) ? searchApiQuery.data : (searchApiQuery.data as any)?.data || []).map(mapApiMed)
+    : null;
+
+  const baseMeds: Medication[] = searchResults || apiMedications;
+
+  const filtered = baseMeds.filter((med: Medication) => {
     const matchesSearch =
       !searchQuery ||
       med.generic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -265,6 +311,10 @@ export default function MedicationDbPage() {
         <p className="mt-1 text-sm text-charcoal/60">
           Palliative care drug database with dosing, interactions, and MEDD conversion
         </p>
+        {isLoading && <Loader2 className="mt-1 h-4 w-4 animate-spin text-teal" />}
+        {!isFromApi && !isLoading && (
+          <span className="mt-1 inline-block rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-semibold text-amber">Demo Data</span>
+        )}
       </div>
 
       {/* Search + Filters */}

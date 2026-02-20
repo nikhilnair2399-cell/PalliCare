@@ -12,8 +12,14 @@ import {
   Target,
   Stethoscope,
   ListTodo,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { carePlansApi } from '@/lib/api';
+import { useWithFallback } from '@/lib/use-api-status';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const STATUS_BADGE: Record<string, string> = {
   active: 'bg-alert-success/10 text-alert-success',

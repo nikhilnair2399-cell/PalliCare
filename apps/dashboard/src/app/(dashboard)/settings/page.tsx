@@ -19,8 +19,11 @@ import {
   Mail,
   Smartphone,
   Heart,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHealthCheck } from '@/lib/hooks';
+import { useApiStatus } from '@/lib/use-api-status';
 
 // -- Mock data ----------------------------------------------------------------
 const PROFILE = {
@@ -44,6 +47,15 @@ interface AlertPreference {
 
 // -- Component ----------------------------------------------------------------
 export default function SettingsPage() {
+  // API health & status
+  const healthQuery = useHealthCheck();
+  const { status: apiStatus, isOnline } = useApiStatus();
+
+  const healthData = healthQuery.data as any;
+  const dbStatus = healthData?.details?.database?.status === 'up' || healthData?.status === 'ok';
+  const tsdbVersion = healthData?.details?.timescaledb?.version;
+  const dbVersion = healthData?.details?.database?.version;
+
   // Alert preferences state
   const [alertPreferences, setAlertPreferences] = useState<AlertPreference[]>([
     { id: 'critical_pain', label: 'Critical Pain Alerts', description: 'NRS > 7 sustained for 4+ hours', icon: AlertTriangle, enabled: true, severity: 'critical' },
@@ -398,13 +410,16 @@ export default function SettingsPage() {
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Services */}
           <div>
-            <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Services</p>
+            <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">
+              Services
+              {healthQuery.isLoading && <Loader2 className="ml-2 inline h-3 w-3 animate-spin text-teal" />}
+            </p>
             {[
-              { name: 'NestJS API', detail: 'localhost:3001', ok: true },
-              { name: 'PostgreSQL + TimescaleDB', detail: 'v16 + v2.14', ok: true },
-              { name: 'Redis', detail: 'v7.2 Alpine', ok: true },
-              { name: 'MinIO (S3)', detail: '4 buckets', ok: true },
-              { name: 'WebSocket Gateway', detail: 'localhost:3002', ok: true },
+              { name: 'NestJS API', detail: isOnline ? 'Connected' : 'localhost:3001', ok: isOnline },
+              { name: 'PostgreSQL + TimescaleDB', detail: dbVersion ? `${dbVersion.split(',')[0]}${tsdbVersion ? ` + v${tsdbVersion}` : ''}` : 'v16 + v2.14', ok: dbStatus },
+              { name: 'Redis', detail: 'v7.2 Alpine', ok: isOnline },
+              { name: 'MinIO (S3)', detail: '4 buckets', ok: isOnline },
+              { name: 'WebSocket Gateway', detail: 'localhost:3002', ok: isOnline },
             ].map((svc) => (
               <div key={svc.name} className="flex items-center justify-between py-2 border-b border-sage-light/10 last:border-0">
                 <span className="text-sm text-charcoal">{svc.name}</span>
@@ -457,7 +472,7 @@ export default function SettingsPage() {
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Version</p>
             <p className="mt-1 text-sm font-medium text-charcoal">v1.0.0-beta</p>
-            <p className="text-xs text-charcoal/50 mt-1">Sprint 10 &middot; Built 20 Feb 2026</p>
+            <p className="text-xs text-charcoal/50 mt-1">Sprint 17 &middot; Built 20 Feb 2026</p>
           </div>
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Institution</p>
