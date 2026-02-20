@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   MessageSquare,
   Search,
@@ -13,9 +13,10 @@ import {
   Phone,
   Video,
   Loader2,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUnreadMessageCount } from '@/lib/hooks';
+import { useUnreadMessageCount, useSendMessage } from '@/lib/hooks';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -23,7 +24,7 @@ import { useUnreadMessageCount } from '@/lib/hooks';
 /*  Mock data                                                          */
 /* ------------------------------------------------------------------ */
 
-const THREADS = [
+const INITIAL_THREADS = [
   {
     id: 't1',
     patientName: 'Ramesh Kumar',
@@ -66,103 +67,26 @@ const THREADS = [
   },
 ];
 
-const MESSAGES: Record<
+const INITIAL_MESSAGES: Record<
   string,
   { id: string; sender: string; role: string; content: string; time: string; isOwn: boolean }[]
 > = {
   t1: [
-    {
-      id: 'm1',
-      sender: 'Nurse Priya',
-      role: 'nurse',
-      content: 'Patient Ramesh Kumar is reporting pain NRS 7/10 this morning. This is the third consecutive day above 6.',
-      time: '09:15 AM',
-      isOwn: false,
-    },
-    {
-      id: 'm2',
-      sender: 'Dr. Nikhil Nair',
-      role: 'physician',
-      content: 'Thanks for flagging. What is his current morphine dose and when was the last breakthrough dose given?',
-      time: '09:22 AM',
-      isOwn: true,
-    },
-    {
-      id: 'm3',
-      sender: 'Nurse Priya',
-      role: 'nurse',
-      content: 'Sustained release morphine 30mg BD. Last breakthrough dose (IR morphine 10mg) was given at 6 AM. He is also reporting disturbed sleep due to pain.',
-      time: '09:30 AM',
-      isOwn: false,
-    },
-    {
-      id: 'm4',
-      sender: 'Dr. Nikhil Nair',
-      role: 'physician',
-      content: 'Let\'s increase the SR morphine to 45mg BD and add a nighttime adjuvant. I\'ll update the care plan. Please reassess in 24 hours.',
-      time: '09:35 AM',
-      isOwn: true,
-    },
-    {
-      id: 'm5',
-      sender: 'Nurse Priya',
-      role: 'nurse',
-      content: 'Pain score has been consistently above 6 for the past 3 days. Requesting medication review.',
-      time: '09:45 AM',
-      isOwn: false,
-    },
+    { id: 'm1', sender: 'Nurse Priya', role: 'nurse', content: 'Patient Ramesh Kumar is reporting pain NRS 7/10 this morning. This is the third consecutive day above 6.', time: '09:15 AM', isOwn: false },
+    { id: 'm2', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Thanks for flagging. What is his current morphine dose and when was the last breakthrough dose given?', time: '09:22 AM', isOwn: true },
+    { id: 'm3', sender: 'Nurse Priya', role: 'nurse', content: 'Sustained release morphine 30mg BD. Last breakthrough dose (IR morphine 10mg) was given at 6 AM. He is also reporting disturbed sleep due to pain.', time: '09:30 AM', isOwn: false },
+    { id: 'm4', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Let\'s increase the SR morphine to 45mg BD and add a nighttime adjuvant. I\'ll update the care plan. Please reassess in 24 hours.', time: '09:35 AM', isOwn: true },
+    { id: 'm5', sender: 'Nurse Priya', role: 'nurse', content: 'Pain score has been consistently above 6 for the past 3 days. Requesting medication review.', time: '09:45 AM', isOwn: false },
   ],
   t2: [
-    {
-      id: 'm6',
-      sender: 'Dietitian Anita',
-      role: 'dietitian',
-      content: 'Sunita ji has been tolerating small frequent meals better since we switched to bland diet plan. Nausea episodes reduced from 4/day to 1/day.',
-      time: '02:00 PM',
-      isOwn: false,
-    },
-    {
-      id: 'm7',
-      sender: 'Dr. Nikhil Nair',
-      role: 'physician',
-      content: 'Good improvement. The ondansetron switch seems to be working. Let\'s continue current regime and reassess after one week.',
-      time: '02:15 PM',
-      isOwn: true,
-    },
-    {
-      id: 'm8',
-      sender: 'Dietitian Anita',
-      role: 'dietitian',
-      content: 'Nausea subsided after switching anti-emetic. Will continue monitoring.',
-      time: '02:30 PM',
-      isOwn: false,
-    },
+    { id: 'm6', sender: 'Dietitian Anita', role: 'dietitian', content: 'Sunita ji has been tolerating small frequent meals better since we switched to bland diet plan. Nausea episodes reduced from 4/day to 1/day.', time: '02:00 PM', isOwn: false },
+    { id: 'm7', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Good improvement. The ondansetron switch seems to be working. Let\'s continue current regime and reassess after one week.', time: '02:15 PM', isOwn: true },
+    { id: 'm8', sender: 'Dietitian Anita', role: 'dietitian', content: 'Nausea subsided after switching anti-emetic. Will continue monitoring.', time: '02:30 PM', isOwn: false },
   ],
   t3: [
-    {
-      id: 'm9',
-      sender: 'Social Worker Meena',
-      role: 'social_worker',
-      content: 'Arjun ji\'s family has requested a meeting to discuss goals of care. They have concerns about the transition to comfort-focused care.',
-      time: '10:00 AM',
-      isOwn: false,
-    },
-    {
-      id: 'm10',
-      sender: 'Dr. Nikhil Nair',
-      role: 'physician',
-      content: 'I can be available tomorrow at 3 PM. Can we also get Chaplain Ravi to join for spiritual support? The family had expressed that as important.',
-      time: '10:30 AM',
-      isOwn: true,
-    },
-    {
-      id: 'm11',
-      sender: 'Social Worker Meena',
-      role: 'social_worker',
-      content: 'Family meeting scheduled for tomorrow at 3 PM. Chaplain confirmed.',
-      time: '11:00 AM',
-      isOwn: false,
-    },
+    { id: 'm9', sender: 'Social Worker Meena', role: 'social_worker', content: 'Arjun ji\'s family has requested a meeting to discuss goals of care. They have concerns about the transition to comfort-focused care.', time: '10:00 AM', isOwn: false },
+    { id: 'm10', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'I can be available tomorrow at 3 PM. Can we also get Chaplain Ravi to join for spiritual support? The family had expressed that as important.', time: '10:30 AM', isOwn: true },
+    { id: 'm11', sender: 'Social Worker Meena', role: 'social_worker', content: 'Family meeting scheduled for tomorrow at 3 PM. Chaplain confirmed.', time: '11:00 AM', isOwn: false },
   ],
 };
 
@@ -180,31 +104,101 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedThread, setSelectedThread] = useState<string>(THREADS[0]?.id || '');
+  const [selectedThread, setSelectedThread] = useState<string>(INITIAL_THREADS[0]?.id || '');
   const [newMessage, setNewMessage] = useState('');
+  const [threads, setThreads] = useState(INITIAL_THREADS);
+  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch unread count from API (real-time polling)
+  // API hooks
   const unreadCountQuery = useUnreadMessageCount();
-  const totalUnread = (unreadCountQuery.data as any)?.count ?? THREADS.reduce((s, t) => s + t.unread, 0);
+  const sendMessageMutation = useSendMessage();
+  const totalUnread = (unreadCountQuery.data as any)?.count ?? threads.reduce((s, t) => s + t.unread, 0);
 
-  const filteredThreads = THREADS.filter(
+  const filteredThreads = threads.filter(
     (t) =>
       !searchQuery ||
       t.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const activeThread = THREADS.find((t) => t.id === selectedThread);
-  const threadMessages = MESSAGES[selectedThread] || [];
+  const activeThread = threads.find((t) => t.id === selectedThread);
+  const threadMessages = messages[selectedThread] || [];
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [threadMessages.length]);
+
+  // Mark thread as read on selection
+  useEffect(() => {
+    if (selectedThread) {
+      setThreads(prev => prev.map(t =>
+        t.id === selectedThread ? { ...t, unread: 0 } : t
+      ));
+    }
+  }, [selectedThread]);
+
+  function handleSendMessage() {
+    if (!newMessage.trim() || !activeThread) return;
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+
+    const msg = {
+      id: `msg-${Date.now()}`,
+      sender: 'Dr. Nikhil Nair',
+      role: 'physician',
+      content: newMessage.trim(),
+      time: timeStr,
+      isOwn: true,
+    };
+
+    // Add message to thread
+    setMessages(prev => ({
+      ...prev,
+      [selectedThread]: [...(prev[selectedThread] || []), msg],
+    }));
+
+    // Update thread preview
+    setThreads(prev => prev.map(t =>
+      t.id === selectedThread
+        ? { ...t, lastMessage: newMessage.trim(), lastMessageTime: 'just now' }
+        : t
+    ));
+
+    // Try API send
+    sendMessageMutation.mutate({
+      patient_id: activeThread.patientId,
+      content: newMessage.trim(),
+      message_type: 'text',
+    });
+
+    setNewMessage('');
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  }
 
   return (
     <div className="flex h-[calc(100vh-2rem)] flex-col gap-4">
       {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">Messages</h1>
-        <p className="mt-1 text-sm text-charcoal/60">
-          Care team communication &amp; patient discussion threads
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-teal">Messages</h1>
+          <p className="mt-1 text-sm text-charcoal/60">
+            Care team communication &amp; patient discussion threads
+            {totalUnread > 0 && (
+              <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-teal px-1.5 text-[10px] font-bold text-white">
+                {totalUnread} unread
+              </span>
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Main layout */}
@@ -272,7 +266,7 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat area */}
-        {activeThread && (
+        {activeThread ? (
           <div className="flex flex-col rounded-xl border border-sage-light/30 bg-white shadow-sm lg:col-span-2">
             {/* Chat header */}
             <div className="flex items-center justify-between border-b border-sage-light/20 px-5 py-3">
@@ -290,10 +284,16 @@ export default function MessagesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                <button
+                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
+                  title="Voice call (coming soon)"
+                >
                   <Phone className="h-4 w-4" />
                 </button>
-                <button className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                <button
+                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
+                  title="Video call (coming soon)"
+                >
                   <Video className="h-4 w-4" />
                 </button>
               </div>
@@ -344,27 +344,47 @@ export default function MessagesPage() {
                   </div>
                 </div>
               ))}
+              <div ref={chatEndRef} />
             </div>
 
             {/* Message input */}
             <div className="border-t border-sage-light/20 p-4">
               <div className="flex items-end gap-3">
-                <button className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                <button
+                  className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
+                  title="Attach file (coming soon)"
+                >
                   <Paperclip className="h-5 w-5" />
                 </button>
                 <div className="flex-1">
                   <textarea
                     rows={1}
-                    placeholder="Type a message..."
+                    placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     className="w-full resize-none rounded-xl border border-sage-light/30 bg-cream/30 px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/30"
                   />
                 </div>
-                <button className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-teal text-white shadow-sm hover:bg-teal/90 transition-colors">
-                  <Send className="h-4 w-4" />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim()}
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-teal text-white shadow-sm hover:bg-teal/90 disabled:opacity-50 transition-colors"
+                >
+                  {sendMessageMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </button>
               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-xl border-2 border-dashed border-sage-light/40 bg-cream/30 lg:col-span-2">
+            <div className="text-center">
+              <MessageSquare className="mx-auto h-12 w-12 text-charcoal/20" />
+              <p className="mt-3 text-sm font-medium text-charcoal/50">Select a conversation to view messages</p>
             </div>
           </div>
         )}

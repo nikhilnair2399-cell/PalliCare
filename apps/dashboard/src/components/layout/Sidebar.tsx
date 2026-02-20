@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import {
   LayoutDashboard,
@@ -17,14 +17,17 @@ import {
   ClipboardList,
   Pill,
 } from 'lucide-react';
+import { useAlertCounts, useUnreadMessageCount } from '@/lib/hooks';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
-  { name: 'Alerts', href: '/alerts', icon: Bell },
+  { name: 'Alerts', href: '/alerts', icon: Bell, badgeKey: 'alerts' },
   { name: 'Clinical Notes', href: '/notes', icon: FileText },
   { name: 'Care Plans', href: '/care-plans', icon: ClipboardList },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
+  { name: 'Messages', href: '/messages', icon: MessageSquare, badgeKey: 'messages' },
   { name: 'MDT', href: '/mdt', icon: Users2 },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Med Reference', href: '/medication-db', icon: Pill },
@@ -36,6 +39,23 @@ const bottomNav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Live alert counts from API
+  const alertCountsQuery = useAlertCounts();
+  const alertCount = (alertCountsQuery.data as any)?.critical ?? (alertCountsQuery.data as any)?.total ?? 3;
+
+  // Live unread message count
+  const unreadQuery = useUnreadMessageCount();
+  const unreadMsgCount = (unreadQuery.data as any)?.count ?? 0;
+
+  function handleSignOut() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
+      router.push('/login');
+    }
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-sage-light/30 bg-white">
@@ -58,6 +78,12 @@ export function Sidebar() {
           const isActive =
             pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));
+
+          // Resolve badge count
+          let badgeCount = 0;
+          if (item.badgeKey === 'alerts') badgeCount = alertCount;
+          else if (item.badgeKey === 'messages') badgeCount = unreadMsgCount;
+
           return (
             <Link
               key={item.name}
@@ -71,9 +97,12 @@ export function Sidebar() {
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {item.name}
-              {item.name === 'Alerts' && (
-                <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-alert-critical text-[10px] font-bold text-white">
-                  3
+              {badgeCount > 0 && (
+                <span className={clsx(
+                  'ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white',
+                  item.badgeKey === 'alerts' ? 'bg-alert-critical' : 'bg-teal',
+                )}>
+                  {badgeCount > 99 ? '99+' : badgeCount}
                 </span>
               )}
             </Link>
@@ -93,7 +122,10 @@ export function Sidebar() {
             {item.name}
           </Link>
         ))}
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-alert-critical">
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-alert-critical"
+        >
           <LogOut className="h-5 w-5" />
           Sign Out
         </button>

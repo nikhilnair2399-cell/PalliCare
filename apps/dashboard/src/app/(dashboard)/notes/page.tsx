@@ -11,11 +11,14 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  X,
+  Save,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { clinicalNotesApi } from '@/lib/api';
 import { useWithFallback } from '@/lib/use-api-status';
+import { useCreateNote } from '@/lib/hooks';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -43,49 +46,206 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 // Mock data
-const NOTES = [
-  { id: '1', patient: 'Ramesh Kumar', type: 'progress', date: '20 Feb 2026, 10:30', content: 'Patient reports improved pain control with current morphine regimen. No significant side effects. NRS decreased from 7 to 5 over past 3 days.' },
-  { id: '2', patient: 'Sunita Devi', type: 'assessment', date: '19 Feb 2026, 14:15', content: 'Comprehensive pain assessment done. Recommending opioid rotation to oxycodone due to morphine-induced nausea. MEDD calculation reviewed.' },
-  { id: '3', patient: 'Arjun Singh', type: 'soap', date: '19 Feb 2026, 09:00', content: 'S: Patient c/o increased nausea and breathlessness. O: SpO2 94%, RR 22. A: Opioid-induced nausea, progressive disease. P: Add ondansetron 4mg BD, O2 PRN.' },
-  { id: '4', patient: 'Priya Sharma', type: 'plan', date: '18 Feb 2026, 16:00', content: 'Plan: Increase gabapentin to 400mg TDS. Review in 1 week. Continue current opioid regimen. Referral to psychologist for coping strategies.' },
-  { id: '5', patient: 'Manoj Patel', type: 'handover_sbar', date: '18 Feb 2026, 20:00', content: 'SBAR: Situation - Patient stable on current regimen. Background - Chronic pancreatitis with neuropathic pain. Assessment - Well-controlled on tapentadol. Recommendation - Monitor overnight, PRN available.' },
-  { id: '6', patient: 'Kavita Gupta', type: 'mdt_meeting', date: '17 Feb 2026, 11:00', content: 'MDT discussed treatment options. Consensus: continue current palliative chemotherapy with dose modification. Palliative radiotherapy to abdominal mass considered.' },
+const MOCK_NOTES = [
+  { id: '1', patient: 'Ramesh Kumar', patientId: '1', type: 'progress', date: '20 Feb 2026, 10:30', content: 'Patient reports improved pain control with current morphine regimen. No significant side effects. NRS decreased from 7 to 5 over past 3 days.', author: 'Dr. Nikhil Nair' },
+  { id: '2', patient: 'Sunita Devi', patientId: '2', type: 'assessment', date: '19 Feb 2026, 14:15', content: 'Comprehensive pain assessment done. Recommending opioid rotation to oxycodone due to morphine-induced nausea. MEDD calculation reviewed.', author: 'Dr. Nikhil Nair' },
+  { id: '3', patient: 'Arjun Singh', patientId: '3', type: 'soap', date: '19 Feb 2026, 09:00', content: 'S: Patient c/o increased nausea and breathlessness. O: SpO2 94%, RR 22. A: Opioid-induced nausea, progressive disease. P: Add ondansetron 4mg BD, O2 PRN.', author: 'Dr. Nikhil Nair' },
+  { id: '4', patient: 'Priya Sharma', patientId: '4', type: 'plan', date: '18 Feb 2026, 16:00', content: 'Plan: Increase gabapentin to 400mg TDS. Review in 1 week. Continue current opioid regimen. Referral to psychologist for coping strategies.', author: 'Dr. Nikhil Nair' },
+  { id: '5', patient: 'Manoj Patel', patientId: '5', type: 'handover_sbar', date: '18 Feb 2026, 20:00', content: 'SBAR: Situation - Patient stable on current regimen. Background - Chronic pancreatitis with neuropathic pain. Assessment - Well-controlled on tapentadol. Recommendation - Monitor overnight, PRN available.', author: 'Sr. Meena R.' },
+  { id: '6', patient: 'Kavita Gupta', patientId: '6', type: 'mdt_meeting', date: '17 Feb 2026, 11:00', content: 'MDT discussed treatment options. Consensus: continue current palliative chemotherapy with dose modification. Palliative radiotherapy to abdominal mass considered.', author: 'Dr. Nikhil Nair' },
 ];
 
-function formatTimeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins} min ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} hrs ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
+// SOAP template
+const SOAP_TEMPLATE = `S (Subjective):
+Patient reports...
+
+O (Objective):
+Vitals: HR __, BP __/__, SpO2 __%, RR __
+Pain NRS: __/10, Site: __
+
+A (Assessment):
+
+
+P (Plan):
+`;
+
+const SBAR_TEMPLATE = `S (Situation):
+Patient __, age __, admitted for...
+
+B (Background):
+Relevant history:
+
+A (Assessment):
+Current status:
+
+R (Recommendation):
+`;
 
 function mapApiNote(n: any) {
   return {
     id: n.id,
     patient: n.patient_name || n.patient || 'Unknown',
+    patientId: n.patient_id || n.patientId || '',
     type: n.note_type || n.type || 'progress',
     date: n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
     content: n.content || '',
+    author: n.author_name || n.author || 'Dr. Nikhil Nair',
   };
 }
 
+// ── New Note Modal ───────────────────────────────────────────────────
+function NewNoteModal({ onClose, onCreated, isFromApi }: {
+  onClose: () => void;
+  onCreated: (note: any) => void;
+  isFromApi: boolean;
+}) {
+  const [patientName, setPatientName] = useState('');
+  const [noteType, setNoteType] = useState('progress');
+  const [content, setContent] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const createNoteMutation = useCreateNote();
+
+  function applyTemplate(type: string) {
+    setNoteType(type);
+    if (type === 'soap' && !content.trim()) setContent(SOAP_TEMPLATE);
+    else if (type === 'handover_sbar' && !content.trim()) setContent(SBAR_TEMPLATE);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!patientName.trim() || !content.trim()) return;
+
+    setSaving(true);
+    const now = new Date();
+    const newNote = {
+      id: `local-${Date.now()}`,
+      patient: patientName.trim(),
+      patientId: '',
+      type: noteType,
+      date: now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      content: content.trim(),
+      author: 'Dr. Nikhil Nair',
+    };
+
+    // Try API creation if available
+    if (isFromApi) {
+      try {
+        await createNoteMutation.mutateAsync({
+          patientId: newNote.patientId || '1',
+          data: { note_type: noteType, content: content.trim() },
+        });
+      } catch {
+        // Fall through to local
+      }
+    }
+
+    setTimeout(() => {
+      setSaving(false);
+      onCreated(newNote);
+    }, 300);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-sage-light/20 px-6 py-4">
+          <h2 className="font-heading text-xl font-bold text-teal">New Clinical Note</h2>
+          <button onClick={onClose} className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5 p-6">
+          {/* Patient Name */}
+          <div>
+            <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Patient Name *</label>
+            <input
+              type="text"
+              required
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+              placeholder="e.g. Ramesh Kumar"
+              className="w-full rounded-xl border border-sage-light/30 bg-white px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/30"
+            />
+          </div>
+
+          {/* Note Type */}
+          <div>
+            <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Note Type *</label>
+            <div className="flex flex-wrap gap-2">
+              {NOTE_TYPES.filter(t => t.value !== 'all').map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => applyTemplate(t.value)}
+                  className={cn(
+                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
+                    noteType === t.value
+                      ? 'bg-teal text-white'
+                      : cn('border border-sage-light/30', TYPE_COLORS[t.value] || 'bg-white text-charcoal/60'),
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div>
+            <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Content *</label>
+            <textarea
+              required
+              rows={10}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your clinical note..."
+              className="w-full resize-y rounded-xl border border-sage-light/30 bg-white px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/30 font-mono leading-relaxed"
+            />
+            <p className="mt-1 text-[10px] text-charcoal/40">{content.length} characters</p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 border-t border-sage-light/20 pt-5">
+            <button type="button" onClick={onClose} className="rounded-xl border border-sage/30 px-5 py-2.5 text-sm font-semibold text-charcoal/70 hover:bg-sage/5">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !patientName.trim() || !content.trim()}
+              className="flex items-center gap-2 rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal/90 disabled:opacity-50 transition-colors"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Note
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ────────────────────────────────────────────────────────
 export default function ClinicalNotesPage() {
   const [selectedType, setSelectedType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [localNotes, setLocalNotes] = useState<any[]>([]);
 
   // Fetch my notes from API — fallback to mock
   const myNotesQuery = useQuery({
     queryKey: ['notes', 'mine', selectedType],
     queryFn: () => clinicalNotesApi.myNotes({ page: 1 }).then((r) => r.data),
   });
-  const { data: rawNotes, isLoading, isFromApi } = useWithFallback(myNotesQuery, NOTES);
+  const { data: rawNotes, isLoading, isFromApi } = useWithFallback(myNotesQuery, MOCK_NOTES);
 
-  const allNotes = isFromApi
+  const apiNotes = isFromApi
     ? (Array.isArray(rawNotes) ? rawNotes : (rawNotes as any)?.data || []).map(mapApiNote)
-    : NOTES;
+    : MOCK_NOTES;
+
+  const allNotes = [...localNotes, ...apiNotes];
 
   const filteredNotes: any[] = allNotes.filter((note: any) => {
     const matchesType = selectedType === 'all' || note.type === selectedType;
@@ -96,6 +256,12 @@ export default function ClinicalNotesPage() {
     return matchesType && matchesSearch;
   });
 
+  function handleNoteCreated(note: any) {
+    setLocalNotes(prev => [note, ...prev]);
+    setShowNewModal(false);
+    setExpandedNote(note.id);
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -105,14 +271,17 @@ export default function ClinicalNotesPage() {
             Clinical Notes
           </h1>
           <p className="mt-1 text-sm text-charcoal/60">
-            View and manage clinical notes across all patients
+            {allNotes.length} notes &middot; View and manage clinical notes across all patients
           </p>
           {isLoading && <Loader2 className="mt-1 h-4 w-4 animate-spin text-teal" />}
           {!isFromApi && !isLoading && (
             <span className="mt-1 inline-block rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-semibold text-amber">Demo Data</span>
           )}
         </div>
-        <button className="flex items-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal/90 transition-colors">
+        <button
+          onClick={() => setShowNewModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal/90 transition-colors"
+        >
           <Plus className="h-4 w-4" />
           New Note
         </button>
@@ -163,6 +332,12 @@ export default function ClinicalNotesPage() {
                   <div className="mt-0.5 flex items-center gap-2 text-xs text-charcoal/50">
                     <Calendar className="h-3 w-3" />
                     {note.date}
+                    {note.author && (
+                      <>
+                        <span className="text-charcoal/30">&middot;</span>
+                        <span>{note.author}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -183,7 +358,7 @@ export default function ClinicalNotesPage() {
               </div>
             </div>
             <p className={cn(
-              'mt-3 text-sm text-charcoal/70 leading-relaxed',
+              'mt-3 text-sm text-charcoal/70 leading-relaxed whitespace-pre-wrap',
               expandedNote === note.id ? '' : 'line-clamp-2',
             )}>
               {note.content}
@@ -197,6 +372,15 @@ export default function ClinicalNotesPage() {
           <FileText className="mx-auto h-12 w-12 text-charcoal/20" />
           <p className="mt-3 text-sm font-medium text-charcoal/50">No notes found</p>
         </div>
+      )}
+
+      {/* New Note Modal */}
+      {showNewModal && (
+        <NewNoteModal
+          onClose={() => setShowNewModal(false)}
+          onCreated={handleNoteCreated}
+          isFromApi={isFromApi}
+        />
       )}
     </div>
   );
