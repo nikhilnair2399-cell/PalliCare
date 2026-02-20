@@ -30,6 +30,16 @@ import {
   ChevronDown,
   ChevronUp,
   Zap,
+  ClipboardList,
+  Users,
+  BookOpen,
+  Target,
+  CheckCircle2,
+  ListTodo,
+  GraduationCap,
+  Wind,
+  Sparkles,
+  Send,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -175,6 +185,73 @@ const CARE_PLAN = {
   ],
 };
 
+// -- Extended data for tabs ---------------------------------------------------
+const ACTIVE_CARE_PLAN = {
+  title: 'Palliative Care Plan \u2014 Pain Management Focus',
+  status: 'active',
+  version: 2,
+  goalsOfCare: 'Optimize pain management, maintain quality of life, support family caregivers',
+  goals: [
+    { goal: 'Pain NRS \u2264 4/10', status: 'in_progress' },
+    { goal: 'Improve sleep quality to >6h/night', status: 'pending' },
+    { goal: 'Maintain current functional status (PPS 50%)', status: 'in_progress' },
+  ],
+  interventions: [
+    { text: 'Opioid titration per WHO ladder protocol', assigned: 'Physician' },
+    { text: 'Daily symptom monitoring via PalliCare app', assigned: 'Patient' },
+    { text: 'Weekly psychosocial check-in', assigned: 'Psychologist' },
+    { text: 'Caregiver support counselling', assigned: 'Social Worker' },
+  ],
+  reviewDate: '28 Feb 2026',
+  createdBy: 'Dr. Nikhil Nair',
+  lastUpdated: '20 Feb 2026',
+};
+
+const CAREGIVERS_DATA = [
+  { name: 'Sunita Kumar', relationship: 'Spouse', phone: '+91 98765 43210', isPrimary: true, lastActive: '1h ago', distress: 6 },
+  { name: 'Rahul Kumar', relationship: 'Son', phone: '+91 87654 32109', isPrimary: false, lastActive: '2d ago', distress: 4 },
+];
+
+const CARE_SCHEDULE = [
+  { day: 'Mon', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, meal prep, symptom log' },
+  { day: 'Mon', shift: 'Evening', caregiver: 'Rahul Kumar', tasks: 'Wound care, mobility exercises' },
+  { day: 'Tue', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, doctor appointment' },
+  { day: 'Tue', shift: 'Evening', caregiver: 'Sunita Kumar', tasks: 'Breathing exercises, symptom log' },
+  { day: 'Wed', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, meal prep' },
+];
+
+const EDUCATION_PROGRESS = [
+  { module: 'Understanding Your Pain', phase: 1, progress: 100, status: 'completed' },
+  { module: 'Medication Management', phase: 1, progress: 100, status: 'completed' },
+  { module: 'Breathing for Comfort', phase: 2, progress: 75, status: 'in_progress' },
+  { module: 'Sleep Hygiene', phase: 2, progress: 30, status: 'in_progress' },
+  { module: 'Caregiver Wellness', phase: 3, progress: 0, status: 'locked' },
+];
+
+const WELLNESS_DATA = {
+  breatheSessions: { total: 12, thisWeek: 3, avgDuration: '8 min', favouriteExercise: '4-7-8 Breathing' },
+  gratitude: { streak: 5, totalEntries: 15 },
+  goals: [
+    { text: 'Walk in the garden daily', category: 'physical', progress: 60 },
+    { text: 'Complete pain education module', category: 'learning', progress: 75 },
+    { text: 'Video call with grandchildren weekly', category: 'social', progress: 100 },
+  ],
+  milestones: [
+    { title: 'First Week Logged', achieved: true, date: '10 Feb' },
+    { title: '7-Day Streak', achieved: true, date: '17 Feb' },
+    { title: 'First Breathe Session', achieved: true, date: '12 Feb' },
+    { title: '30-Day Warrior', achieved: false, date: null },
+  ],
+};
+
+const RECENT_MESSAGES = [
+  { sender: 'Nurse Priya', content: 'Pain score has been consistently above 6 for the past 3 days.', time: '10 min ago', role: 'nurse' },
+  { sender: 'Dr. Nikhil Nair', content: 'Let\'s increase the SR morphine to 45mg BD. Please reassess in 24h.', time: '25 min ago', role: 'physician' },
+  { sender: 'Sunita Kumar', content: 'He is not sleeping well. The pain wakes him up at night.', time: '2h ago', role: 'caregiver' },
+];
+
+type DetailTab = 'care_plan' | 'caregivers' | 'education' | 'messages';
+
 // -- Alert type ---------------------------------------------------------------
 interface PatientAlert {
   id: string;
@@ -197,6 +274,7 @@ export default function PatientDetailPage() {
   const [painRange, setPainRange] = useState<'7d' | '30d' | 'all'>('30d');
   const [alertStates, setAlertStates] = useState(PATIENT_ALERTS);
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DetailTab>('care_plan');
 
   // Pain trend data filtered by range
   const trendData = (() => {
@@ -780,6 +858,359 @@ export default function PatientDetailPage() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* ── Tabbed Detail Section ── */}
+      <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
+        {/* Tab bar */}
+        <div className="flex border-b border-sage-light/20">
+          {([
+            { key: 'care_plan' as DetailTab, label: 'Care Plan', icon: ClipboardList },
+            { key: 'caregivers' as DetailTab, label: 'Caregivers', icon: Users },
+            { key: 'education' as DetailTab, label: 'Education & Wellness', icon: BookOpen },
+            { key: 'messages' as DetailTab, label: 'Messages', icon: MessageSquare },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2',
+                activeTab === tab.key
+                  ? 'border-teal text-teal'
+                  : 'border-transparent text-charcoal/50 hover:text-charcoal/70',
+              )}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="p-5">
+          {/* ── Care Plan Tab ── */}
+          {activeTab === 'care_plan' && (
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-teal">{ACTIVE_CARE_PLAN.title}</h3>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-charcoal/50">
+                    <span>Version {ACTIVE_CARE_PLAN.version}</span>
+                    <span>&middot;</span>
+                    <span>By {ACTIVE_CARE_PLAN.createdBy}</span>
+                    <span>&middot;</span>
+                    <span>Updated {ACTIVE_CARE_PLAN.lastUpdated}</span>
+                  </div>
+                </div>
+                <span className="rounded-full bg-alert-success/10 px-3 py-1 text-xs font-bold text-alert-success uppercase">
+                  {ACTIVE_CARE_PLAN.status}
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-teal/5 p-4">
+                <p className="text-xs font-semibold text-teal uppercase">Goals of Care</p>
+                <p className="mt-1 text-sm text-charcoal/70 leading-relaxed">{ACTIVE_CARE_PLAN.goalsOfCare}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {/* Goals */}
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                    <Target className="h-4 w-4 text-teal" />
+                    Goals
+                  </h4>
+                  <div className="mt-2 space-y-2">
+                    {ACTIVE_CARE_PLAN.goals.map((g, i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-sage/10 p-3">
+                        {g.status === 'completed' ? (
+                          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-alert-success" />
+                        ) : g.status === 'in_progress' ? (
+                          <Clock className="h-5 w-5 flex-shrink-0 text-amber" />
+                        ) : (
+                          <div className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-charcoal/20" />
+                        )}
+                        <span className={cn('text-sm', g.status === 'completed' ? 'text-charcoal/50 line-through' : 'text-charcoal')}>
+                          {g.goal}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interventions */}
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                    <ListTodo className="h-4 w-4 text-teal" />
+                    Interventions
+                  </h4>
+                  <div className="mt-2 space-y-2">
+                    {ACTIVE_CARE_PLAN.interventions.map((item, i) => (
+                      <div key={i} className="flex items-start justify-between rounded-lg border border-sage/10 p-3">
+                        <span className="text-sm text-charcoal/70">{item.text}</span>
+                        <span className="ml-3 flex-shrink-0 rounded-full bg-sage/10 px-2.5 py-0.5 text-[10px] font-semibold text-charcoal/60">
+                          {item.assigned}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-charcoal/50">
+                <Calendar className="h-4 w-4" />
+                Next Review: <span className="font-semibold text-charcoal">{ACTIVE_CARE_PLAN.reviewDate}</span>
+              </div>
+            </div>
+          )}
+
+          {/* ── Caregivers Tab ── */}
+          {activeTab === 'caregivers' && (
+            <div className="space-y-4">
+              <h3 className="font-heading text-lg font-bold text-teal">Caregiver Team</h3>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {CAREGIVERS_DATA.map((cg, i) => (
+                  <div key={i} className="rounded-xl border border-sage-light/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sage/20 text-xs font-bold text-charcoal/60">
+                          {cg.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-charcoal">{cg.name}</p>
+                          <p className="text-xs text-charcoal/50">{cg.relationship}</p>
+                        </div>
+                      </div>
+                      {cg.isPrimary && (
+                        <span className="rounded-full bg-teal/10 px-2.5 py-0.5 text-[10px] font-bold text-teal">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 space-y-1.5 text-xs text-charcoal/60">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3" /> {cg.phone}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3" /> Last active: {cg.lastActive}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Heart className="h-3 w-3" />
+                        Distress score: <span className={cn('font-bold', cg.distress >= 7 ? 'text-alert-critical' : cg.distress >= 5 ? 'text-amber' : 'text-alert-success')}>{cg.distress}/10</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Schedule */}
+              <div>
+                <h4 className="text-sm font-bold text-charcoal mb-2">This Week&rsquo;s Care Schedule</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-sage-light/20 text-left">
+                        <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Day</th>
+                        <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Shift</th>
+                        <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Caregiver</th>
+                        <th className="py-2 text-xs font-semibold text-charcoal/50">Tasks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {CARE_SCHEDULE.map((row, i) => (
+                        <tr key={i} className="border-b border-sage-light/10">
+                          <td className="py-2 pr-4 font-medium text-charcoal">{row.day}</td>
+                          <td className="py-2 pr-4">
+                            <span className={cn(
+                              'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                              row.shift === 'Morning' ? 'bg-amber/10 text-amber' : 'bg-teal/10 text-teal',
+                            )}>
+                              {row.shift}
+                            </span>
+                          </td>
+                          <td className="py-2 pr-4 text-charcoal/70">{row.caregiver}</td>
+                          <td className="py-2 text-charcoal/60 text-xs">{row.tasks}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Education & Wellness Tab ── */}
+          {activeTab === 'education' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {/* Education modules */}
+                <div>
+                  <h3 className="flex items-center gap-2 font-heading text-base font-bold text-teal">
+                    <GraduationCap className="h-5 w-5" />
+                    Education Progress
+                  </h3>
+                  <div className="mt-3 space-y-2">
+                    {EDUCATION_PROGRESS.map((mod, i) => (
+                      <div key={i} className="rounded-lg border border-sage/10 p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-charcoal">{mod.module}</span>
+                          <span className={cn(
+                            'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                            mod.status === 'completed' ? 'bg-alert-success/10 text-alert-success' :
+                            mod.status === 'in_progress' ? 'bg-amber/10 text-amber' :
+                            'bg-charcoal/5 text-charcoal/40',
+                          )}>
+                            {mod.status === 'completed' ? 'Complete' : mod.status === 'in_progress' ? `${mod.progress}%` : 'Locked'}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 w-full rounded-full bg-sage/10">
+                          <div
+                            className="h-1.5 rounded-full transition-all"
+                            style={{
+                              width: `${mod.progress}%`,
+                              backgroundColor: mod.status === 'completed' ? '#7BA68C' : mod.status === 'in_progress' ? '#E8A838' : '#ddd',
+                            }}
+                          />
+                        </div>
+                        <p className="mt-1 text-[10px] text-charcoal/40">Phase {mod.phase}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wellness summary */}
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 font-heading text-base font-bold text-teal">
+                    <Sparkles className="h-5 w-5" />
+                    Wellness Journey
+                  </h3>
+
+                  {/* Breathe sessions */}
+                  <div className="rounded-lg bg-teal/5 p-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-teal uppercase">
+                      <Wind className="h-4 w-4" />
+                      Breathe Sessions
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-2xl font-bold text-charcoal">{WELLNESS_DATA.breatheSessions.total}</p>
+                        <p className="text-[10px] text-charcoal/40">total sessions</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-charcoal">{WELLNESS_DATA.breatheSessions.thisWeek}</p>
+                        <p className="text-[10px] text-charcoal/40">this week</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-charcoal/50">
+                      Favourite: {WELLNESS_DATA.breatheSessions.favouriteExercise} &middot; Avg: {WELLNESS_DATA.breatheSessions.avgDuration}
+                    </p>
+                  </div>
+
+                  {/* Gratitude */}
+                  <div className="rounded-lg bg-amber/5 border border-amber/20 p-4">
+                    <p className="text-xs font-bold text-amber uppercase">Gratitude Journal</p>
+                    <div className="mt-2 flex items-center gap-4">
+                      <div>
+                        <p className="text-2xl font-bold text-charcoal">{WELLNESS_DATA.gratitude.streak}</p>
+                        <p className="text-[10px] text-charcoal/40">day streak</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-charcoal">{WELLNESS_DATA.gratitude.totalEntries}</p>
+                        <p className="text-[10px] text-charcoal/40">total entries</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Personal goals */}
+                  <div>
+                    <p className="text-xs font-bold text-charcoal/60 uppercase mb-2">Personal Goals</p>
+                    {WELLNESS_DATA.goals.map((g, i) => (
+                      <div key={i} className="mb-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-charcoal/70">{g.text}</span>
+                          <span className="font-bold text-charcoal">{g.progress}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full rounded-full bg-sage/10">
+                          <div
+                            className="h-1.5 rounded-full"
+                            style={{
+                              width: `${g.progress}%`,
+                              backgroundColor: g.progress === 100 ? '#7BA68C' : '#E8A838',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Milestones */}
+                  <div>
+                    <p className="text-xs font-bold text-charcoal/60 uppercase mb-2">Milestones</p>
+                    <div className="flex flex-wrap gap-2">
+                      {WELLNESS_DATA.milestones.map((m, i) => (
+                        <span
+                          key={i}
+                          className={cn(
+                            'rounded-full px-3 py-1 text-xs font-medium',
+                            m.achieved
+                              ? 'bg-alert-success/10 text-alert-success'
+                              : 'bg-charcoal/5 text-charcoal/40',
+                          )}
+                        >
+                          {m.achieved && <span className="mr-1">&#10003;</span>}
+                          {m.title}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Messages Tab ── */}
+          {activeTab === 'messages' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading text-lg font-bold text-teal">Recent Messages</h3>
+                <button className="flex items-center gap-2 rounded-lg bg-teal px-3 py-2 text-xs font-semibold text-white hover:bg-teal/90">
+                  <Send className="h-3.5 w-3.5" />
+                  New Message
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {RECENT_MESSAGES.map((msg, i) => (
+                  <div key={i} className="rounded-lg border border-sage/10 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-charcoal">{msg.sender}</span>
+                        <span className={cn(
+                          'rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase',
+                          msg.role === 'physician' ? 'bg-teal/10 text-teal' :
+                          msg.role === 'nurse' ? 'bg-amber/10 text-amber' :
+                          'bg-sage/20 text-sage',
+                        )}>
+                          {msg.role}
+                        </span>
+                      </div>
+                      <span className="flex items-center gap-1 text-[10px] text-charcoal/40">
+                        <Clock className="h-3 w-3" /> {msg.time}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-sm text-charcoal/70 leading-relaxed">{msg.content}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <button className="text-xs font-semibold text-teal hover:underline">
+                  View All Messages &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
