@@ -1,0 +1,366 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  MessageSquare,
+  Search,
+  Send,
+  User,
+  Clock,
+  CheckCheck,
+  ChevronRight,
+  Paperclip,
+  Phone,
+  Video,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+/* ------------------------------------------------------------------ */
+/*  Mock data                                                          */
+/* ------------------------------------------------------------------ */
+
+const THREADS = [
+  {
+    id: 't1',
+    patientName: 'Ramesh Kumar',
+    patientId: 'p1',
+    lastMessage: 'Pain score has been consistently above 6 for the past 3 days. Requesting medication review.',
+    lastMessageTime: '10 min ago',
+    unread: 2,
+    participants: ['Dr. Nikhil Nair', 'Nurse Priya', 'Ramesh Kumar'],
+    avatar: 'RK',
+  },
+  {
+    id: 't2',
+    patientName: 'Sunita Devi',
+    patientId: 'p2',
+    lastMessage: 'Nausea subsided after switching anti-emetic. Will continue monitoring.',
+    lastMessageTime: '2h ago',
+    unread: 0,
+    participants: ['Dr. Nikhil Nair', 'Dietitian Anita'],
+    avatar: 'SD',
+  },
+  {
+    id: 't3',
+    patientName: 'Arjun Singh',
+    patientId: 'p3',
+    lastMessage: 'Family meeting scheduled for tomorrow at 3 PM. Chaplain confirmed.',
+    lastMessageTime: '5h ago',
+    unread: 1,
+    participants: ['Dr. Nikhil Nair', 'Social Worker Meena', 'Chaplain Ravi'],
+    avatar: 'AS',
+  },
+  {
+    id: 't4',
+    patientName: 'Lakshmi Iyer',
+    patientId: 'p4',
+    lastMessage: 'Breathlessness score improved to 3/10 after nebulization protocol.',
+    lastMessageTime: '1d ago',
+    unread: 0,
+    participants: ['Dr. Nikhil Nair', 'Nurse Priya'],
+    avatar: 'LI',
+  },
+];
+
+const MESSAGES: Record<
+  string,
+  { id: string; sender: string; role: string; content: string; time: string; isOwn: boolean }[]
+> = {
+  t1: [
+    {
+      id: 'm1',
+      sender: 'Nurse Priya',
+      role: 'nurse',
+      content: 'Patient Ramesh Kumar is reporting pain NRS 7/10 this morning. This is the third consecutive day above 6.',
+      time: '09:15 AM',
+      isOwn: false,
+    },
+    {
+      id: 'm2',
+      sender: 'Dr. Nikhil Nair',
+      role: 'physician',
+      content: 'Thanks for flagging. What is his current morphine dose and when was the last breakthrough dose given?',
+      time: '09:22 AM',
+      isOwn: true,
+    },
+    {
+      id: 'm3',
+      sender: 'Nurse Priya',
+      role: 'nurse',
+      content: 'Sustained release morphine 30mg BD. Last breakthrough dose (IR morphine 10mg) was given at 6 AM. He is also reporting disturbed sleep due to pain.',
+      time: '09:30 AM',
+      isOwn: false,
+    },
+    {
+      id: 'm4',
+      sender: 'Dr. Nikhil Nair',
+      role: 'physician',
+      content: 'Let\'s increase the SR morphine to 45mg BD and add a nighttime adjuvant. I\'ll update the care plan. Please reassess in 24 hours.',
+      time: '09:35 AM',
+      isOwn: true,
+    },
+    {
+      id: 'm5',
+      sender: 'Nurse Priya',
+      role: 'nurse',
+      content: 'Pain score has been consistently above 6 for the past 3 days. Requesting medication review.',
+      time: '09:45 AM',
+      isOwn: false,
+    },
+  ],
+  t2: [
+    {
+      id: 'm6',
+      sender: 'Dietitian Anita',
+      role: 'dietitian',
+      content: 'Sunita ji has been tolerating small frequent meals better since we switched to bland diet plan. Nausea episodes reduced from 4/day to 1/day.',
+      time: '02:00 PM',
+      isOwn: false,
+    },
+    {
+      id: 'm7',
+      sender: 'Dr. Nikhil Nair',
+      role: 'physician',
+      content: 'Good improvement. The ondansetron switch seems to be working. Let\'s continue current regime and reassess after one week.',
+      time: '02:15 PM',
+      isOwn: true,
+    },
+    {
+      id: 'm8',
+      sender: 'Dietitian Anita',
+      role: 'dietitian',
+      content: 'Nausea subsided after switching anti-emetic. Will continue monitoring.',
+      time: '02:30 PM',
+      isOwn: false,
+    },
+  ],
+  t3: [
+    {
+      id: 'm9',
+      sender: 'Social Worker Meena',
+      role: 'social_worker',
+      content: 'Arjun ji\'s family has requested a meeting to discuss goals of care. They have concerns about the transition to comfort-focused care.',
+      time: '10:00 AM',
+      isOwn: false,
+    },
+    {
+      id: 'm10',
+      sender: 'Dr. Nikhil Nair',
+      role: 'physician',
+      content: 'I can be available tomorrow at 3 PM. Can we also get Chaplain Ravi to join for spiritual support? The family had expressed that as important.',
+      time: '10:30 AM',
+      isOwn: true,
+    },
+    {
+      id: 'm11',
+      sender: 'Social Worker Meena',
+      role: 'social_worker',
+      content: 'Family meeting scheduled for tomorrow at 3 PM. Chaplain confirmed.',
+      time: '11:00 AM',
+      isOwn: false,
+    },
+  ],
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  physician: 'bg-teal/10 text-teal',
+  nurse: 'bg-amber/10 text-amber',
+  dietitian: 'bg-sage/20 text-sage',
+  social_worker: 'bg-terra/10 text-terra',
+  chaplain: 'bg-charcoal/10 text-charcoal/60',
+};
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function MessagesPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedThread, setSelectedThread] = useState<string>(THREADS[0]?.id || '');
+  const [newMessage, setNewMessage] = useState('');
+
+  const filteredThreads = THREADS.filter(
+    (t) =>
+      !searchQuery ||
+      t.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const activeThread = THREADS.find((t) => t.id === selectedThread);
+  const threadMessages = MESSAGES[selectedThread] || [];
+
+  return (
+    <div className="flex h-[calc(100vh-2rem)] flex-col gap-4">
+      {/* Header */}
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-teal">Messages</h1>
+        <p className="mt-1 text-sm text-charcoal/60">
+          Care team communication &amp; patient discussion threads
+        </p>
+      </div>
+
+      {/* Main layout */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Thread list */}
+        <div className="flex flex-col rounded-xl border border-sage-light/30 bg-white shadow-sm lg:col-span-1">
+          {/* Search */}
+          <div className="border-b border-sage-light/20 p-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/40" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-sage-light/30 bg-cream/50 py-2 pl-9 pr-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/30"
+              />
+            </div>
+          </div>
+
+          {/* Thread items */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredThreads.map((thread) => (
+              <button
+                key={thread.id}
+                onClick={() => setSelectedThread(thread.id)}
+                className={cn(
+                  'w-full border-b border-sage-light/10 p-4 text-left transition-colors',
+                  selectedThread === thread.id
+                    ? 'bg-teal/5'
+                    : 'hover:bg-cream/50',
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-sage/20 text-xs font-bold text-charcoal/70">
+                    {thread.avatar}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-charcoal">
+                        {thread.patientName}
+                      </span>
+                      <span className="flex-shrink-0 text-[10px] text-charcoal/40">
+                        {thread.lastMessageTime}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-charcoal/60">
+                      {thread.lastMessage}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="text-[10px] text-charcoal/40">
+                        {thread.participants.length} participants
+                      </span>
+                      {thread.unread > 0 && (
+                        <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-teal px-1 text-[10px] font-bold text-white">
+                          {thread.unread}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Chat area */}
+        {activeThread && (
+          <div className="flex flex-col rounded-xl border border-sage-light/30 bg-white shadow-sm lg:col-span-2">
+            {/* Chat header */}
+            <div className="flex items-center justify-between border-b border-sage-light/20 px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sage/20 text-xs font-bold text-charcoal/70">
+                  {activeThread.avatar}
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-charcoal">
+                    {activeThread.patientName}
+                  </h2>
+                  <p className="text-[10px] text-charcoal/40">
+                    {activeThread.participants.join(' \u00b7 ')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                  <Phone className="h-4 w-4" />
+                </button>
+                <button className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                  <Video className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 space-y-4 overflow-y-auto p-5">
+              {threadMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    'flex',
+                    msg.isOwn ? 'justify-end' : 'justify-start',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'max-w-[75%] rounded-xl px-4 py-3',
+                      msg.isOwn
+                        ? 'bg-teal text-white'
+                        : 'bg-cream/80 text-charcoal',
+                    )}
+                  >
+                    {!msg.isOwn && (
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-xs font-bold">{msg.sender}</span>
+                        <span
+                          className={cn(
+                            'rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase',
+                            ROLE_COLORS[msg.role] || 'bg-charcoal/10 text-charcoal/50',
+                          )}
+                        >
+                          {msg.role.replace('_', ' ')}
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                    <div
+                      className={cn(
+                        'mt-1.5 flex items-center gap-1 text-[10px]',
+                        msg.isOwn ? 'justify-end text-white/60' : 'text-charcoal/40',
+                      )}
+                    >
+                      <Clock className="h-3 w-3" />
+                      {msg.time}
+                      {msg.isOwn && <CheckCheck className="ml-1 h-3 w-3" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Message input */}
+            <div className="border-t border-sage-light/20 p-4">
+              <div className="flex items-end gap-3">
+                <button className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                  <Paperclip className="h-5 w-5" />
+                </button>
+                <div className="flex-1">
+                  <textarea
+                    rows={1}
+                    placeholder="Type a message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="w-full resize-none rounded-xl border border-sage-light/30 bg-cream/30 px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal/30"
+                  />
+                </div>
+                <button className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-teal text-white shadow-sm hover:bg-teal/90 transition-colors">
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

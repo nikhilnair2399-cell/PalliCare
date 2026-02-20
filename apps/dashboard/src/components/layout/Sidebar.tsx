@@ -12,14 +12,22 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  FileText,
+  MessageSquare,
+  ClipboardList,
+  Pill,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
   { name: 'Alerts', href: '/alerts', icon: Bell },
+  { name: 'Clinical Notes', href: '/notes', icon: FileText },
+  { name: 'Care Plans', href: '/care-plans', icon: ClipboardList },
+  { name: 'Messages', href: '/messages', icon: MessageSquare },
   { name: 'MDT', href: '/mdt', icon: Users2 },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Med Reference', href: '/medication-db', icon: Pill },
 ];
 
 const bottomNav = [
