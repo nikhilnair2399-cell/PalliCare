@@ -40,8 +40,26 @@ import {
   Wind,
   Sparkles,
   Send,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  usePatient,
+  usePatientPainTrends,
+  usePatientMedications,
+  usePatientSymptomLogs,
+  useAlerts,
+  useClinicalNotes,
+  useActiveCarePlan,
+  usePatientCaregivers,
+  useCareSchedules,
+  usePatientMessages,
+  useAcknowledgeAlert,
+  useResolveAlert,
+} from '@/lib/hooks';
+import { useWithFallback } from '@/lib/use-api-status';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // -- Pain color helper --------------------------------------------------------
 const PAIN_COLORS: Record<number, string> = {
@@ -59,7 +77,7 @@ const PAIN_COLORS: Record<number, string> = {
 };
 
 // -- Mock data ----------------------------------------------------------------
-const PATIENT = {
+const MOCK_PATIENT = {
   id: '1',
   name: 'Ramesh Kumar',
   age: 58,
@@ -77,7 +95,7 @@ const PATIENT = {
   },
 };
 
-const PAIN_DATA = {
+const MOCK_PAIN_DATA = {
   currentNRS: 7,
   trendDirection: 'worsening' as 'worsening' | 'improving' | 'stable',
   trendMagnitude: '+2 from 72h ago',
@@ -88,12 +106,12 @@ const PAIN_DATA = {
   aggravators: ['Movement', 'Coughing', 'Night-time'],
 };
 
-const PAIN_TREND_30D = [
+const MOCK_PAIN_TREND_30D = [
   5, 4, 5, 6, 5, 4, 5, 6, 7, 6, 5, 6, 7, 7, 6,
   7, 8, 7, 6, 7, 8, 7, 7, 8, 7, 6, 7, 8, 7, 7,
 ];
 
-const MEDICATIONS = {
+const MOCK_MEDICATIONS = {
   medd: 220,
   current: [
     { name: 'Morphine SR', dose: '60mg', frequency: 'q12h', adherence: 92, type: 'opioid' },
@@ -107,7 +125,7 @@ const MEDICATIONS = {
   sideEffects: ['Constipation (moderate)', 'Drowsiness (mild)', 'Nausea (resolved)'],
 };
 
-const SYMPTOMS = {
+const MOCK_SYMPTOMS = {
   top3: [
     { name: 'Pain', score: 7, maxScore: 10 },
     { name: 'Fatigue', score: 6, maxScore: 10 },
@@ -123,7 +141,7 @@ const SYMPTOMS = {
   },
 };
 
-const PATIENT_ALERTS: PatientAlert[] = [
+const MOCK_PATIENT_ALERTS: PatientAlert[] = [
   {
     id: 'pa1',
     severity: 'critical',
@@ -147,7 +165,7 @@ const PATIENT_ALERTS: PatientAlert[] = [
   },
 ];
 
-const CLINICAL_NOTES = [
+const MOCK_CLINICAL_NOTES = [
   {
     id: 'cn1',
     author: 'Dr. Nikhil N.',
@@ -174,7 +192,7 @@ const CLINICAL_NOTES = [
   },
 ];
 
-const CARE_PLAN = {
+const MOCK_CARE_PLAN = {
   goals: 'Comfort-focused care. Pain control to NRS < 4. Maintain independence for ADLs. Support caregiver coping.',
   currentInterventions: [
     'Opioid titration with breakthrough doses',
@@ -186,7 +204,7 @@ const CARE_PLAN = {
 };
 
 // -- Extended data for tabs ---------------------------------------------------
-const ACTIVE_CARE_PLAN = {
+const MOCK_ACTIVE_CARE_PLAN = {
   title: 'Palliative Care Plan \u2014 Pain Management Focus',
   status: 'active',
   version: 2,
@@ -207,12 +225,12 @@ const ACTIVE_CARE_PLAN = {
   lastUpdated: '20 Feb 2026',
 };
 
-const CAREGIVERS_DATA = [
+const MOCK_CAREGIVERS_DATA = [
   { name: 'Sunita Kumar', relationship: 'Spouse', phone: '+91 98765 43210', isPrimary: true, lastActive: '1h ago', distress: 6 },
   { name: 'Rahul Kumar', relationship: 'Son', phone: '+91 87654 32109', isPrimary: false, lastActive: '2d ago', distress: 4 },
 ];
 
-const CARE_SCHEDULE = [
+const MOCK_CARE_SCHEDULE = [
   { day: 'Mon', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, meal prep, symptom log' },
   { day: 'Mon', shift: 'Evening', caregiver: 'Rahul Kumar', tasks: 'Wound care, mobility exercises' },
   { day: 'Tue', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, doctor appointment' },
@@ -220,7 +238,7 @@ const CARE_SCHEDULE = [
   { day: 'Wed', shift: 'Morning', caregiver: 'Sunita Kumar', tasks: 'Medication admin, meal prep' },
 ];
 
-const EDUCATION_PROGRESS = [
+const MOCK_EDUCATION_PROGRESS = [
   { module: 'Understanding Your Pain', phase: 1, progress: 100, status: 'completed' },
   { module: 'Medication Management', phase: 1, progress: 100, status: 'completed' },
   { module: 'Breathing for Comfort', phase: 2, progress: 75, status: 'in_progress' },
@@ -228,7 +246,7 @@ const EDUCATION_PROGRESS = [
   { module: 'Caregiver Wellness', phase: 3, progress: 0, status: 'locked' },
 ];
 
-const WELLNESS_DATA = {
+const MOCK_WELLNESS_DATA = {
   breatheSessions: { total: 12, thisWeek: 3, avgDuration: '8 min', favouriteExercise: '4-7-8 Breathing' },
   gratitude: { streak: 5, totalEntries: 15 },
   goals: [
@@ -244,7 +262,7 @@ const WELLNESS_DATA = {
   ],
 };
 
-const RECENT_MESSAGES = [
+const MOCK_RECENT_MESSAGES = [
   { sender: 'Nurse Priya', content: 'Pain score has been consistently above 6 for the past 3 days.', time: '10 min ago', role: 'nurse' },
   { sender: 'Dr. Nikhil Nair', content: 'Let\'s increase the SR morphine to 45mg BD. Please reassess in 24h.', time: '25 min ago', role: 'physician' },
   { sender: 'Sunita Kumar', content: 'He is not sleeping well. The pain wakes him up at night.', time: '2h ago', role: 'caregiver' },
@@ -268,37 +286,313 @@ const SEVERITY_CONFIG = {
   info: { icon: Info, bg: 'bg-blue-50', border: 'border-l-blue-400', badge: 'bg-blue-100 text-blue-600', label: 'Info' },
 };
 
+// -- API data adapters --------------------------------------------------------
+
+function mapApiPatient(p: any) {
+  const dob = p.date_of_birth ? new Date(p.date_of_birth) : null;
+  const age = dob ? Math.floor((Date.now() - dob.getTime()) / 31557600000) : p.age ?? 0;
+  return {
+    id: p.id,
+    name: p.full_name || p.name || `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Unknown',
+    age,
+    gender: p.gender || 'U',
+    diagnosis: p.primary_diagnosis || p.diagnosis || '',
+    ppsScore: p.pps_score ?? p.ppsScore ?? 0,
+    ecogStatus: p.ecog_status ?? p.ecogStatus ?? 0,
+    phaseOfIllness: p.phase_of_illness || p.phaseOfIllness || 'Stable',
+    abhaId: p.abha_id || p.abhaId || '',
+    codeStatus: p.code_status || p.codeStatus || '',
+    caregiver: p.primary_caregiver ? {
+      name: p.primary_caregiver.name || p.primary_caregiver.full_name || 'Unknown',
+      phone: p.primary_caregiver.phone || '',
+      relationship: p.primary_caregiver.relationship || '',
+    } : (p.caregiver || MOCK_PATIENT.caregiver),
+  };
+}
+
+function mapApiPainData(trends: any) {
+  if (!trends) return MOCK_PAIN_DATA;
+  const dataPoints: number[] = Array.isArray(trends.data_points) ? trends.data_points :
+    Array.isArray(trends.scores) ? trends.scores :
+    Array.isArray(trends) ? trends : [];
+  const weeklySparkline = dataPoints.length >= 7 ? dataPoints.slice(-7) : MOCK_PAIN_DATA.weeklySparkline;
+  const currentNRS = trends.current_nrs ?? trends.currentNRS ?? dataPoints[dataPoints.length - 1] ?? MOCK_PAIN_DATA.currentNRS;
+
+  // Compute trend direction
+  let trendDirection: 'worsening' | 'improving' | 'stable' = 'stable';
+  let trendMagnitude = 'Stable';
+  if (dataPoints.length >= 4) {
+    const recent = dataPoints[dataPoints.length - 1];
+    const older = dataPoints[Math.max(0, dataPoints.length - 4)];
+    const diff = recent - older;
+    if (diff > 0) { trendDirection = 'worsening'; trendMagnitude = `+${diff} from 72h ago`; }
+    else if (diff < 0) { trendDirection = 'improving'; trendMagnitude = `${diff} from 72h ago`; }
+  }
+
+  return {
+    currentNRS,
+    trendDirection: trends.trend_direction || trendDirection,
+    trendMagnitude: trends.trend_magnitude || trendMagnitude,
+    weeklySparkline,
+    breakthroughCount: trends.breakthrough_count ?? trends.breakthroughCount ?? MOCK_PAIN_DATA.breakthroughCount,
+    breakthroughAvgIntensity: trends.breakthrough_avg_intensity ?? trends.breakthroughAvgIntensity ?? MOCK_PAIN_DATA.breakthroughAvgIntensity,
+    painQualities: trends.pain_qualities || trends.painQualities || MOCK_PAIN_DATA.painQualities,
+    aggravators: trends.aggravators || MOCK_PAIN_DATA.aggravators,
+  };
+}
+
+function mapApiMedications(meds: any) {
+  if (!meds) return MOCK_MEDICATIONS;
+  return {
+    medd: meds.medd ?? meds.total_medd ?? MOCK_MEDICATIONS.medd,
+    current: Array.isArray(meds.current || meds.medications || meds)
+      ? (meds.current || meds.medications || meds).map((m: any) => ({
+          name: m.medication_name || m.name || 'Unknown',
+          dose: m.dose || m.dosage || '',
+          frequency: m.frequency || '',
+          adherence: m.adherence_rate ?? m.adherence ?? 0,
+          type: m.medication_type || m.type || 'supportive',
+        }))
+      : MOCK_MEDICATIONS.current,
+    prnUsage: meds.prn_usage || meds.prnUsage || MOCK_MEDICATIONS.prnUsage,
+    sideEffects: meds.side_effects || meds.sideEffects || MOCK_MEDICATIONS.sideEffects,
+  };
+}
+
+function mapApiSymptoms(logs: any) {
+  if (!logs) return MOCK_SYMPTOMS;
+  const entries = Array.isArray(logs.entries || logs) ? (logs.entries || logs) : [];
+  // Extract top 3 symptoms by score
+  const top3 = entries.length > 0
+    ? entries.slice(0, 3).map((e: any) => ({
+        name: e.symptom_name || e.name || 'Unknown',
+        score: e.score ?? e.severity ?? 0,
+        maxScore: e.max_score ?? 10,
+      }))
+    : MOCK_SYMPTOMS.top3;
+
+  return {
+    top3,
+    moodTrend: logs.mood_trend || logs.moodTrend || MOCK_SYMPTOMS.moodTrend,
+    sleepAvg: logs.sleep_avg ?? logs.sleepAvg ?? MOCK_SYMPTOMS.sleepAvg,
+    caregiverDistress: logs.caregiver_distress || logs.caregiverDistress || MOCK_SYMPTOMS.caregiverDistress,
+    dataQuality: logs.data_quality || logs.dataQuality || MOCK_SYMPTOMS.dataQuality,
+  };
+}
+
+function mapApiAlerts(alerts: any): PatientAlert[] {
+  if (!alerts) return MOCK_PATIENT_ALERTS;
+  const arr = Array.isArray(alerts.data || alerts) ? (alerts.data || alerts) : [];
+  if (arr.length === 0) return MOCK_PATIENT_ALERTS;
+  return arr.map((a: any) => ({
+    id: a.id,
+    severity: a.severity || 'warning',
+    message: a.message || a.description || '',
+    time: a.created_at ? formatTimeAgo(a.created_at) : (a.time || ''),
+    status: a.status || 'active',
+  }));
+}
+
+function mapApiNotes(notes: any) {
+  const arr = Array.isArray(notes.data || notes) ? (notes.data || notes) : [];
+  if (arr.length === 0) return MOCK_CLINICAL_NOTES;
+  return arr.map((n: any) => ({
+    id: n.id,
+    author: n.author_name || n.author || 'Unknown',
+    role: n.author_role || n.role || '',
+    date: n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : (n.date || ''),
+    content: n.content || '',
+  }));
+}
+
+function mapApiCarePlan(cp: any) {
+  if (!cp) return { plan: MOCK_CARE_PLAN, active: MOCK_ACTIVE_CARE_PLAN };
+  const plan = {
+    goals: cp.goals_of_care || cp.goalsOfCare || cp.goals || MOCK_CARE_PLAN.goals,
+    currentInterventions: Array.isArray(cp.interventions)
+      ? cp.interventions.map((i: any) => typeof i === 'string' ? i : i.text || i.description || '')
+      : MOCK_CARE_PLAN.currentInterventions,
+  };
+  const active = {
+    title: cp.title || MOCK_ACTIVE_CARE_PLAN.title,
+    status: cp.status || 'active',
+    version: cp.version ?? 1,
+    goalsOfCare: cp.goals_of_care || cp.goalsOfCare || MOCK_ACTIVE_CARE_PLAN.goalsOfCare,
+    goals: Array.isArray(cp.goals_list || cp.goals) && (cp.goals_list || cp.goals).length > 0
+      ? (cp.goals_list || cp.goals).filter((g: any) => typeof g === 'object').map((g: any) => ({
+          goal: g.goal || g.description || g.text || '',
+          status: g.status || 'pending',
+        }))
+      : MOCK_ACTIVE_CARE_PLAN.goals,
+    interventions: Array.isArray(cp.interventions) && cp.interventions.length > 0
+      ? cp.interventions.map((i: any) => ({
+          text: typeof i === 'string' ? i : (i.text || i.description || ''),
+          assigned: typeof i === 'string' ? '' : (i.assigned || i.assigned_to || ''),
+        }))
+      : MOCK_ACTIVE_CARE_PLAN.interventions,
+    reviewDate: cp.review_date ? new Date(cp.review_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : (cp.reviewDate || MOCK_ACTIVE_CARE_PLAN.reviewDate),
+    createdBy: cp.created_by_name || cp.createdBy || MOCK_ACTIVE_CARE_PLAN.createdBy,
+    lastUpdated: cp.updated_at ? new Date(cp.updated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : (cp.lastUpdated || MOCK_ACTIVE_CARE_PLAN.lastUpdated),
+  };
+  return { plan, active };
+}
+
+function mapApiCaregivers(data: any) {
+  const arr = Array.isArray(data.data || data) ? (data.data || data) : [];
+  if (arr.length === 0) return MOCK_CAREGIVERS_DATA;
+  return arr.map((cg: any) => ({
+    name: cg.full_name || cg.name || 'Unknown',
+    relationship: cg.relationship || '',
+    phone: cg.phone || cg.phone_number || '',
+    isPrimary: cg.is_primary ?? cg.isPrimary ?? false,
+    lastActive: cg.last_active ? formatTimeAgo(cg.last_active) : (cg.lastActive || ''),
+    distress: cg.distress_score ?? cg.distress ?? 0,
+  }));
+}
+
+function mapApiSchedules(data: any) {
+  const arr = Array.isArray(data.data || data) ? (data.data || data) : [];
+  if (arr.length === 0) return MOCK_CARE_SCHEDULE;
+  return arr.map((s: any) => ({
+    day: s.day || new Date(s.date || s.scheduled_at).toLocaleDateString('en-IN', { weekday: 'short' }),
+    shift: s.shift || s.shift_type || 'Morning',
+    caregiver: s.caregiver_name || s.caregiver || '',
+    tasks: s.tasks || s.description || '',
+  }));
+}
+
+function mapApiMessages(data: any) {
+  const arr = Array.isArray(data.data || data.messages || data) ? (data.data || data.messages || data) : [];
+  if (arr.length === 0) return MOCK_RECENT_MESSAGES;
+  return arr.slice(0, 5).map((m: any) => ({
+    sender: m.sender_name || m.sender || 'Unknown',
+    content: m.content || m.message || '',
+    time: m.created_at ? formatTimeAgo(m.created_at) : (m.time || ''),
+    role: m.sender_role || m.role || 'physician',
+  }));
+}
+
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const d = Math.floor(hrs / 24);
+  return `${d}d ago`;
+}
+
 // -- Component ----------------------------------------------------------------
 export default function PatientDetailPage() {
   const params = useParams();
+  const patientId = (params?.id as string) || '';
+
   const [painRange, setPainRange] = useState<'7d' | '30d' | 'all'>('30d');
-  const [alertStates, setAlertStates] = useState(PATIENT_ALERTS);
+  const [localAlertOverrides, setLocalAlertOverrides] = useState<Record<string, string>>({});
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DetailTab>('care_plan');
 
+  // ── API Queries with fallback ──────────────────────────────────────
+  const patientQuery = usePatient(patientId);
+  const { data: rawPatient, isLoading: patientLoading, isFromApi: patientFromApi } =
+    useWithFallback(patientQuery, MOCK_PATIENT);
+  const PATIENT = patientFromApi ? mapApiPatient(rawPatient) : MOCK_PATIENT;
+
+  const painQuery = usePatientPainTrends(patientId, 30);
+  const { data: rawPain, isFromApi: painFromApi } = useWithFallback(painQuery, null);
+  const PAIN_DATA: typeof MOCK_PAIN_DATA = painFromApi ? mapApiPainData(rawPain) : MOCK_PAIN_DATA;
+
+  const painTrend30d: number[] = painFromApi && rawPain
+    ? (Array.isArray((rawPain as any).data_points) ? (rawPain as any).data_points :
+       Array.isArray((rawPain as any).scores) ? (rawPain as any).scores :
+       Array.isArray(rawPain) ? rawPain as number[] : MOCK_PAIN_TREND_30D)
+    : MOCK_PAIN_TREND_30D;
+
+  const medsQuery = usePatientMedications(patientId);
+  const { data: rawMeds, isFromApi: medsFromApi } = useWithFallback(medsQuery, null);
+  const MEDICATIONS: typeof MOCK_MEDICATIONS = medsFromApi ? mapApiMedications(rawMeds) : MOCK_MEDICATIONS;
+
+  const symptomsQuery = usePatientSymptomLogs(patientId);
+  const { data: rawSymptoms, isFromApi: symptomsFromApi } = useWithFallback(symptomsQuery, null);
+  const SYMPTOMS: typeof MOCK_SYMPTOMS = symptomsFromApi ? mapApiSymptoms(rawSymptoms) : MOCK_SYMPTOMS;
+
+  const alertsQuery = useAlerts({ status: 'active' });
+  const { data: rawAlerts, isFromApi: alertsFromApi } = useWithFallback(alertsQuery, null);
+  const baseAlerts: PatientAlert[] = alertsFromApi ? mapApiAlerts(rawAlerts) : MOCK_PATIENT_ALERTS;
+
+  const notesQuery = useClinicalNotes(patientId);
+  const { data: rawNotes, isFromApi: notesFromApi } = useWithFallback(notesQuery, null);
+  const CLINICAL_NOTES: typeof MOCK_CLINICAL_NOTES = notesFromApi ? mapApiNotes(rawNotes) : MOCK_CLINICAL_NOTES;
+
+  const carePlanQuery = useActiveCarePlan(patientId);
+  const { data: rawCarePlan, isFromApi: cpFromApi } = useWithFallback(carePlanQuery, null);
+  const { plan: CARE_PLAN, active: ACTIVE_CARE_PLAN }: { plan: typeof MOCK_CARE_PLAN; active: typeof MOCK_ACTIVE_CARE_PLAN } = cpFromApi ? mapApiCarePlan(rawCarePlan) : { plan: MOCK_CARE_PLAN, active: MOCK_ACTIVE_CARE_PLAN };
+
+  const caregiversQuery = usePatientCaregivers(patientId);
+  const { data: rawCaregivers, isFromApi: cgFromApi } = useWithFallback(caregiversQuery, null);
+  const CAREGIVERS_DATA: typeof MOCK_CAREGIVERS_DATA = cgFromApi ? mapApiCaregivers(rawCaregivers) : MOCK_CAREGIVERS_DATA;
+
+  const schedulesQuery = useCareSchedules(patientId);
+  const { data: rawSchedules, isFromApi: schedFromApi } = useWithFallback(schedulesQuery, null);
+  const CARE_SCHEDULE: typeof MOCK_CARE_SCHEDULE = schedFromApi ? mapApiSchedules(rawSchedules) : MOCK_CARE_SCHEDULE;
+
+  const messagesQuery = usePatientMessages(patientId);
+  const { data: rawMessages, isFromApi: msgFromApi } = useWithFallback(messagesQuery, null);
+  const RECENT_MESSAGES: typeof MOCK_RECENT_MESSAGES = msgFromApi ? mapApiMessages(rawMessages) : MOCK_RECENT_MESSAGES;
+
+  // Mutations
+  const acknowledgeMutation = useAcknowledgeAlert();
+  const resolveMutation = useResolveAlert();
+
+  // Is any data from API?
+  const isFromApi = patientFromApi || painFromApi || medsFromApi;
+  const isLoading = patientLoading;
+
+  // Apply local overrides to alerts
+  const alertStates: PatientAlert[] = baseAlerts.map((a) => ({
+    ...a,
+    status: (localAlertOverrides[a.id] || a.status) as PatientAlert['status'],
+  }));
+
   // Pain trend data filtered by range
   const trendData = (() => {
-    if (painRange === '7d') return PAIN_TREND_30D.slice(-7);
-    if (painRange === '30d') return PAIN_TREND_30D;
-    return PAIN_TREND_30D;
+    if (painRange === '7d') return painTrend30d.slice(-7);
+    if (painRange === '30d') return painTrend30d;
+    return painTrend30d;
   })();
 
   const maxPain = Math.max(...trendData);
 
   function acknowledgeAlert(id: string) {
-    setAlertStates((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: 'acknowledged' as const } : a))
-    );
+    setLocalAlertOverrides((prev) => ({ ...prev, [id]: 'acknowledged' }));
+    if (alertsFromApi) acknowledgeMutation.mutate(id);
   }
 
   function resolveAlert(id: string) {
-    setAlertStates((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: 'resolved' as const } : a))
-    );
+    setLocalAlertOverrides((prev) => ({ ...prev, [id]: 'resolved' }));
+    if (alertsFromApi) resolveMutation.mutate({ id });
   }
+
+  // Education & Wellness — keep as mock (no API endpoint yet)
+  const EDUCATION_PROGRESS = MOCK_EDUCATION_PROGRESS;
+  const WELLNESS_DATA = MOCK_WELLNESS_DATA;
 
   return (
     <div className="space-y-6">
+      {/* ── Demo / Loading Banner ── */}
+      {isLoading && (
+        <div className="flex items-center gap-2 text-sm text-teal">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading patient data...
+        </div>
+      )}
+      {!isFromApi && !isLoading && (
+        <div className="rounded-lg bg-amber/10 px-4 py-2 text-xs font-semibold text-amber">
+          Demo Data — API offline. Showing sample patient data.
+        </div>
+      )}
+
       {/* ── Header Bar ── */}
       <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between">
@@ -317,9 +611,11 @@ export default function PatientDetailPage() {
                 <span className="rounded-full bg-teal/10 px-3 py-0.5 text-xs font-semibold text-teal">
                   {PATIENT.age}y / {PATIENT.gender}
                 </span>
-                <span className="rounded-full bg-alert-critical/10 px-3 py-0.5 text-xs font-semibold text-alert-critical">
-                  {PATIENT.codeStatus}
-                </span>
+                {PATIENT.codeStatus && (
+                  <span className="rounded-full bg-alert-critical/10 px-3 py-0.5 text-xs font-semibold text-alert-critical">
+                    {PATIENT.codeStatus}
+                  </span>
+                )}
               </div>
               <p className="mt-1 text-sm text-charcoal/70">{PATIENT.diagnosis}</p>
             </div>
@@ -342,11 +638,15 @@ export default function PatientDetailPage() {
 
         {/* Sub-info row */}
         <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-sage/10 pt-3 text-xs text-charcoal/60">
-          <span className="flex items-center gap-1">
-            <Shield className="h-3.5 w-3.5" />
-            ABHA: {PATIENT.abhaId}
-          </span>
-          <span className="h-3 w-px bg-sage/20" />
+          {PATIENT.abhaId && (
+            <>
+              <span className="flex items-center gap-1">
+                <Shield className="h-3.5 w-3.5" />
+                ABHA: {PATIENT.abhaId}
+              </span>
+              <span className="h-3 w-px bg-sage/20" />
+            </>
+          )}
           <span className="flex items-center gap-1">
             <User className="h-3.5 w-3.5" />
             Caregiver: {PATIENT.caregiver.name}
