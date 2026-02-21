@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb } from 'lucide-react';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb, Gauge } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -246,6 +246,56 @@ export default function PatientHomePage() {
           </div>
         </div>
       )}
+
+      {/* Sprint 42 — Composite Wellness Score */}
+      {(() => {
+        const adherenceScore = Math.round(ADHERENCE_7DAY.reduce((s, d) => s + d.taken, 0) / ADHERENCE_7DAY.reduce((s, d) => s + d.total, 0) * 100);
+        const painControl = Math.max(0, 100 - (painScore * 10));
+        const moodScore = mood === 'good' ? 90 : mood === 'okay' ? 60 : mood === 'bad' ? 30 : 70;
+        const engagementScore = Math.min(100, ((w.breathe_sessions ?? 12) * 3 + (w.gratitude_count ?? 5) * 5));
+        const composite = Math.round((adherenceScore * 0.3 + painControl * 0.3 + moodScore * 0.2 + engagementScore * 0.2));
+        const dimensions = [
+          { label: 'Medication', score: adherenceScore, weight: '30%', color: 'bg-teal' },
+          { label: 'Pain Control', score: painControl, weight: '30%', color: 'bg-sage' },
+          { label: 'Mood', score: moodScore, weight: '20%', color: 'bg-amber' },
+          { label: 'Engagement', score: engagementScore, weight: '20%', color: 'bg-lavender' },
+        ];
+        const scoreColor = composite >= 75 ? 'text-sage-dark' : composite >= 50 ? 'text-amber' : 'text-terra';
+        const scoreBg = composite >= 75 ? 'bg-sage/10' : composite >= 50 ? 'bg-amber/10' : 'bg-terra/10';
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Gauge className="h-5 w-5 text-teal" />
+                <h2 className="font-heading text-xl font-bold text-charcoal">Wellness Score</h2>
+              </div>
+              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${scoreBg}`}>
+                <span className={`font-heading text-xl font-bold ${scoreColor}`}>{composite}</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {dimensions.map((dim) => (
+                <div key={dim.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-charcoal/60">{dim.label} <span className="text-[10px] text-charcoal/30">({dim.weight})</span></span>
+                    <span className="text-sm font-bold text-charcoal">{dim.score}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-cream">
+                    <div className={`h-full rounded-full ${dim.color} transition-all`} style={{ width: `${dim.score}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-charcoal/40">
+              {composite >= 75
+                ? 'You are doing great! Your overall wellness is strong. Keep it up.'
+                : composite >= 50
+                ? 'Good progress. Focus on areas scoring lower to improve your overall comfort.'
+                : 'Your care team is here to help. Please share how you feel with them at your next visit.'}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Next Appointment */}
       <div className="rounded-2xl bg-white p-6">

@@ -8,7 +8,7 @@ import { AlertsPreview } from '@/components/ui/AlertsPreview';
 import {
   Users, AlertTriangle, Activity, Pill, Loader2,
   ListChecks, ArrowRight, Clock, CalendarClock,
-  ArrowUpRight, ArrowDownRight, Minus, Clipboard,
+  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, useAlertCounts } from '@/lib/hooks';
@@ -213,6 +213,57 @@ export default function DashboardPage() {
           })}
         </div>
       </div>
+
+      {/* Sprint 42 — Clinical Quality Compliance */}
+      {(() => {
+        const metrics = [
+          { label: 'Pain assessed <4h', compliant: 21, total: 24, threshold: 85 },
+          { label: 'MEDD review current', compliant: 18, total: 22, threshold: 90 },
+          { label: 'Goals-of-care documented', compliant: 20, total: 24, threshold: 80 },
+          { label: 'PHQ-9 screened (7d)', compliant: 15, total: 24, threshold: 70 },
+          { label: 'NDPS register updated', compliant: 22, total: 22, threshold: 95 },
+        ];
+        const overallPct = Math.round(metrics.reduce((s, m) => s + (m.compliant / m.total) * 100, 0) / metrics.length);
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+                <ShieldCheck className="h-4 w-4" />
+                Clinical Quality Compliance
+              </h2>
+              <span className={cn(
+                'rounded-full px-2.5 py-0.5 text-xs font-bold',
+                overallPct >= 85 ? 'bg-sage/10 text-sage-dark' : overallPct >= 70 ? 'bg-amber/10 text-amber' : 'bg-alert-critical/10 text-alert-critical',
+              )}>
+                {overallPct}% overall
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              {metrics.map((m) => {
+                const pct = Math.round((m.compliant / m.total) * 100);
+                const met = pct >= m.threshold;
+                return (
+                  <div key={m.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-charcoal/60">{m.label}</span>
+                      <span className={cn('text-xs font-bold', met ? 'text-sage' : 'text-terra')}>
+                        {m.compliant}/{m.total} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-cream">
+                      <div
+                        className={cn('h-full rounded-full transition-all', met ? 'bg-sage' : pct >= m.threshold - 10 ? 'bg-amber' : 'bg-terra')}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-[10px] text-charcoal/30">Targets set per AIIMS Palliative Medicine quality standards</p>
+          </div>
+        );
+      })()}
 
       {/* Critical Next Steps */}
       {visibleActions.length > 0 && (

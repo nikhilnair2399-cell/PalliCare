@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Users, Search, ArrowUpRight, ArrowDownRight,
-  Minus, Clock, Loader2, Activity, Pill,
+  Minus, Clock, Loader2, Activity, Pill, AlertOctagon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePatients } from '@/lib/hooks';
@@ -174,6 +174,48 @@ export default function PatientsPage() {
               <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Worsening</p>
               <p className={cn('text-2xl font-bold', worseningCount > 0 ? 'text-alert-critical' : 'text-alert-success')}>{worseningCount}</p>
               <p className="text-[10px] text-charcoal/40">pain trend ↑</p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 42 — Care Gap Detection */}
+      {(() => {
+        const gaps: { patient: string; patientId: string; gap: string; severity: 'critical' | 'warning' | 'info' }[] = [];
+        allPatients.forEach((p: any) => {
+          if (p.pain >= 7 && p.trend === 'worsening') gaps.push({ patient: p.name, patientId: p.id, gap: 'Severe pain worsening — needs urgent review', severity: 'critical' });
+          if (p.medd > 200) gaps.push({ patient: p.name, patientId: p.id, gap: 'MEDD >200mg — opioid safety review due', severity: 'critical' });
+          if (p.adherence < 70) gaps.push({ patient: p.name, patientId: p.id, gap: `Adherence ${p.adherence}% — side-effect or compliance check needed`, severity: 'warning' });
+          if (p.pps <= 40 && p.ppsTrend === 'declining') gaps.push({ patient: p.name, patientId: p.id, gap: 'PPS ≤40% declining — goals-of-care review recommended', severity: 'warning' });
+          const logTime = p.lastLog || '';
+          if (logTime.includes('d ago') || logTime === 'N/A') gaps.push({ patient: p.name, patientId: p.id, gap: 'No symptom log in >24h', severity: 'info' });
+        });
+        if (gaps.length === 0) return null;
+        const critGaps = gaps.filter(g => g.severity === 'critical');
+        const warnGaps = gaps.filter(g => g.severity === 'warning');
+        const infoGaps = gaps.filter(g => g.severity === 'info');
+        const gapStyle = { critical: 'bg-alert-critical/5 border-alert-critical/20 text-alert-critical', warning: 'bg-amber/5 border-amber/20 text-amber', info: 'bg-teal/5 border-teal/20 text-teal' };
+        const dotStyle = { critical: 'bg-alert-critical', warning: 'bg-amber', info: 'bg-teal' };
+        const sortedGaps = [...critGaps, ...warnGaps, ...infoGaps].slice(0, 6);
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-terra">
+                <AlertOctagon className="h-4 w-4" />
+                Care Gaps Detected
+              </h2>
+              <span className="text-xs text-charcoal/40">
+                {critGaps.length} critical · {warnGaps.length} warning · {infoGaps.length} info
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {sortedGaps.map((g, i) => (
+                <Link key={i} href={`/patients/${g.patientId}`} className={cn('flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:opacity-80', gapStyle[g.severity])}>
+                  <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', dotStyle[g.severity])} />
+                  <span className="text-xs font-semibold text-charcoal min-w-[100px]">{g.patient}</span>
+                  <span className="text-xs text-charcoal/60 truncate">{g.gap}</span>
+                </Link>
+              ))}
             </div>
           </div>
         );
