@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -24,6 +24,13 @@ const techniques: Technique[] = [
   { id: 'deep', name: 'Deep Belly Breathing', description: 'Slow, deep breaths for relaxation', inhale: 5, hold: 2, exhale: 6 },
   { id: 'triangle', name: 'Triangle Breathing', description: 'Three-phase for gentle relaxation', inhale: 3, hold: 3, exhale: 3 },
 ];
+
+const TECHNIQUE_BENEFITS: Record<string, { benefit: string; bestFor: string }> = {
+  '478': { benefit: 'Activates your parasympathetic nervous system, helping you feel deeply calm', bestFor: 'Sleep, anxiety, panic' },
+  'box': { benefit: 'Balances your autonomic system, improving focus and emotional regulation', bestFor: 'Focus, stress management' },
+  'deep': { benefit: 'Increases oxygen, reduces heart rate, and eases muscle tension', bestFor: 'Pain relief, general relaxation' },
+  'triangle': { benefit: 'Gentle rhythm that is easy to follow even when feeling unwell', bestFor: 'Nausea, fatigue, breathlessness' },
+};
 
 export default function BreathePage() {
   const [selectedTechnique, setSelectedTechnique] = useState<Technique>(techniques[0]);
@@ -164,6 +171,38 @@ export default function BreathePage() {
         </div>
       )}
 
+      {/* Weekly Stats Banner */}
+      {!isRunning && !sessionComplete && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+            <TrendingUp className="mb-1 h-4 w-4 text-teal" />
+            <span className="font-heading text-2xl font-bold text-charcoal">{s.total_sessions ?? 12}</span>
+            <span className="text-xs text-charcoal-light">Total Sessions</span>
+          </div>
+          <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+            <Clock className="mb-1 h-4 w-4 text-sage" />
+            <span className="font-heading text-2xl font-bold text-charcoal">{s.total_minutes ?? 48}</span>
+            <span className="text-xs text-charcoal-light">Minutes Breathed</span>
+          </div>
+          <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+            <Flame className="mb-1 h-4 w-4 text-amber" />
+            <span className="font-heading text-2xl font-bold text-charcoal">{s.streak ?? s.current_streak ?? 3}</span>
+            <span className="text-xs text-charcoal-light">Day Streak</span>
+          </div>
+        </div>
+      )}
+
+      {/* Technique Tip */}
+      {!isRunning && !sessionComplete && TECHNIQUE_BENEFITS[selectedTechnique.id] && (
+        <div className="flex items-start gap-3 rounded-2xl bg-teal/5 p-4">
+          <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-teal" />
+          <div>
+            <p className="text-sm font-medium text-charcoal">{TECHNIQUE_BENEFITS[selectedTechnique.id].benefit}</p>
+            <p className="mt-1 text-xs text-charcoal-light">Best for: {TECHNIQUE_BENEFITS[selectedTechnique.id].bestFor}</p>
+          </div>
+        </div>
+      )}
+
       {/* Technique Selector */}
       {!isRunning && !sessionComplete && (
         <div className="rounded-2xl bg-white p-6">
@@ -189,11 +228,6 @@ export default function BreathePage() {
           </div>
         </div>
       )}
-
-      {/* Stats (inline text) */}
-      <div className="text-center text-sm text-charcoal-light">
-        {s.total_sessions ?? 0} sessions &middot; {s.total_minutes ?? 0} minutes total
-      </div>
     </div>
   );
 }

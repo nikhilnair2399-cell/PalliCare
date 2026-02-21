@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Target, Heart, Sun, Trophy, Plus } from 'lucide-react';
+import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp } from 'lucide-react';
 import { useGoals, useCreateGoal, useGratitude, useSaveGratitude, useIntentions, useSaveIntention, useMilestones } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_GOALS, MOCK_GRATITUDE_ENTRIES, MOCK_MILESTONES } from '@/lib/patient-mock-data';
@@ -58,10 +58,41 @@ export default function JourneyPage() {
         </p>
       </div>
 
-      {/* Summary */}
-      <p className="text-sm text-charcoal-light">
-        {(journey.goals || []).length} goals &middot; {(journey.gratitude || []).length} gratitudes &middot; {(journey.milestones || []).length} milestones
-      </p>
+      {/* Journey Stats Banner */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+          <Target className="mb-1 h-4 w-4 text-teal" />
+          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.goals || []).length}</span>
+          <span className="text-xs text-charcoal-light">Goals</span>
+        </div>
+        <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+          <Heart className="mb-1 h-4 w-4 text-terra" />
+          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.gratitude || []).length}</span>
+          <span className="text-xs text-charcoal-light">Gratitudes</span>
+        </div>
+        <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+          <Trophy className="mb-1 h-4 w-4 text-amber" />
+          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.milestones || []).length}</span>
+          <span className="text-xs text-charcoal-light">Milestones</span>
+        </div>
+        <div className="flex flex-col items-center rounded-2xl bg-white p-4">
+          <Flame className="mb-1 h-4 w-4 text-amber" />
+          <span className="font-heading text-2xl font-bold text-charcoal">
+            {Math.max((journey.gratitude || []).length, 1)}
+          </span>
+          <span className="text-xs text-charcoal-light">Day Streak</span>
+        </div>
+      </div>
+
+      {/* Encouragement */}
+      <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-teal/5 to-sage/5 p-4">
+        <TrendingUp className="h-5 w-5 flex-shrink-0 text-teal" />
+        <p className="text-sm text-charcoal/70">
+          {(journey.goals || []).filter((g: any) => g.completed).length > 0
+            ? `You&apos;ve completed ${(journey.goals || []).filter((g: any) => g.completed).length} goals — every step forward matters.`
+            : 'Start by setting a small, meaningful goal. Every journey begins with one step.'}
+        </p>
+      </div>
 
       {/* Tabs */}
       <div className="rounded-2xl bg-white p-6">
@@ -130,11 +161,24 @@ export default function JourneyPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-base text-charcoal">{item.text || item.title || item.content}</p>
-                  {item.date && (
-                    <p className="mt-1 text-sm text-charcoal/40">
-                      {new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </p>
-                  )}
+                  <div className="mt-1 flex items-center gap-2">
+                    {item.date && (
+                      <span className="text-sm text-charcoal/40">
+                        {new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                    {item.category && (
+                      <span className={clsx(
+                        'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                        item.category === 'physical' ? 'bg-teal/10 text-teal' :
+                        item.category === 'emotional' ? 'bg-terra/10 text-terra' :
+                        item.category === 'spiritual' ? 'bg-lavender/10 text-lavender' :
+                        'bg-sage/10 text-sage',
+                      )}>
+                        {item.category}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {item.completed && (
                   <span className="rounded-full bg-sage/10 px-2.5 py-0.5 text-xs font-semibold text-sage">Done</span>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -295,6 +295,62 @@ export default function SleepPage() {
           </p>
         </div>
       )}
+
+      {/* Week-over-Week Comparison */}
+      <div className="rounded-2xl bg-white p-5">
+        <h2 className="mb-3 text-base font-semibold text-charcoal">This Week vs Last Week</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {(() => {
+            const thisWeekAvgQ = recentWeek.length > 0 ? Math.round(recentWeek.reduce((a, h) => a + h.quality, 0) / recentWeek.length * 10) / 10 : 0;
+            const lastWeekAvgQ = prevWeek.length > 0 ? Math.round(prevWeek.reduce((a, h) => a + h.quality, 0) / prevWeek.length * 10) / 10 : 0;
+            const thisWeekAvgH = recentWeek.length > 0 ? Math.round(recentWeek.reduce((a, h) => a + h.total_hours, 0) / recentWeek.length * 10) / 10 : 0;
+            const lastWeekAvgH = prevWeek.length > 0 ? Math.round(prevWeek.reduce((a, h) => a + h.total_hours, 0) / prevWeek.length * 10) / 10 : 0;
+            const qDiff = Math.round((thisWeekAvgQ - lastWeekAvgQ) * 10) / 10;
+            const hDiff = Math.round((thisWeekAvgH - lastWeekAvgH) * 10) / 10;
+            return (
+              <>
+                <div className="rounded-xl bg-cream/50 p-4 text-center">
+                  <p className="text-xs text-charcoal-light">Avg Quality</p>
+                  <p className={clsx('text-xl font-bold', qualityText(thisWeekAvgQ))}>{thisWeekAvgQ}/10</p>
+                  <p className={clsx('text-xs font-semibold', qDiff > 0 ? 'text-sage' : qDiff < 0 ? 'text-terra' : 'text-charcoal/40')}>
+                    {qDiff > 0 ? '+' : ''}{qDiff} from last week
+                  </p>
+                </div>
+                <div className="rounded-xl bg-cream/50 p-4 text-center">
+                  <p className="text-xs text-charcoal-light">Avg Hours</p>
+                  <p className={clsx('text-xl font-bold', thisWeekAvgH >= 6 ? 'text-sage' : 'text-terra')}>{thisWeekAvgH}h</p>
+                  <p className={clsx('text-xs font-semibold', hDiff > 0 ? 'text-sage' : hDiff < 0 ? 'text-terra' : 'text-charcoal/40')}>
+                    {hDiff > 0 ? '+' : ''}{hDiff}h from last week
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* Sleep Hygiene Tips */}
+      <div className="rounded-2xl bg-teal/5 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="h-5 w-5 text-teal" />
+          <h2 className="text-base font-semibold text-charcoal">Sleep Tips for You</h2>
+        </div>
+        <div className="space-y-2">
+          {[
+            topDisturbance?.[0] === 'Pain' && 'Take your pain medication 30 min before bed. A warm compress can help.',
+            topDisturbance?.[0] === 'Anxiety' && 'Try the 4-7-8 breathing exercise before bed. It can calm your mind.',
+            topDisturbance?.[0] === 'Nausea' && 'Elevate your head with an extra pillow. Avoid eating within 2 hours of bed.',
+            avgHours < 6 && 'Aim for a consistent bedtime. Even resting with eyes closed helps your body recover.',
+            avgQuality < 5 && 'Reduce screen time 1 hour before bed. A dark, cool room improves sleep quality.',
+            'Keep a regular sleep schedule — your body loves routine.',
+          ].filter(Boolean).slice(0, 3).map((tip, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-teal flex-shrink-0" />
+              <p className="text-sm text-charcoal/70">{tip}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Sleep Quality Chart */}
       <div className="rounded-2xl bg-white p-5">
