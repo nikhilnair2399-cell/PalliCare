@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, Heart, Clock, TrendingDown, Sparkles } from 'lucide-react';
+import { CheckCircle2, Heart, Clock, TrendingDown, Sparkles, Wind, BookOpen, MessageSquare, Brain, Moon, Apple, Footprints } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications } from '@/lib/patient-hooks';
 import { usePatientAuth } from '@/lib/patient-auth';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -41,26 +41,34 @@ export default function PatientHomePage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Hero Greeting */}
-      <div className="rounded-2xl bg-gradient-to-br from-sage via-teal to-teal-dark p-8 text-white shadow-lg">
-        <h1 className="font-heading text-3xl font-bold">
+      <div
+        className="rounded-2xl p-8 text-white"
+        style={{ background: 'linear-gradient(135deg, #2A6B6B 0%, #1A4A4A 50%, #2A6B6B 100%)' }}
+      >
+        <h1 className="font-heading text-[28px] font-bold">
           {greeting}, {firstName}
         </h1>
-        <p className="mt-2 text-lg text-white/80">Today, You Matter</p>
+        <p className="mt-1 text-[16px]" style={{ color: 'rgba(255,255,255,0.65)' }}>
+          Today, You Matter
+        </p>
       </div>
 
-      {/* Today's Summary Strip */}
+      {/* Today&apos;s Summary Strip */}
       {symptom.today && (
-        <div className="flex items-center gap-4 rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-4 rounded-xl bg-white p-4"
+          style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+        >
+          <div className="flex items-center gap-3">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-[13px] font-bold text-white"
               style={{ backgroundColor: painColor(symptom.today.pain) }}
             >
               {symptom.today.pain}
             </div>
             <div>
-              <p className="text-xs font-semibold text-charcoal">Last Pain Score</p>
-              <p className="text-[11px] text-charcoal-light">
+              <p className="text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>Last Pain Score</p>
+              <p className="text-[11px]" style={{ color: '#4A4A4A' }}>
                 {new Date(symptom.today.logged_at).toLocaleTimeString('en-IN', {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -68,14 +76,14 @@ export default function PatientHomePage() {
               </p>
             </div>
           </div>
-          <div className="h-8 w-px bg-sage-light/30" />
+          <div className="h-8 w-px" style={{ backgroundColor: 'rgba(168,203,181,0.25)' }} />
           <div className="flex items-center gap-2">
-            <TrendingDown className="h-4 w-4 text-sage" />
+            <TrendingDown className="h-4 w-4" style={{ color: '#7BA68C' }} />
             <div>
-              <p className="text-xs font-semibold text-charcoal">Week Average</p>
-              <p className="text-[11px] text-charcoal-light">
+              <p className="text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>Week Average</p>
+              <p className="text-[11px]" style={{ color: '#4A4A4A' }}>
                 {symptom.week_avg_pain}/10 &middot;{' '}
-                <span className="text-sage">{symptom.trend}</span>
+                <span style={{ color: '#7BA68C' }}>{symptom.trend}</span>
               </p>
             </div>
           </div>
@@ -85,15 +93,16 @@ export default function PatientHomePage() {
       {/* Quick Log */}
       <QuickLogCard />
 
-      {/* Today's Medications */}
+      {/* Today&apos;s Medications */}
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-charcoal">
+          <h2 className="font-heading text-[17px] font-bold" style={{ color: '#2D2D2D' }}>
             Today&apos;s Medications
           </h2>
           <Link
             href="/patient/medications"
-            className="text-xs font-semibold text-teal hover:underline"
+            className="text-[12px] font-semibold"
+            style={{ color: '#2A6B6B' }}
           >
             View All &rarr;
           </Link>
@@ -126,21 +135,33 @@ export default function PatientHomePage() {
         />
       </div>
 
-      {/* Today's Intention */}
+      {/* Today&apos;s Intention */}
       {intention && (
-        <div className="rounded-2xl border border-sage-light/20 bg-white p-5 shadow-sm">
+        <div
+          className="rounded-xl bg-white p-5"
+          style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+        >
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber/10">
-              <Clock className="h-5 w-5 text-amber" />
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{ backgroundColor: 'rgba(232,168,56,0.08)' }}
+            >
+              <Clock className="h-5 w-5" style={{ color: '#E8A838' }} />
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-bold text-charcoal">
+              <h3 className="text-[14px] font-bold" style={{ color: '#2D2D2D' }}>
                 Today&apos;s Intention
               </h3>
-              <p className="mt-1 text-sm text-charcoal-light">
+              <p className="mt-1 text-[14px]" style={{ color: '#4A4A4A' }}>
                 {intention.content}
               </p>
-              <span className="mt-2 inline-block rounded-full bg-sage/10 px-3 py-1 text-xs font-semibold text-sage-dark">
+              <span
+                className="mt-2 inline-block rounded-full px-3 py-1 text-[11px] font-semibold"
+                style={{
+                  backgroundColor: 'rgba(123,166,140,0.08)',
+                  color: '#5A8A6E',
+                }}
+              >
                 {intention.status === 'completed' ? 'Completed' : 'In Progress'}
               </span>
             </div>
@@ -148,21 +169,52 @@ export default function PatientHomePage() {
         </div>
       )}
 
+      {/* Health Trackers */}
+      <div>
+        <h2 className="mb-3 font-heading text-[17px] font-bold" style={{ color: '#2D2D2D' }}>
+          Health Trackers
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { href: '/patient/mood-check', label: 'Mood Check', icon: Brain, bg: 'rgba(217,212,231,0.2)', color: '#8B7BB5' },
+            { href: '/patient/sleep', label: 'Sleep', icon: Moon, bg: 'rgba(107,123,179,0.08)', color: '#6B7BB3' },
+            { href: '/patient/nutrition', label: 'Nutrition', icon: Apple, bg: 'rgba(123,166,140,0.08)', color: '#7BA68C' },
+            { href: '/patient/functional-status', label: 'Daily Ability', icon: Footprints, bg: 'rgba(42,107,107,0.06)', color: '#2A6B6B' },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex flex-col items-center gap-2.5 rounded-xl p-4 transition-shadow hover:shadow-md"
+              style={{ backgroundColor: link.bg }}
+            >
+              <link.icon className="h-5 w-5" style={{ color: link.color }} />
+              <span className="text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>
+                {link.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { href: '/patient/breathe', label: 'Breathe', icon: '🧘', bg: 'bg-lavender-light/50' },
-          { href: '/patient/learn', label: 'Learn', icon: '📚', bg: 'bg-sage/10' },
-          { href: '/patient/journey', label: 'Journey', icon: '✨', bg: 'bg-amber/10' },
-          { href: '/patient/messages', label: 'Messages', icon: '💬', bg: 'bg-teal/10' },
+          { href: '/patient/my-wishes', label: 'My Wishes', icon: Heart, bg: 'rgba(212,133,107,0.08)' },
+          { href: '/patient/breathe', label: 'Breathe', icon: Wind, bg: 'rgba(217,212,231,0.2)' },
+          { href: '/patient/learn', label: 'Learn', icon: BookOpen, bg: 'rgba(123,166,140,0.08)' },
+          { href: '/patient/journey', label: 'Journey', icon: Sparkles, bg: 'rgba(232,168,56,0.08)' },
+          { href: '/patient/messages', label: 'Messages', icon: MessageSquare, bg: 'rgba(42,107,107,0.06)' },
         ].map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className={`flex flex-col items-center gap-2 rounded-xl ${link.bg} p-4 transition-all hover:shadow-md`}
+            className="flex flex-col items-center gap-2.5 rounded-xl p-4 transition-shadow hover:shadow-md"
+            style={{ backgroundColor: link.bg }}
           >
-            <span className="text-2xl">{link.icon}</span>
-            <span className="text-xs font-semibold text-charcoal">{link.label}</span>
+            <link.icon className="h-5 w-5" style={{ color: '#2A6B6B' }} />
+            <span className="text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>
+              {link.label}
+            </span>
           </Link>
         ))}
       </div>

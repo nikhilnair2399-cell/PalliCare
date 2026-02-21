@@ -14,117 +14,126 @@ import {
   MessageCircle,
   Settings,
   LogOut,
+  Leaf,
+  Brain,
+  Heart,
+  Moon,
+  Apple,
+  Footprints,
 } from 'lucide-react';
 import { usePatientAuth } from '@/lib/patient-auth';
-import { usePatientUnreadCount, useUnseenMilestonesCount } from '@/lib/patient-hooks';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+interface PatientNavProps {
+  onNavigate?: () => void;
+}
 
 const navigation = [
   { name: 'Home', href: '/patient', icon: Home },
   { name: 'Log Symptoms', href: '/patient/log', icon: Activity },
   { name: 'Medications', href: '/patient/medications', icon: Pill },
   { name: 'Pain Diary', href: '/patient/pain-diary', icon: TrendingUp },
+  { name: 'Mood Check', href: '/patient/mood-check', icon: Brain },
+  { name: 'Sleep', href: '/patient/sleep', icon: Moon },
+  { name: 'Nutrition', href: '/patient/nutrition', icon: Apple },
+  { name: 'Functional Status', href: '/patient/functional-status', icon: Footprints },
+  { name: 'My Wishes', href: '/patient/my-wishes', icon: Heart },
   { name: 'Breathe', href: '/patient/breathe', icon: Wind },
   { name: 'Learn', href: '/patient/learn', icon: BookOpen },
-  { name: 'Journey', href: '/patient/journey', icon: Sparkles, badgeKey: 'milestones' as const },
-  { name: 'Messages', href: '/patient/messages', icon: MessageCircle, badgeKey: 'messages' as const },
+  { name: 'Journey', href: '/patient/journey', icon: Sparkles },
+  { name: 'Messages', href: '/patient/messages', icon: MessageCircle },
 ];
 
-const bottomNav = [
-  { name: 'Settings', href: '/patient/settings', icon: Settings },
-];
-
-export function PatientNav() {
+export function PatientNav({ onNavigate }: PatientNavProps) {
   const pathname = usePathname();
   const { user, logout } = usePatientAuth();
 
-  const unreadQuery = usePatientUnreadCount();
-  const milestonesQuery = useUnseenMilestonesCount();
-
-  const unreadCount = (unreadQuery.data as any)?.count ?? 0;
-  const unseenMilestones = (milestonesQuery.data as any)?.count ?? 0;
-
   return (
-    <aside className="flex h-full w-72 flex-col border-r border-sage-light/20 bg-white/80 backdrop-blur-sm">
+    <aside className="flex h-full flex-col bg-white" style={{ borderRight: '1px solid rgba(168,203,181,0.2)' }}>
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-sage-light/20 px-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sage to-teal font-heading text-xl font-bold text-white">
-          P
+      <div className="flex h-16 items-center gap-3 px-6" style={{ borderBottom: '1px solid rgba(168,203,181,0.2)' }}>
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: '#2A6B6B' }}>
+          <Leaf className="h-4 w-4 text-white" />
         </div>
         <div>
-          <h1 className="font-heading text-xl font-bold text-teal">PalliCare</h1>
-          <p className="text-[10px] text-charcoal-light">Your Wellness Companion</p>
+          <h1 className="font-heading text-lg font-bold" style={{ color: '#2A6B6B' }}>
+            PalliCare
+          </h1>
+          <p className="text-[10px] font-medium" style={{ color: '#4A4A4A' }}>
+            Your Wellness Companion
+          </p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-4 py-6">
+      <nav className="flex-1 space-y-0.5 px-3 py-4">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== '/patient' && pathname.startsWith(item.href));
 
-          let badgeCount = 0;
-          if (item.badgeKey === 'messages') badgeCount = unreadCount;
-          else if (item.badgeKey === 'milestones') badgeCount = unseenMilestones;
-
           return (
             <Link
               key={item.name}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                isActive
-                  ? 'bg-gradient-to-r from-sage/15 to-teal/10 text-teal shadow-sm'
-                  : 'text-charcoal-light hover:bg-cream hover:text-charcoal',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
               )}
+              style={{
+                backgroundColor: isActive ? 'rgba(42,107,107,0.06)' : 'transparent',
+                color: isActive ? '#2A6B6B' : '#4A4A4A',
+              }}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
+              <item.icon className="h-[18px] w-[18px] flex-shrink-0" />
               {item.name}
-              {badgeCount > 0 && (
-                <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber px-1.5 text-[10px] font-bold text-white">
-                  {badgeCount > 99 ? '99+' : badgeCount}
-                </span>
-              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom Navigation */}
-      <div className="border-t border-sage-light/20 px-4 py-4">
-        {bottomNav.map((item) => (
+      {/* Bottom: Settings + Sign Out */}
+      <div className="px-3 pb-2" style={{ borderTop: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="pt-2">
           <Link
-            key={item.name}
-            href={item.href}
-            className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-charcoal"
+            href="/patient/settings"
+            onClick={onNavigate}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors"
+            style={{
+              color: pathname === '/patient/settings' ? '#2A6B6B' : '#4A4A4A',
+              backgroundColor: pathname === '/patient/settings' ? 'rgba(42,107,107,0.06)' : 'transparent',
+            }}
           >
-            <item.icon className="h-5 w-5" />
-            {item.name}
+            <Settings className="h-[18px] w-[18px]" />
+            Settings
           </Link>
-        ))}
-        <button
-          onClick={logout}
-          className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-charcoal-light hover:bg-alert-critical/10 hover:text-alert-critical"
-        >
-          <LogOut className="h-5 w-5" />
-          Sign Out
-        </button>
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors"
+            style={{ color: '#C25A45' }}
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+            Sign Out
+          </button>
+        </div>
       </div>
 
-      {/* Patient Info */}
+      {/* User info footer */}
       {user && (
-        <div className="border-t border-sage-light/20 bg-gradient-to-br from-lavender-light/50 to-sage-light/30 px-5 py-4">
+        <div className="px-4 py-3.5" style={{ borderTop: '1px solid rgba(168,203,181,0.15)', backgroundColor: '#FAFCFB' }}>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-lavender to-sage text-sm font-bold text-white">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold text-white"
+              style={{ backgroundColor: '#7BA68C' }}
+            >
               {user.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-charcoal">
+              <p className="truncate text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>
                 {user.name}
               </p>
-              <p className="truncate text-xs text-charcoal-light">
+              <p className="truncate text-[11px]" style={{ color: '#4A4A4A' }}>
                 {user.uhid}
               </p>
             </div>
