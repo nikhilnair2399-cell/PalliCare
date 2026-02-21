@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Heart,
   BarChart3,
+  Target,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -588,6 +589,72 @@ export default function FunctionalStatusPage() {
           })()}
         </div>
       )}
+
+      {/* Sprint 57 — Functional Goal Tracker */}
+      {latestEntry && (() => {
+        const DOMAIN_GOALS: Record<string, { low: string; mid: string; high: string }> = {
+          mobility: { low: 'Sit up in bed for 10 minutes daily', mid: 'Walk to the bathroom independently', high: 'Take a short walk outside daily' },
+          selfCare: { low: 'Brush teeth independently', mid: 'Bathe with minimal assistance', high: 'Complete all self-care independently' },
+          eating: { low: 'Take 3-4 sips of fluid every hour', mid: 'Eat at least one small meal daily', high: 'Eat regular balanced meals' },
+          awareness: { low: 'Stay alert for family visits', mid: 'Read or watch TV for 30 minutes', high: 'Engage in conversations throughout day' },
+          activity: { low: 'Listen to music or radio daily', mid: 'Do a light hobby for 20 minutes', high: 'Resume a favourite activity regularly' },
+        };
+        const goals = DOMAINS.map((d) => {
+          const score = (latestEntry as any)[d.key] as number;
+          const goalMap = DOMAIN_GOALS[d.key];
+          const goal = score <= 2 ? goalMap.low : score <= 3 ? goalMap.mid : goalMap.high;
+          const achieved = score >= 4;
+          const prevScore = prevEntry ? (prevEntry as any)[d.key] as number : score;
+          const improving = score > prevScore;
+          return { domain: d, score, goal, achieved, improving };
+        });
+        const achievedCount = goals.filter((g) => g.achieved).length;
+        const improvingCount = goals.filter((g) => g.improving).length;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-teal" />
+                <h2 className="text-base font-semibold text-charcoal">Your Functional Goals</h2>
+              </div>
+              <span className="text-xs text-charcoal/40">{achievedCount}/{goals.length} achieved</span>
+            </div>
+            <div className="space-y-2.5">
+              {goals.map((g) => (
+                <div
+                  key={g.domain.key}
+                  className={clsx(
+                    'rounded-xl border p-3 transition-colors',
+                    g.achieved ? 'border-sage/20 bg-sage/5' : 'border-charcoal/5 bg-white',
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <g.domain.icon className={clsx('h-3.5 w-3.5', g.achieved ? 'text-sage' : 'text-charcoal/40')} />
+                    <span className="text-xs font-semibold text-charcoal/60">{g.domain.label}</span>
+                    {g.achieved && <CheckCircle2 className="h-3.5 w-3.5 text-sage ml-auto" />}
+                    {!g.achieved && g.improving && <TrendingUp className="h-3.5 w-3.5 text-amber ml-auto" />}
+                  </div>
+                  <p className={clsx('text-sm', g.achieved ? 'text-sage-dark font-medium' : 'text-charcoal/70')}>{g.goal}</p>
+                  {!g.achieved && (
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-cream">
+                      <div
+                        className={clsx('h-full rounded-full', g.improving ? 'bg-amber' : 'bg-charcoal/15')}
+                        style={{ width: `${(g.score / 5) * 100}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-[10px] border-t border-charcoal/5 pt-2">
+              <span className="text-sage">{achievedCount} goal{achievedCount !== 1 ? 's' : ''} achieved</span>
+              {improvingCount > 0 && <span className="text-amber">{improvingCount} improving</span>}
+              <span className="text-charcoal/30 ml-auto">Goals adjust based on your scores</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Encouragement & Tips */}
       {latestEntry && (

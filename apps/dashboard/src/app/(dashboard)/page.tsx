@@ -8,7 +8,7 @@ import { AlertsPreview } from '@/components/ui/AlertsPreview';
 import {
   Users, AlertTriangle, Activity, Pill, Loader2,
   ListChecks, ArrowRight, Clock, CalendarClock,
-  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble,
+  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble, Syringe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, useAlertCounts } from '@/lib/hooks';
@@ -309,6 +309,99 @@ export default function DashboardPage() {
               })}
             </div>
             <p className="mt-3 text-[10px] text-charcoal/30">Targets set per AIIMS Palliative Medicine quality standards</p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 57 — Opioid Census Summary */}
+      {(() => {
+        const OPIOID_CENSUS = [
+          { patient: 'Ramesh Kumar', opioid: 'Morphine SR', medd: 220, route: 'Oral', breakthrough: 'Morphine IR 15mg' },
+          { patient: 'Sunita Devi', opioid: 'Oxycodone CR', medd: 120, route: 'Oral', breakthrough: 'Oxycodone IR 10mg' },
+          { patient: 'Arjun Singh', opioid: 'Fentanyl Patch', medd: 180, route: 'Transdermal', breakthrough: 'Morphine IR 20mg' },
+          { patient: 'Priya Sharma', opioid: 'Morphine SR', medd: 60, route: 'Oral', breakthrough: 'Morphine IR 10mg' },
+          { patient: 'Manoj Patel', opioid: 'Tapentadol SR', medd: 90, route: 'Oral', breakthrough: 'Tapentadol IR' },
+          { patient: 'Kavita Gupta', opioid: 'Tramadol SR', medd: 40, route: 'Oral', breakthrough: 'Paracetamol' },
+          { patient: 'Arun Sharma', opioid: 'Fentanyl Patch', medd: 300, route: 'Transdermal', breakthrough: 'Morphine IR 30mg' },
+          { patient: 'Mahesh Verma', opioid: 'Morphine SR', medd: 45, route: 'Oral', breakthrough: 'Morphine IR 5mg' },
+        ];
+        const highMEDD = OPIOID_CENSUS.filter((p) => p.medd >= 200);
+        const moderateMEDD = OPIOID_CENSUS.filter((p) => p.medd >= 90 && p.medd < 200);
+        const lowMEDD = OPIOID_CENSUS.filter((p) => p.medd < 90);
+        const avgMEDD = Math.round(OPIOID_CENSUS.reduce((s, p) => s + p.medd, 0) / OPIOID_CENSUS.length);
+        const maxMEDD = Math.max(...OPIOID_CENSUS.map((p) => p.medd));
+        const opioidTypes: Record<string, number> = {};
+        OPIOID_CENSUS.forEach((p) => {
+          const base = p.opioid.split(' ')[0];
+          opioidTypes[base] = (opioidTypes[base] || 0) + 1;
+        });
+        const sortedTypes = Object.entries(opioidTypes).sort((a, b) => b[1] - a[1]);
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+                <Syringe className="h-4 w-4" />
+                Opioid Census
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{OPIOID_CENSUS.length} patients on opioids</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-lg bg-cream/50 p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{avgMEDD}</p>
+                <p className="text-[10px] text-charcoal/40">avg MEDD mg/d</p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-3 text-center">
+                <p className="text-xl font-bold text-terra">{maxMEDD}</p>
+                <p className="text-[10px] text-charcoal/40">highest MEDD</p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-3 text-center">
+                <p className="text-xl font-bold text-alert-critical">{highMEDD.length}</p>
+                <p className="text-[10px] text-charcoal/40">MEDD ≥200</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">MEDD Distribution</p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: '≥200 mg/d (high)', count: highMEDD.length, color: 'bg-alert-critical', textColor: 'text-alert-critical' },
+                    { label: '90–199 mg/d', count: moderateMEDD.length, color: 'bg-amber', textColor: 'text-amber' },
+                    { label: '<90 mg/d', count: lowMEDD.length, color: 'bg-sage', textColor: 'text-sage' },
+                  ].map((tier) => (
+                    <div key={tier.label} className="flex items-center gap-2">
+                      <span className={cn('h-2 w-2 rounded-full flex-shrink-0', tier.color)} />
+                      <span className="text-xs text-charcoal/60 flex-1">{tier.label}</span>
+                      <div className="w-16 h-1.5 rounded-full bg-cream">
+                        <div className={cn('h-full rounded-full', tier.color)} style={{ width: `${(tier.count / OPIOID_CENSUS.length) * 100}%` }} />
+                      </div>
+                      <span className={cn('text-xs font-bold w-4 text-right', tier.textColor)}>{tier.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">Opioid Types in Use</p>
+                <div className="space-y-1.5">
+                  {sortedTypes.map(([type, count]) => (
+                    <div key={type} className="flex items-center gap-2">
+                      <span className="text-xs text-charcoal/60 flex-1">{type}</span>
+                      <div className="w-16 h-1.5 rounded-full bg-cream">
+                        <div className="h-full rounded-full bg-teal/60" style={{ width: `${(count / OPIOID_CENSUS.length) * 100}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-charcoal/50 w-4 text-right">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {highMEDD.length > 0 && (
+              <div className="mt-3 rounded-lg bg-alert-critical/5 px-3 py-2">
+                <p className="text-[10px] text-alert-critical font-semibold">
+                  {highMEDD.map((p) => p.patient).join(', ')} — MEDD ≥200mg, ensure naloxone availability & NDPS register updated
+                </p>
+              </div>
+            )}
           </div>
         );
       })()}

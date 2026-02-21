@@ -16,6 +16,7 @@ import {
   Grid3x3,
   Clock,
   PenLine,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -700,6 +701,85 @@ export default function ClinicalNotesPage() {
                 </div>
               ))}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 57 — Patient Documentation Coverage */}
+      {(() => {
+        const PATIENTS = [
+          { name: 'Ramesh Kumar', id: '1' },
+          { name: 'Sunita Devi', id: '2' },
+          { name: 'Arjun Singh', id: '3' },
+          { name: 'Priya Sharma', id: '4' },
+          { name: 'Manoj Patel', id: '5' },
+          { name: 'Kavita Gupta', id: '6' },
+          { name: 'Arun Sharma', id: '7' },
+          { name: 'Mahesh Verma', id: '8' },
+        ];
+        const now = new Date();
+        const coverage = PATIENTS.map((pt) => {
+          const patientNotes = allNotes.filter((n: any) => n.patient === pt.name || n.patientId === pt.id);
+          const noteCount = patientNotes.length;
+          const lastNote = patientNotes.length > 0 ? patientNotes[0] : null;
+          const types = [...new Set(patientNotes.map((n: any) => n.type))];
+          const daysSince = lastNote ? Math.max(0, Math.floor((now.getTime() - new Date(lastNote.date?.replace(/,.*/, '') || now).getTime()) / 86400000)) : 99;
+          return { ...pt, noteCount, daysSince, types, lastNote };
+        }).sort((a, b) => b.daysSince - a.daysSince);
+        const overdue = coverage.filter((c) => c.daysSince > 3);
+        const documented = coverage.filter((c) => c.daysSince <= 3);
+        const coveragePct = PATIENTS.length > 0 ? Math.round((documented.length / PATIENTS.length) * 100) : 0;
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Users className="h-4 w-4 text-teal" /> Patient Documentation Coverage
+              </h2>
+              <span className={cn(
+                'rounded-full px-2.5 py-0.5 text-xs font-bold',
+                coveragePct >= 80 ? 'bg-sage/10 text-sage-dark' : coveragePct >= 60 ? 'bg-amber/10 text-amber' : 'bg-terra/10 text-terra',
+              )}>
+                {coveragePct}% current
+              </span>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-cream mb-4">
+              <div
+                className={cn('h-full rounded-full transition-all', coveragePct >= 80 ? 'bg-sage' : coveragePct >= 60 ? 'bg-amber' : 'bg-terra')}
+                style={{ width: `${coveragePct}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {overdue.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-terra uppercase mb-1.5">Needs Documentation ({overdue.length})</p>
+                  <div className="space-y-1.5">
+                    {overdue.map((pt) => (
+                      <div key={pt.id} className="flex items-center gap-2 rounded-lg bg-terra/5 px-3 py-2">
+                        <span className="h-2 w-2 rounded-full bg-terra flex-shrink-0" />
+                        <span className="text-xs font-semibold text-charcoal flex-1 truncate">{pt.name}</span>
+                        <span className="text-[10px] text-terra font-bold">{pt.daysSince > 30 ? 'No notes' : `${pt.daysSince}d ago`}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {documented.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-sage uppercase mb-1.5">Recently Documented ({documented.length})</p>
+                  <div className="space-y-1.5">
+                    {documented.map((pt) => (
+                      <div key={pt.id} className="flex items-center gap-2 rounded-lg bg-sage/5 px-3 py-2">
+                        <span className="h-2 w-2 rounded-full bg-sage flex-shrink-0" />
+                        <span className="text-xs font-semibold text-charcoal flex-1 truncate">{pt.name}</span>
+                        <span className="text-[10px] text-charcoal/40">{pt.noteCount} note{pt.noteCount !== 1 ? 's' : ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-[10px] text-charcoal/30">Patients without a note in the last 3 days are flagged for documentation</p>
           </div>
         );
       })()}
