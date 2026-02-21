@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server';
  * For production, the login flow should set an HttpOnly cookie.
  */
 
-const PUBLIC_PATHS = ['/login', '/api', '/_next', '/favicon.ico'];
+const PUBLIC_PATHS = ['/login', '/patient', '/api', '/_next', '/favicon.ico'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
