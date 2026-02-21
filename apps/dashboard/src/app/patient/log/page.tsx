@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb, History, Clock } from 'lucide-react';
 import { useCreateSymptomLog } from '@/lib/patient-hooks';
 import { painColor } from '@/lib/utils';
 
@@ -21,6 +21,15 @@ const ESAS_SYMPTOMS = [
 
 const PAIN_QUALITIES = [
   'Aching', 'Burning', 'Stabbing', 'Throbbing', 'Shooting', 'Cramping', 'Dull', 'Sharp', 'Tingling', 'Pressure',
+];
+
+// Sprint 37 — Mock submission history
+const MOCK_LOG_HISTORY = [
+  { id: 1, date: '2026-02-21T08:30:00', mood: 'okay', pain: 5, totalBurden: 32, highSymptoms: 1, qualities: ['Aching', 'Dull'], topSymptom: 'Fatigue' },
+  { id: 2, date: '2026-02-20T09:15:00', mood: 'bad', pain: 7, totalBurden: 48, highSymptoms: 3, qualities: ['Burning', 'Shooting'], topSymptom: 'Pain' },
+  { id: 3, date: '2026-02-19T07:45:00', mood: 'good', pain: 3, totalBurden: 18, highSymptoms: 0, qualities: ['Dull'], topSymptom: 'Drowsiness' },
+  { id: 4, date: '2026-02-18T10:00:00', mood: 'okay', pain: 4, totalBurden: 28, highSymptoms: 1, qualities: ['Aching', 'Pressure'], topSymptom: 'Anxiety' },
+  { id: 5, date: '2026-02-17T08:00:00', mood: 'good', pain: 2, totalBurden: 14, highSymptoms: 0, qualities: [], topSymptom: 'Nausea' },
 ];
 
 const QUALITY_HINTS: Record<string, string> = {
@@ -336,6 +345,61 @@ export default function LogPage() {
                 </>
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sprint 37 — Submission History */}
+      {!submitted && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <History className="h-5 w-5 text-teal" />
+            <h2 className="font-heading text-lg font-bold text-charcoal">Past Submissions</h2>
+          </div>
+          <div className="space-y-3">
+            {MOCK_LOG_HISTORY.map((log) => {
+              const moodConfig = log.mood === 'good'
+                ? { icon: Smile, label: 'Good', cls: 'text-sage-dark bg-sage/10' }
+                : log.mood === 'bad'
+                ? { icon: Frown, label: 'Not great', cls: 'text-terra bg-terra/10' }
+                : { icon: Meh, label: 'Okay', cls: 'text-amber bg-amber/10' };
+              const MoodIcon = moodConfig.icon;
+              return (
+                <div key={log.id} className="rounded-2xl bg-white p-4">
+                  <div className="flex items-center gap-4">
+                    <span
+                      className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white"
+                      style={{ backgroundColor: painColor(log.pain) }}
+                    >
+                      {log.pain}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-medium text-charcoal">
+                          {new Date(log.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        </p>
+                        <span className="flex items-center gap-1 text-xs text-charcoal/40">
+                          <Clock className="h-3 w-3" />
+                          {new Date(log.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-charcoal-light">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${moodConfig.cls}`}>
+                          <MoodIcon className="h-3 w-3" /> {moodConfig.label}
+                        </span>
+                        <span>Burden: {log.totalBurden}/90</span>
+                        {log.highSymptoms > 0 && (
+                          <span className="text-xs font-medium text-terra">{log.highSymptoms} severe</span>
+                        )}
+                      </div>
+                      {log.qualities.length > 0 && (
+                        <p className="mt-1 text-xs text-charcoal/40">{log.qualities.join(', ')}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

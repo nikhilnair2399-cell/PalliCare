@@ -81,9 +81,49 @@ const MOCK_GOALS_DOCS = {
   preferredPlace: { count: 24, total: 32, rate: 75 },
 };
 
+// Sprint 37 — Drill-down detail data for overview metrics
+const METRIC_DETAILS: Record<string, { breakdown: { label: string; value: number; color: string }[]; trend: { week: string; value: number }[]; note: string }> = {
+  'Active Patients': {
+    breakdown: [
+      { label: 'Cancer — Solid Tumour', value: 14, color: 'bg-teal' },
+      { label: 'Cancer — Hematologic', value: 6, color: 'bg-sage' },
+      { label: 'Non-Cancer (CHF/COPD)', value: 8, color: 'bg-amber' },
+      { label: 'Neurological (ALS/MND)', value: 4, color: 'bg-lavender' },
+    ],
+    trend: [{ week: 'W1', value: 29 }, { week: 'W2', value: 30 }, { week: 'W3', value: 31 }, { week: 'W4', value: 32 }],
+    note: 'Census growing steadily — consider staffing review if trend continues',
+  },
+  'New This Month': {
+    breakdown: [
+      { label: 'Internal (Oncology)', value: 2, color: 'bg-teal' },
+      { label: 'Internal (Medicine)', value: 1, color: 'bg-sage' },
+      { label: 'External referral', value: 1, color: 'bg-amber' },
+      { label: 'Direct admission', value: 1, color: 'bg-terra' },
+    ],
+    trend: [{ week: 'W1', value: 1 }, { week: 'W2', value: 2 }, { week: 'W3', value: 1 }, { week: 'W4', value: 1 }],
+    note: 'Oncology remains primary referral source (40%)',
+  },
+  Discharged: {
+    breakdown: [
+      { label: 'Home palliative care', value: 2, color: 'bg-sage' },
+      { label: 'Curative discharge', value: 1, color: 'bg-teal' },
+    ],
+    trend: [{ week: 'W1', value: 0 }, { week: 'W2', value: 1 }, { week: 'W3', value: 1 }, { week: 'W4', value: 1 }],
+    note: '67% transitioning to home-based palliative care',
+  },
+  Deceased: {
+    breakdown: [
+      { label: 'Expected — home', value: 1, color: 'bg-charcoal/30' },
+    ],
+    trend: [{ week: 'W1', value: 0 }, { week: 'W2', value: 0 }, { week: 'W3', value: 1 }, { week: 'W4', value: 0 }],
+    note: 'Death at preferred place — goals-of-care achieved',
+  },
+};
+
 export default function AnalyticsPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   function handleExport(label: string) {
     setToast(`Generating ${label}...`);
@@ -154,7 +194,14 @@ export default function AnalyticsPage() {
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PATIENT_OVERVIEW.map((item: any) => (
-            <div key={item.label} className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+            <button
+              key={item.label}
+              onClick={() => setSelectedMetric(selectedMetric === item.label ? null : item.label)}
+              className={cn(
+                'rounded-xl border bg-white p-5 shadow-sm transition-all hover:shadow-md text-left',
+                selectedMetric === item.label ? 'border-teal ring-2 ring-teal/20' : 'border-sage-light/30',
+              )}
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-charcoal-light">{item.label}</p>
@@ -165,9 +212,61 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <p className="mt-2 text-xs text-charcoal/50">{item.change}</p>
-            </div>
+            </button>
           ))}
         </div>
+
+        {/* Sprint 37 — Drill-down detail panel */}
+        {selectedMetric && METRIC_DETAILS[selectedMetric] && (() => {
+          const detail = METRIC_DETAILS[selectedMetric];
+          const maxBreakdown = Math.max(...detail.breakdown.map(b => b.value));
+          const totalBreakdown = detail.breakdown.reduce((s, b) => s + b.value, 0);
+          const maxTrend = Math.max(...detail.trend.map(t => t.value));
+          const minTrend = Math.min(...detail.trend.map(t => t.value));
+          const trendRange = maxTrend - minTrend || 1;
+          return (
+            <div className="mt-4 rounded-xl border border-teal/20 bg-teal/5 p-5 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-teal">{selectedMetric} — Breakdown</h3>
+                <button onClick={() => setSelectedMetric(null)} className="rounded-lg p-1 hover:bg-teal/10">
+                  <X className="h-4 w-4 text-teal/60" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                {/* Breakdown bars */}
+                <div className="lg:col-span-2 space-y-2">
+                  {detail.breakdown.map(b => (
+                    <div key={b.label} className="flex items-center gap-3">
+                      <span className="w-40 text-xs font-medium text-charcoal/70 truncate">{b.label}</span>
+                      <div className="flex-1 h-5 rounded bg-white/60">
+                        <div className={cn('h-5 rounded transition-all', b.color)} style={{ width: `${maxBreakdown > 0 ? (b.value / maxBreakdown) * 100 : 0}%`, opacity: 0.7, minWidth: b.value > 0 ? '8px' : '0px' }} />
+                      </div>
+                      <span className="w-16 text-right text-xs font-bold text-charcoal">{b.value} <span className="font-normal text-charcoal/40">({Math.round((b.value / totalBreakdown) * 100)}%)</span></span>
+                    </div>
+                  ))}
+                </div>
+                {/* Weekly trend mini-chart */}
+                <div>
+                  <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">4-Week Trend</p>
+                  <div className="flex items-end gap-2 h-16">
+                    {detail.trend.map(t => (
+                      <div key={t.week} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold text-charcoal">{t.value}</span>
+                        <div className="w-full rounded-t bg-teal/60" style={{ height: `${((t.value - minTrend) / trendRange) * 40 + 8}px` }} />
+                        <span className="text-[9px] text-charcoal/40">{t.week}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Clinical note */}
+              <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/60 p-3">
+                <Lightbulb className="h-4 w-4 flex-shrink-0 text-teal mt-0.5" />
+                <p className="text-xs text-charcoal/70">{detail.note}</p>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Quality Metrics */}

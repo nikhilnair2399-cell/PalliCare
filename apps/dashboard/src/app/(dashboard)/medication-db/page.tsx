@@ -616,6 +616,54 @@ export default function MedicationDbPage() {
         )}
       </div>
 
+      {/* Quick Interaction Check */}
+      {(() => {
+        // Check for common interaction pairs among selected/expanded meds
+        const INTERACTION_PAIRS: { drugs: [string, string]; severity: 'major' | 'moderate'; warning: string }[] = [
+          { drugs: ['Morphine Sulfate', 'Gabapentin'], severity: 'moderate', warning: 'Additive CNS depression — monitor sedation and respiratory rate' },
+          { drugs: ['Morphine Sulfate', 'Ondansetron'], severity: 'moderate', warning: 'Ondansetron may reduce morphine analgesic efficacy via serotonin pathway' },
+          { drugs: ['Morphine Sulfate', 'Oxycodone'], severity: 'major', warning: 'Concurrent full-agonist opioids — high risk of respiratory depression. Use only one as background.' },
+          { drugs: ['Fentanyl', 'Oxycodone'], severity: 'major', warning: 'Dual opioid regimen — increased respiratory depression risk. Ensure single background opioid.' },
+          { drugs: ['Tramadol', 'Ondansetron'], severity: 'moderate', warning: 'Ondansetron may reduce tramadol efficacy; both affect serotonin pathways' },
+          { drugs: ['Dexamethasone', 'Paracetamol'], severity: 'moderate', warning: 'Steroids may increase hepatotoxicity risk with high-dose paracetamol (>3g/day)' },
+        ];
+        const drugNames = baseMeds.map((m: any) => m.generic_name);
+        const activeInteractions = INTERACTION_PAIRS.filter(
+          (pair) => drugNames.includes(pair.drugs[0]) && drugNames.includes(pair.drugs[1]),
+        );
+        if (activeInteractions.length === 0) return null;
+        return (
+          <div className="rounded-xl border border-amber/30 bg-amber/5 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-amber" />
+              <h3 className="text-sm font-bold text-amber">Potential Interactions in Database</h3>
+            </div>
+            <div className="space-y-2">
+              {activeInteractions.slice(0, 4).map((pair, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className={cn(
+                    'mt-0.5 h-2 w-2 rounded-full flex-shrink-0',
+                    pair.severity === 'major' ? 'bg-alert-critical' : 'bg-amber',
+                  )} />
+                  <div>
+                    <p className="text-xs font-semibold text-charcoal">
+                      {pair.drugs[0]} + {pair.drugs[1]}
+                      <span className={cn(
+                        'ml-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase',
+                        pair.severity === 'major' ? 'bg-alert-critical/10 text-alert-critical' : 'bg-amber/10 text-amber',
+                      )}>
+                        {pair.severity}
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-charcoal/50">{pair.warning}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Medication cards */}
       <div className="space-y-3">
         {filtered.map((med) => {
