@@ -392,9 +392,21 @@ export default function AlertsPage() {
                     </div>
                     <p className="mt-1 text-sm font-medium text-charcoal">{alert.message}</p>
                     {alert.escalation && isActive && (
-                      <p className="mt-0.5 text-[10px] text-charcoal/40">
-                        Notified: {alert.escalation.notified.join(', ')}
-                      </p>
+                      <div className="mt-1.5 flex items-center gap-3">
+                        <p className="text-[10px] text-charcoal/40">
+                          Notified: {alert.escalation.notified.join(', ')}
+                        </p>
+                        {alert.escalation.nextIn && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-red-100">
+                              <div className="h-full rounded-full bg-alert-critical animate-pulse" style={{ width: `${Math.max(20, 100 - alert.escalation.level * 30)}%` }} />
+                            </div>
+                            <span className="text-[9px] font-bold text-alert-critical">
+                              Auto-escalates in {alert.escalation.nextIn}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   {isExpanded ? <ChevronUp className="h-4 w-4 flex-shrink-0 text-charcoal/30" /> : <ChevronDown className="h-4 w-4 flex-shrink-0 text-charcoal/30" />}

@@ -176,6 +176,44 @@ export default function DashboardPage() {
         })}
       </div>
 
+      {/* Today's Schedule Strip */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <CalendarClock className="h-4 w-4 text-teal" />
+          <h2 className="text-sm font-bold text-teal">Today&apos;s Schedule</h2>
+          <span className="ml-auto text-[10px] text-charcoal/40">
+            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          {[
+            { time: '09:00', event: 'Ward Round', patients: 8, type: 'round' },
+            { time: '11:00', event: 'MDT Meeting', patients: 3, type: 'mdt' },
+            { time: '14:00', event: 'Family Meeting', patients: 1, type: 'family' },
+            { time: '15:30', event: 'New Referral', patients: 1, type: 'referral' },
+            { time: '16:30', event: 'Opioid Reviews', patients: 2, type: 'review' },
+          ].map((slot) => {
+            const now = new Date();
+            const [h, m] = slot.time.split(':').map(Number);
+            const isPast = now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m);
+            const isCurrent = now.getHours() === h;
+            return (
+              <div
+                key={slot.time}
+                className={cn(
+                  'flex-shrink-0 rounded-lg border px-3 py-2 min-w-[120px] transition-all',
+                  isCurrent ? 'border-teal bg-teal/5' : isPast ? 'border-sage-light/20 bg-cream/30 opacity-60' : 'border-sage-light/30 bg-white',
+                )}
+              >
+                <p className={cn('text-xs font-bold', isCurrent ? 'text-teal' : 'text-charcoal/50')}>{slot.time}</p>
+                <p className="text-xs font-semibold text-charcoal mt-0.5">{slot.event}</p>
+                <p className="text-[10px] text-charcoal/40">{slot.patients} patient{slot.patients !== 1 ? 's' : ''}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Critical Next Steps */}
       {visibleActions.length > 0 && (
         <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">

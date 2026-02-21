@@ -74,6 +74,27 @@ const ALERT_STYLES: Record<string, { bg: string; text: string; dot: string }> = 
   info: { bg: 'bg-blue-50', text: 'text-blue-600', dot: 'bg-blue-400' },
 };
 
+function computeRisk(p: any): { level: 'high' | 'medium' | 'low'; score: number; factors: string[] } {
+  let score = 0;
+  const factors: string[] = [];
+  if (p.pain >= 7) { score += 3; factors.push('Severe pain'); }
+  else if (p.pain >= 5) { score += 1; }
+  if (p.trend === 'worsening') { score += 2; factors.push('Worsening'); }
+  if (p.pps <= 40) { score += 2; factors.push('Low PPS'); }
+  if (p.medd > 200) { score += 2; factors.push('High MEDD'); }
+  if (p.adherence < 70) { score += 2; factors.push('Low adherence'); }
+  else if (p.adherence < 85) { score += 1; }
+  if (p.ppsTrend === 'declining') { score += 1; factors.push('PPS declining'); }
+  const level = score >= 5 ? 'high' : score >= 3 ? 'medium' : 'low';
+  return { level, score, factors };
+}
+
+const RISK_STYLE = {
+  high: { bg: 'bg-alert-critical/10', text: 'text-alert-critical', label: 'High' },
+  medium: { bg: 'bg-amber/10', text: 'text-amber', label: 'Medium' },
+  low: { bg: 'bg-sage/10', text: 'text-sage', label: 'Low' },
+};
+
 type SortKey = 'pain' | 'name' | 'lastLog' | 'adherence';
 type FilterStatus = 'all' | 'critical' | 'warning';
 
@@ -198,6 +219,7 @@ export default function PatientsPage() {
                 <span className="flex items-center justify-center gap-1"><Pill className="h-3 w-3" /> MEDD</span>
               </th>
               <th className="px-3 py-3 text-center text-xs font-semibold text-charcoal/60">Adherence</th>
+              <th className="px-3 py-3 text-center text-xs font-semibold text-charcoal/60">Risk</th>
               <th className="px-3 py-3 text-left text-xs font-semibold text-charcoal/60">Last Log</th>
             </tr>
           </thead>
@@ -294,6 +316,24 @@ export default function PatientsPage() {
                     )}>
                       {patient.adherence}%
                     </span>
+                  </td>
+                  <td className="px-3 py-3.5 text-center">
+                    {(() => {
+                      const risk = computeRisk(patient);
+                      const rs = RISK_STYLE[risk.level];
+                      return (
+                        <div className="flex flex-col items-center">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', rs.bg, rs.text)}>
+                            {rs.label}
+                          </span>
+                          {risk.factors.length > 0 && (
+                            <p className="mt-0.5 text-[8px] text-charcoal/30 max-w-[80px] truncate" title={risk.factors.join(', ')}>
+                              {risk.factors.slice(0, 2).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-3.5">
                     <span className="flex items-center gap-1 text-xs text-charcoal/50"><Clock className="h-3 w-3" /> {patient.lastLog}</span>
