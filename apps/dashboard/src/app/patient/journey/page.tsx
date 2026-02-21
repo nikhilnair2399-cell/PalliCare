@@ -142,6 +142,53 @@ export default function JourneyPage() {
         );
       })()}
 
+      {/* Sprint 54 — Journey Engagement Summary */}
+      {(() => {
+        const goals = journey.goals || [];
+        const gratitudes = journey.gratitude || [];
+        const milestones = journey.milestones || [];
+        const intentions = journey.intentions || [];
+        const sections = [
+          { label: 'Goals', count: goals.length, active: goals.filter((g: any) => !g.completed).length, icon: '🎯', color: 'bg-teal' },
+          { label: 'Gratitude', count: gratitudes.length, active: gratitudes.length, icon: '❤️', color: 'bg-terra' },
+          { label: 'Milestones', count: milestones.length, active: milestones.filter((m: any) => m.achieved).length, icon: '🏆', color: 'bg-amber' },
+          { label: 'Intentions', count: intentions.length, active: intentions.length, icon: '☀️', color: 'bg-lavender' },
+        ];
+        const totalEntries = sections.reduce((s, sec) => s + sec.count, 0);
+        const maxEntries = Math.max(...sections.map((s) => s.count), 1);
+        const streakDays = gratitudes.length >= 5 ? 7 : gratitudes.length >= 3 ? 4 : gratitudes.length >= 1 ? 2 : 0;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <PieChart className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Journey Engagement</h3>
+              <span className="ml-auto rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-bold text-teal">{totalEntries} entries</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {sections.map((sec) => (
+                <div key={sec.label} className="flex items-center gap-2 rounded-xl bg-cream/50 p-3">
+                  <span className="text-lg">{sec.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-charcoal">{sec.label}</p>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-charcoal/5">
+                      <div className={clsx('h-full rounded-full', sec.color)} style={{ width: `${(sec.count / maxEntries) * 100}%` }} />
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-charcoal/60">{sec.count}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-charcoal/40">
+              {streakDays >= 5
+                ? 'Amazing engagement! Your consistent journaling supports your emotional wellbeing.'
+                : totalEntries >= 10
+                ? 'Good activity across your journey. Try adding gratitude entries daily to build a streak.'
+                : 'Start adding to your journey — even one entry a day makes a difference.'}
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Milestone Timeline & Category Breakdown */}
       {(() => {
         const milestones: any[] = journey.milestones || [];

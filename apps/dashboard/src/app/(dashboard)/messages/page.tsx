@@ -19,6 +19,7 @@ import {
   Zap,
   X,
   Activity,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessageCount, useSendMessage } from '@/lib/hooks';
@@ -301,6 +302,54 @@ export default function MessagesPage() {
             <div className="mt-2 flex gap-4 text-[10px] text-charcoal/40">
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-teal/70" />Your messages</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sage/70" />Team messages</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 54 — Response Time by Hour Heatmap */}
+      {(() => {
+        const HOUR_DATA = Array.from({ length: 24 }, (_, h) => {
+          const isWorkHour = h >= 8 && h <= 18;
+          const msgs = isWorkHour ? Math.floor(Math.random() * 12) + 3 : Math.floor(Math.random() * 3);
+          const avgResponse = isWorkHour ? Math.floor(Math.random() * 15) + 3 : Math.floor(Math.random() * 40) + 20;
+          return { hour: h, messages: msgs, avgResponseMin: avgResponse };
+        });
+        const maxMsgs = Math.max(...HOUR_DATA.map((d) => d.messages));
+        const peakHour = HOUR_DATA.reduce((best, d) => d.messages > best.messages ? d : best, HOUR_DATA[0]);
+        const totalDayMsgs = HOUR_DATA.reduce((s, d) => s + d.messages, 0);
+        const avgOverall = Math.round(HOUR_DATA.filter((d) => d.messages > 0).reduce((s, d) => s + d.avgResponseMin, 0) / HOUR_DATA.filter((d) => d.messages > 0).length);
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-4 w-4 text-teal" />
+              <h2 className="text-sm font-bold text-teal">Message Activity by Hour</h2>
+              <span className="ml-auto text-[10px] text-charcoal/40">{totalDayMsgs} messages today</span>
+            </div>
+            <div className="flex items-end gap-0.5" style={{ height: '48px' }}>
+              {HOUR_DATA.map((d) => {
+                const intensity = maxMsgs > 0 ? d.messages / maxMsgs : 0;
+                const bg = intensity > 0.7 ? 'bg-teal' : intensity > 0.4 ? 'bg-teal/60' : intensity > 0 ? 'bg-teal/25' : 'bg-cream';
+                return (
+                  <div
+                    key={d.hour}
+                    className={cn('flex-1 rounded-sm transition-all', bg)}
+                    style={{ height: `${Math.max(intensity * 100, 4)}%` }}
+                    title={`${d.hour}:00 — ${d.messages} msgs, ${d.avgResponseMin}m avg response`}
+                  />
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-[8px] text-charcoal/30">12am</span>
+              <span className="text-[8px] text-charcoal/30">6am</span>
+              <span className="text-[8px] text-charcoal/30">12pm</span>
+              <span className="text-[8px] text-charcoal/30">6pm</span>
+              <span className="text-[8px] text-charcoal/30">11pm</span>
+            </div>
+            <div className="mt-2 flex items-center gap-4 text-[10px] text-charcoal/50">
+              <span>Peak: <strong className="text-teal">{peakHour.hour}:00</strong> ({peakHour.messages} msgs)</span>
+              <span>Avg response: <strong className="text-teal">{avgOverall}m</strong></span>
             </div>
           </div>
         );

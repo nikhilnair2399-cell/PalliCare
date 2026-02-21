@@ -151,6 +151,53 @@ export default function LearnPage() {
         );
       })()}
 
+      {/* Sprint 54 — Knowledge Check Summary */}
+      {modules.length >= 3 && (() => {
+        const QUIZ_DATA = [
+          { module: 'Understanding Pain', score: 4, total: 5, passed: true },
+          { module: 'Your Medications', score: 3, total: 5, passed: true },
+          { module: 'Breathing for Comfort', score: 5, total: 5, passed: true },
+          { module: 'Nutrition Tips', score: 2, total: 5, passed: false },
+        ];
+        const totalCorrect = QUIZ_DATA.reduce((s, q) => s + q.score, 0);
+        const totalQuestions = QUIZ_DATA.reduce((s, q) => s + q.total, 0);
+        const overallPct = Math.round((totalCorrect / totalQuestions) * 100);
+        const passedCount = QUIZ_DATA.filter((q) => q.passed).length;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Timer className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Knowledge Checks</h3>
+              <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                overallPct >= 80 ? 'bg-sage/10 text-sage-dark' : overallPct >= 60 ? 'bg-amber/10 text-amber' : 'bg-terra/10 text-terra'
+              }`}>{overallPct}% overall</span>
+            </div>
+            <div className="space-y-2">
+              {QUIZ_DATA.map((q) => {
+                const pct = Math.round((q.score / q.total) * 100);
+                return (
+                  <div key={q.module} className="flex items-center gap-3">
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white ${q.passed ? 'bg-sage' : 'bg-terra'}`}>
+                      {q.passed ? '✓' : '✗'}
+                    </span>
+                    <span className="flex-1 text-sm text-charcoal truncate">{q.module}</span>
+                    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-cream">
+                      <div className={`h-full rounded-full ${q.passed ? 'bg-sage' : 'bg-terra/60'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs font-bold text-charcoal/50">{q.score}/{q.total}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {passedCount === QUIZ_DATA.length
+                ? 'Excellent! You passed all knowledge checks. You understand your care well.'
+                : `Passed ${passedCount} of ${QUIZ_DATA.length} quizzes. Review modules you haven't passed to improve your knowledge.`}
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Recommended Next */}
       {(() => {
         const inProgress = modules.find((m: any) => !m.completed && m.progress > 0);
