@@ -168,20 +168,20 @@ export default function PatientHomePage() {
 
       {/* Wellness Stats — 2 cards side by side */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-2xl bg-white p-6">
+        <Link href="/patient/journey" className="block rounded-2xl bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-md">
           <Heart className="h-6 w-6 text-terra" />
           <p className="mt-3 font-heading text-3xl font-bold text-charcoal">
             {w.gratitude_streak ?? w.streak ?? 5}
           </p>
           <p className="mt-1 text-sm text-charcoal-light">Day gratitude streak</p>
-        </div>
-        <div className="rounded-2xl bg-white p-6">
+        </Link>
+        <Link href="/patient/breathe" className="block rounded-2xl bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-md">
           <Wind className="h-6 w-6 text-sage" />
           <p className="mt-3 font-heading text-3xl font-bold text-charcoal">
             {w.breathe_sessions ?? w.total_sessions ?? 12}
           </p>
           <p className="mt-1 text-sm text-charcoal-light">Breathe sessions</p>
-        </div>
+        </Link>
       </div>
 
       {/* Today's Intention (if not shown in hero) */}

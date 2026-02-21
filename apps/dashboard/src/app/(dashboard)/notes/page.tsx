@@ -32,6 +32,7 @@ const NOTE_TYPES = [
   { value: 'mdt_meeting', label: 'MDT Meeting' },
   { value: 'family_meeting', label: 'Family Meeting' },
   { value: 'phone_consult', label: 'Phone Consult' },
+  { value: 'opioid_review', label: 'Opioid Review' },
 ];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -43,6 +44,7 @@ const TYPE_COLORS: Record<string, string> = {
   mdt_meeting: 'bg-blue-50 text-blue-600',
   family_meeting: 'bg-purple-50 text-purple-600',
   phone_consult: 'bg-green-50 text-green-600',
+  opioid_review: 'bg-orange-50 text-orange-600',
 };
 
 // Mock data
@@ -55,31 +57,257 @@ const MOCK_NOTES = [
   { id: '6', patient: 'Kavita Gupta', patientId: '6', type: 'mdt_meeting', date: '17 Feb 2026, 11:00', content: 'MDT discussed treatment options. Consensus: continue current palliative chemotherapy with dose modification. Palliative radiotherapy to abdominal mass considered.', author: 'Dr. Nikhil Nair' },
 ];
 
-// SOAP template
-const SOAP_TEMPLATE = `S (Subjective):
+// ── Clinical Note Templates ───────────────────────────────────────────
+const NOTE_TEMPLATES: Record<string, { label: string; icon: string; template: string }> = {
+  soap: {
+    label: 'SOAP Note',
+    icon: '📝',
+    template: `S (Subjective):
 Patient reports...
+Pain: __/10, Location: __
+Other symptoms: __
 
 O (Objective):
-Vitals: HR __, BP __/__, SpO2 __%, RR __
-Pain NRS: __/10, Site: __
+Vitals: HR __, BP __/__, SpO2 __%, RR __, Temp __°C
+Pain NRS: __/10, Site: __, Character: __
+PPS: __%, ECOG: __
+Weight: __ kg (change: __)
+Medications: [current regimen]
 
 A (Assessment):
-
+1. Primary problem:
+2. Active issues:
+3. Functional status:
 
 P (Plan):
-`;
-
-const SBAR_TEMPLATE = `S (Situation):
-Patient __, age __, admitted for...
+1.
+2.
+3.
+Next review: __`,
+  },
+  handover_sbar: {
+    label: 'SBAR Handover',
+    icon: '🔄',
+    template: `S (Situation):
+[Patient name], [age][sex] with [diagnosis], currently [status].
+Reason for handover: __
 
 B (Background):
-Relevant history:
+Diagnosis: __
+Key history: __
+Current medications: __
+Allergies: __
+Code status: __
 
 A (Assessment):
-Current status:
+Current condition: __
+Pain: __/10, MEDD: __ mg/day
+Concerns: __
 
 R (Recommendation):
-`;
+1.
+2.
+3.
+Escalation if: __`,
+  },
+  progress: {
+    label: 'Progress Note',
+    icon: '📊',
+    template: `Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+
+Pain Status:
+  Current NRS: __/10 (previous: __/10)
+  Breakthrough doses in 24h: __
+  Background analgesia: __
+  MEDD: __ mg/day
+
+Symptom Review:
+  Nausea: ☐ None ☐ Mild ☐ Moderate ☐ Severe
+  Constipation: ☐ None ☐ Mild ☐ Moderate ☐ Severe
+  Fatigue: ☐ None ☐ Mild ☐ Moderate ☐ Severe
+  Dyspnea: ☐ None ☐ Mild ☐ Moderate ☐ Severe
+  Sleep quality: __/10, Duration: __ hrs
+
+Functional Status:
+  PPS: __% (previous: __%)
+  Mobility: __
+  Self-care: __
+
+Mood/Psychological:
+  Patient mood: __
+  PHQ-9: __ (if screened)
+  Caregiver status: __
+
+Plan Changes:
+  1.
+  2.
+
+Next Review: __`,
+  },
+  family_meeting: {
+    label: 'Family Meeting',
+    icon: '👨‍👩‍👧',
+    template: `FAMILY MEETING RECORD
+Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+Duration: __ minutes
+
+Attendees:
+  Patient: ☐ Present ☐ Unable to attend (reason: __)
+  Family: __
+  Clinical team: __
+
+Purpose of Meeting:
+  ☐ Goals of care discussion
+  ☐ Prognosis update
+  ☐ Treatment decision
+  ☐ Discharge planning
+  ☐ Advance care planning
+  ☐ Other: __
+
+Discussion Summary:
+  Disease status communicated: __
+  Prognosis discussed: ☐ Yes ☐ No ☐ Not appropriate
+  Patient/family understanding: ☐ Good ☐ Partial ☐ Needs follow-up
+
+Key Decisions:
+  1.
+  2.
+
+Goals of Care:
+  ☐ Curative intent  ☐ Disease-directed + comfort
+  ☐ Comfort-focused  ☐ End-of-life care
+  Preferred place of care: __
+  Code status: __
+
+Advance Care Directives:
+  ☐ Discussed  ☐ Documented  ☐ Already in place  ☐ Deferred
+
+Emotional Response:
+  Patient: __
+  Family: __
+  Support needs identified: __
+
+Follow-up Actions:
+  1.
+  2.
+
+Next Meeting: __`,
+  },
+  mdt_meeting: {
+    label: 'MDT Meeting',
+    icon: '👥',
+    template: `MDT MEETING MINUTES
+Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+
+Team Present:
+  ☐ Palliative Medicine  ☐ Oncology  ☐ Nursing
+  ☐ Psychology  ☐ Social Work  ☐ Dietetics
+  ☐ Physiotherapy  ☐ Pharmacy  ☐ Chaplaincy
+  Others: __
+
+Patient: __
+Diagnosis: __
+PPS: __%  |  ECOG: __  |  MEDD: __ mg/day
+
+Case Summary:
+  Current issues: __
+  Since last MDT: __
+
+Domain Reviews:
+  Pain/Symptoms: __
+  Functional: __
+  Psychological: __
+  Social/Family: __
+  Spiritual: __
+
+MDT Recommendations:
+  1.
+  2.
+  3.
+
+Action Items:
+  ☐ [Action] → [Assigned to] → [Due by]
+  ☐ [Action] → [Assigned to] → [Due by]
+
+Next MDT Review: __`,
+  },
+  phone_consult: {
+    label: 'Phone Consult',
+    icon: '📞',
+    template: `TELEPHONE CONSULTATION
+Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+Time: __
+Duration: __ minutes
+
+Caller: ☐ Patient  ☐ Caregiver: __  ☐ Other HCP: __
+Reason for call: __
+
+Assessment:
+  Pain NRS (reported): __/10
+  Symptoms discussed: __
+  Medication concerns: __
+  Red flags: ☐ None  ☐ Present: __
+
+Advice Given:
+  1.
+  2.
+
+Medication Changes:
+  ☐ No changes
+  ☐ Changes: __
+
+Escalation:
+  ☐ None needed
+  ☐ Follow-up call in __
+  ☐ Clinic review on __
+  ☐ Urgent: __
+
+Documented by: Dr. Nikhil Nair`,
+  },
+  opioid_review: {
+    label: 'Opioid Review',
+    icon: '💊',
+    template: `OPIOID REVIEW & SAFETY CHECK
+Date: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+
+Current Opioid Regimen:
+  Background: __
+  Breakthrough: __
+  Adjuvants: __
+  MEDD: __ mg/day
+
+4 A's Assessment:
+  Analgesia (pain control): __/10 → target __/10
+  Activities (function): PPS __%, able to __
+  Adverse effects:
+    ☐ Constipation  ☐ Nausea  ☐ Sedation
+    ☐ Pruritus  ☐ Myoclonus  ☐ Respiratory depression
+  Aberrant behaviour: ☐ None  ☐ Concerns: __
+
+Breakthrough Analysis (past 7 days):
+  Average doses/day: __
+  Max doses in 24h: __
+  Trigger: ☐ Movement  ☐ Incident  ☐ Spontaneous  ☐ End-of-dose
+
+Dose Adequacy:
+  ☐ Adequate — continue current
+  ☐ Increase background by __% (reason: __)
+  ☐ Opioid rotation to __ (reason: __)
+  ☐ Reduce by __% (reason: __)
+
+Safety Checks:
+  ☐ NDPS register updated
+  ☐ Naloxone availability confirmed (MEDD > 90mg)
+  ☐ Renal function reviewed
+  ☐ Driving/operating advice given
+
+Plan:
+  1.
+  2.
+
+Next Opioid Review: __`,
+  },
+};
 
 function mapApiNote(n: any) {
   return {
@@ -108,8 +336,8 @@ function NewNoteModal({ onClose, onCreated, isFromApi }: {
 
   function applyTemplate(type: string) {
     setNoteType(type);
-    if (type === 'soap' && !content.trim()) setContent(SOAP_TEMPLATE);
-    else if (type === 'handover_sbar' && !content.trim()) setContent(SBAR_TEMPLATE);
+    const tpl = NOTE_TEMPLATES[type];
+    if (tpl && !content.trim()) setContent(tpl.template);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -170,6 +398,31 @@ function NewNoteModal({ onClose, onCreated, isFromApi }: {
             />
           </div>
 
+          {/* Quick Template Cards */}
+          {!content.trim() && (
+            <div>
+              <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Quick Start — Pick a Template</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(NOTE_TEMPLATES).map(([key, tpl]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => applyTemplate(key)}
+                    className={cn(
+                      'group rounded-lg border p-2.5 text-left transition-all hover:border-teal hover:shadow-sm',
+                      noteType === key ? 'border-teal bg-teal/5' : 'border-sage-light/30',
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">{tpl.icon}</span>
+                      <span className="text-xs font-bold text-charcoal group-hover:text-teal">{tpl.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Note Type */}
           <div>
             <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Note Type *</label>
@@ -191,6 +444,23 @@ function NewNoteModal({ onClose, onCreated, isFromApi }: {
               ))}
             </div>
           </div>
+
+          {/* Template indicator */}
+          {NOTE_TEMPLATES[noteType] && content.trim() && (
+            <div className="flex items-center gap-2 rounded-lg bg-teal/5 px-3 py-2">
+              <span className="text-sm">{NOTE_TEMPLATES[noteType].icon}</span>
+              <span className="text-xs font-semibold text-teal">
+                Using: {NOTE_TEMPLATES[noteType].label} Template
+              </span>
+              <button
+                type="button"
+                onClick={() => setContent('')}
+                className="ml-auto text-[10px] text-charcoal/40 hover:text-alert-critical"
+              >
+                Clear template
+              </button>
+            </div>
+          )}
 
           {/* Content */}
           <div>
