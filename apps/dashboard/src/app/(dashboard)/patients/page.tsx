@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Users, Search, ArrowUpRight, ArrowDownRight,
-  Minus, Clock, Loader2, Activity, Pill, AlertOctagon,
+  Minus, Clock, Loader2, Activity, Pill, AlertOctagon, BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePatients } from '@/lib/hooks';
@@ -216,6 +216,70 @@ export default function PatientsPage() {
                   <span className="text-xs text-charcoal/60 truncate">{g.gap}</span>
                 </Link>
               ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 53 — Census Acuity Distribution */}
+      {allPatients.length > 0 && (() => {
+        const painBuckets = [
+          { label: '0-3 (Mild)', min: 0, max: 3, color: 'bg-sage', patients: [] as any[] },
+          { label: '4-6 (Moderate)', min: 4, max: 6, color: 'bg-amber', patients: [] as any[] },
+          { label: '7-10 (Severe)', min: 7, max: 10, color: 'bg-alert-critical', patients: [] as any[] },
+        ];
+        allPatients.forEach((p: any) => {
+          const bucket = painBuckets.find((b) => p.pain >= b.min && p.pain <= b.max);
+          if (bucket) bucket.patients.push(p);
+        });
+        const maxBucket = Math.max(...painBuckets.map((b) => b.patients.length));
+        const catDist: Record<string, number> = {};
+        allPatients.forEach((p: any) => { const cat = p.category || 'Other'; catDist[cat] = (catDist[cat] || 0) + 1; });
+        const catEntries = Object.entries(catDist).sort((a, b) => b[1] - a[1]);
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Census Acuity Distribution</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {/* Pain severity buckets */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">By Pain Severity</p>
+                <div className="space-y-2">
+                  {painBuckets.map((b) => (
+                    <div key={b.label}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs text-charcoal">{b.label}</span>
+                        <span className="text-xs font-bold text-charcoal">{b.patients.length}</span>
+                      </div>
+                      <div className="h-3 overflow-hidden rounded-full bg-cream">
+                        <div className={cn('h-full rounded-full', b.color)} style={{ width: `${maxBucket > 0 ? (b.patients.length / maxBucket) * 100 : 0}%` }} />
+                      </div>
+                      {b.patients.length > 0 && (
+                        <p className="text-[10px] text-charcoal/40 mt-0.5 truncate">
+                          {b.patients.map((p: any) => p.name.split(' ')[0]).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Category distribution */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">By Category</p>
+                <div className="space-y-1.5">
+                  {catEntries.map(([cat, count]) => (
+                    <div key={cat} className="flex items-center gap-2">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', CATEGORY_COLORS[cat] || 'bg-sage/10 text-charcoal/50')}>{cat}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream">
+                        <div className="h-full rounded-full bg-teal/50" style={{ width: `${(count / allPatients.length) * 100}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-charcoal/50">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         );

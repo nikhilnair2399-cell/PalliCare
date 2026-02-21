@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -149,6 +149,66 @@ export default function MedicationsPage() {
           })()}
         </div>
       </div>
+
+      {/* Sprint 53 — Adherence by Time-of-Day + Missed Dose Insights */}
+      {(() => {
+        const timeSlots = [
+          { label: 'Morning', key: 'morning', taken: 12, missed: 1, icon: '🌅' },
+          { label: 'Afternoon', key: 'afternoon', taken: 10, missed: 3, icon: '☀️' },
+          { label: 'Evening', key: 'evening', taken: 11, missed: 2, icon: '🌇' },
+          { label: 'Night', key: 'night', taken: 9, missed: 4, icon: '🌙' },
+        ];
+        const missReasons = [
+          { reason: 'Forgot', count: 5, pct: 50 },
+          { reason: 'Side effects', count: 2, pct: 20 },
+          { reason: 'Asleep', count: 2, pct: 20 },
+          { reason: 'Nausea', count: 1, pct: 10 },
+        ];
+        const totalMissed = timeSlots.reduce((s, t) => s + t.missed, 0);
+        const worstSlot = timeSlots.reduce((w, t) => t.missed > w.missed ? t : w, timeSlots[0]);
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Adherence Patterns</h3>
+              <span className="ml-auto text-[10px] text-charcoal/40">Last 7 days</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {timeSlots.map((slot) => {
+                const total = slot.taken + slot.missed;
+                const pct = total > 0 ? Math.round((slot.taken / total) * 100) : 0;
+                return (
+                  <div key={slot.key} className="rounded-xl bg-cream/50 p-3 text-center">
+                    <span className="text-lg">{slot.icon}</span>
+                    <p className="text-xs font-medium text-charcoal mt-1">{slot.label}</p>
+                    <p className={`text-sm font-bold ${pct >= 90 ? 'text-sage-dark' : pct >= 70 ? 'text-amber' : 'text-terra'}`}>{pct}%</p>
+                    <p className="text-[10px] text-charcoal/40">{slot.taken}/{total}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {totalMissed > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Why Doses Were Missed</p>
+                <div className="space-y-1.5">
+                  {missReasons.map((r) => (
+                    <div key={r.reason} className="flex items-center gap-2">
+                      <span className="w-20 text-xs text-charcoal">{r.reason}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream">
+                        <div className="h-full rounded-full bg-terra/50" style={{ width: `${r.pct}%` }} />
+                      </div>
+                      <span className="w-6 text-right text-[10px] font-bold text-charcoal/40">{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-charcoal/40">
+                  Most missed: {worstSlot.label} doses. Consider setting a reminder for {worstSlot.label.toLowerCase()} medications.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Medication Interaction Awareness & Refill Tracker */}
       {meds.length >= 2 && (() => {

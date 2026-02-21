@@ -19,6 +19,7 @@ import {
   Clock,
   AlertTriangle,
   CalendarDays,
+  BarChart3,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -336,6 +337,67 @@ export default function MyWishesPage() {
                 </div>
               ))}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 53 — Family Discussion Tracker */}
+      {(() => {
+        const DISCUSSIONS = [
+          { topic: 'Goals of care', discussed: true, withWhom: 'Family + Dr. Nair', date: '2024-02-10', notes: 'Comfort-focused approach agreed' },
+          { topic: 'Code status (DNR)', discussed: true, withWhom: 'Wife (Meera)', date: '2024-02-10', notes: 'Meera understands and supports' },
+          { topic: 'Preferred place of care', discussed: true, withWhom: 'Family', date: '2024-01-20', notes: 'Home preferred; hospice as backup' },
+          { topic: 'ICU / ventilator wishes', discussed: true, withWhom: 'Son (Amit)', date: '2024-01-15', notes: 'Amit initially unsure, now aligned' },
+          { topic: 'Spiritual preferences', discussed: false, withWhom: '', date: '', notes: '' },
+          { topic: 'Financial concerns', discussed: false, withWhom: '', date: '', notes: '' },
+        ];
+        const discussedCount = DISCUSSIONS.filter((d) => d.discussed).length;
+        const totalTopics = DISCUSSIONS.length;
+        const pct = Math.round((discussedCount / totalTopics) * 100);
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Family Discussion Tracker</h3>
+              <span className={clsx(
+                'ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold',
+                pct === 100 ? 'bg-sage/10 text-sage-dark' : pct >= 60 ? 'bg-teal/10 text-teal' : 'bg-amber/10 text-amber',
+              )}>{discussedCount}/{totalTopics} discussed</span>
+            </div>
+            <div className="space-y-2">
+              {DISCUSSIONS.map((d) => (
+                <div key={d.topic} className={clsx(
+                  'flex items-start gap-3 rounded-xl p-3',
+                  d.discussed ? 'bg-sage/5' : 'bg-cream/50',
+                )}>
+                  <span className={clsx(
+                    'mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] flex-shrink-0',
+                    d.discussed ? 'bg-sage/20 text-sage-dark' : 'bg-charcoal/10 text-charcoal/30',
+                  )}>
+                    {d.discussed ? '✓' : '○'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className={clsx('text-sm font-medium', d.discussed ? 'text-charcoal' : 'text-charcoal/40')}>
+                      {d.topic}
+                    </p>
+                    {d.discussed && (
+                      <p className="text-[10px] text-charcoal/40 mt-0.5">
+                        With {d.withWhom} · {new Date(d.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        {d.notes && ` — ${d.notes}`}
+                      </p>
+                    )}
+                    {!d.discussed && (
+                      <p className="text-[10px] text-charcoal/30 mt-0.5">Not yet discussed — consider bringing this up at your next family meeting</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {pct === 100
+                ? 'All key topics have been discussed with your family. Review again if circumstances change.'
+                : 'Having open conversations about your wishes helps your family feel prepared and supported.'}
+            </p>
           </div>
         );
       })()}
