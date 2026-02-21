@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp, CalendarDays, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp, CalendarDays, CheckCircle2, PieChart } from 'lucide-react';
 import { useGoals, useCreateGoal, useGratitude, useSaveGratitude, useIntentions, useSaveIntention, useMilestones } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_GOALS, MOCK_GRATITUDE_ENTRIES, MOCK_MILESTONES } from '@/lib/patient-mock-data';
@@ -138,6 +138,111 @@ export default function JourneyPage() {
               <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${rate}%` }} />
             </div>
             <p className="mt-2 text-xs text-charcoal/40">{done} of {total} goals completed</p>
+          </div>
+        );
+      })()}
+
+      {/* Milestone Timeline & Category Breakdown */}
+      {(() => {
+        const milestones: any[] = journey.milestones || [];
+        const goals: any[] = journey.goals || [];
+        const gratitudes: any[] = journey.gratitude || [];
+
+        if (milestones.length === 0 && goals.length === 0) return null;
+
+        // Category breakdown across all journey items
+        const catCounts: Record<string, number> = {};
+        [...milestones, ...goals].forEach((item: any) => {
+          const cat = item.category || 'general';
+          catCounts[cat] = (catCounts[cat] || 0) + 1;
+        });
+        const catColors: Record<string, string> = {
+          physical: 'bg-teal', emotional: 'bg-terra', spiritual: 'bg-lavender',
+          social: 'bg-amber', general: 'bg-sage',
+        };
+        const totalCat = Object.values(catCounts).reduce((s, v) => s + v, 0);
+
+        // Time between milestones
+        const sortedMs = milestones
+          .filter((m: any) => m.date)
+          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const gaps: number[] = [];
+        for (let i = 1; i < sortedMs.length; i++) {
+          const diff = new Date(sortedMs[i].date).getTime() - new Date(sortedMs[i - 1].date).getTime();
+          gaps.push(Math.round(diff / 86400000));
+        }
+        const avgGapDays = gaps.length > 0 ? Math.round(gaps.reduce((s, v) => s + v, 0) / gaps.length) : null;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <PieChart className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Journey Analytics</h3>
+            </div>
+
+            {/* Category distribution bar */}
+            {totalCat > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Category Focus</p>
+                <div className="flex h-3 overflow-hidden rounded-full">
+                  {Object.entries(catCounts).map(([cat, count]) => (
+                    <div
+                      key={cat}
+                      className={`${catColors[cat] || 'bg-charcoal/20'} first:rounded-l-full last:rounded-r-full`}
+                      style={{ width: `${(count / totalCat) * 100}%` }}
+                      title={`${cat}: ${count}`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {Object.entries(catCounts).map(([cat, count]) => (
+                    <div key={cat} className="flex items-center gap-1.5 text-xs text-charcoal/60">
+                      <span className={`h-2 w-2 rounded-full ${catColors[cat] || 'bg-charcoal/20'}`} />
+                      {cat} ({count})
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Activity stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{gratitudes.length}</p>
+                <p className="text-xs text-charcoal/50">Total reflections</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">
+                  {goals.filter((g: any) => g.completed).length}/{goals.length}
+                </p>
+                <p className="text-xs text-charcoal/50">Goals achieved</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">
+                  {avgGapDays !== null ? `${avgGapDays}d` : '—'}
+                </p>
+                <p className="text-xs text-charcoal/50">Avg milestone gap</p>
+              </div>
+            </div>
+
+            {/* Milestone timeline */}
+            {sortedMs.length >= 2 && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Milestone Timeline</p>
+                <div className="relative pl-4 border-l-2 border-teal/20 space-y-3">
+                  {sortedMs.slice(-5).map((ms: any, i: number) => (
+                    <div key={i} className="relative">
+                      <div className="absolute -left-[1.3rem] top-1 h-2.5 w-2.5 rounded-full bg-teal" />
+                      <p className="text-sm font-medium text-charcoal">{ms.text || ms.title || ms.content}</p>
+                      <p className="text-xs text-charcoal/40">
+                        {new Date(ms.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {ms.category && <span className="ml-2 text-charcoal/30">· {ms.category}</span>}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}

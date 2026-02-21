@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked } from 'lucide-react';
 import { useEducationModule, useUpdateEducationProgress } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -101,6 +101,80 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
           </ul>
         </div>
       )}
+
+      {/* Reading Stats & Estimated Time */}
+      {(() => {
+        const sections = module.sections || module.content || [];
+        const totalWords = sections.reduce((sum: number, s: any) => {
+          const text = s.body || s.content || s.text || '';
+          return sum + text.split(/\s+/).filter(Boolean).length;
+        }, 0) + (module.description || '').split(/\s+/).filter(Boolean).length;
+        const readingMins = Math.max(1, Math.ceil(totalWords / 200));
+        const sectionCount = sections.length;
+        const hasTips = sections.some((s: any) => s.tips);
+        const hasTakeaways = !!(module.key_takeaways && module.key_takeaways.length > 0);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Module Overview</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{readingMins}</p>
+                <p className="text-xs text-charcoal/50">min read</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{sectionCount}</p>
+                <p className="text-xs text-charcoal/50">sections</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{hasTips ? 'Yes' : 'No'}</p>
+                <p className="text-xs text-charcoal/50">tips included</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{hasTakeaways ? 'Yes' : 'No'}</p>
+                <p className="text-xs text-charcoal/50">takeaways</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Related Modules */}
+      {(() => {
+        const allModules: any[] = MOCK_EDUCATION_MODULES;
+        const related = allModules
+          .filter((m: any) => m.id !== id && m.category === module.category)
+          .slice(0, 3);
+        if (related.length === 0) return null;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BookMarked className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Related Modules</h3>
+            </div>
+            <div className="space-y-2">
+              {related.map((rm: any) => (
+                <Link
+                  key={rm.id}
+                  href={`/patient/learn/${rm.id}`}
+                  className="flex items-center gap-3 rounded-xl bg-cream/50 p-3 transition-colors hover:bg-teal/5"
+                >
+                  <BookOpen className="h-4 w-4 flex-shrink-0 text-teal/60" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-charcoal truncate">{rm.title}</p>
+                    <p className="text-xs text-charcoal/40">{rm.duration} · {rm.completed ? 'Completed' : `${rm.progress || 0}%`}</p>
+                  </div>
+                  {rm.completed && <CheckCircle2 className="h-4 w-4 text-sage flex-shrink-0" />}
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Mark Complete */}
       {!module.completed && (

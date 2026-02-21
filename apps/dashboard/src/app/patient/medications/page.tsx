@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer } from 'lucide-react';
+import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer, ShieldAlert, RefreshCw } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -149,6 +149,84 @@ export default function MedicationsPage() {
           })()}
         </div>
       </div>
+
+      {/* Medication Interaction Awareness & Refill Tracker */}
+      {meds.length >= 2 && (() => {
+        const INTERACTIONS: { pair: [string, string]; severity: 'info' | 'caution'; note: string }[] = [
+          { pair: ['Morphine SR', 'Gabapentin'], severity: 'caution', note: 'Both cause drowsiness — avoid driving and report excessive sedation' },
+          { pair: ['Morphine SR', 'Morphine IR'], severity: 'info', note: 'Same class — track total daily opioid dose with your care team' },
+          { pair: ['Morphine SR', 'Ondansetron'], severity: 'info', note: 'Ondansetron helps manage opioid-induced nausea — take as prescribed' },
+          { pair: ['Morphine SR', 'Lactulose'], severity: 'info', note: 'Lactulose prevents opioid constipation — do not skip this medication' },
+          { pair: ['Gabapentin', 'Paracetamol'], severity: 'info', note: 'Safe combination — no significant interaction' },
+        ];
+
+        const medNames = meds.map((m: any) => m.name);
+        const relevant = INTERACTIONS.filter(ix =>
+          medNames.includes(ix.pair[0]) && medNames.includes(ix.pair[1])
+        );
+
+        const REFILL_MOCK = meds.slice(0, 3).map((m: any, i: number) => ({
+          name: m.name,
+          daysLeft: [5, 12, 21][i] || 14,
+          lastRefill: new Date(Date.now() - (30 - ([5, 12, 21][i] || 14)) * 86400000),
+        }));
+
+        return (
+          <div className="space-y-3">
+            {/* Interactions */}
+            {relevant.length > 0 && (
+              <div className="rounded-2xl bg-white p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <ShieldAlert className="h-5 w-5 text-amber" />
+                  <h3 className="text-sm font-bold text-charcoal">Interaction Awareness</h3>
+                </div>
+                <div className="space-y-2">
+                  {relevant.map((ix, i) => (
+                    <div key={i} className={`rounded-xl p-3 ${ix.severity === 'caution' ? 'bg-amber/10' : 'bg-cream/60'}`}>
+                      <p className="text-sm font-semibold text-charcoal">
+                        {ix.pair[0]} + {ix.pair[1]}
+                        {ix.severity === 'caution' && <span className="ml-2 text-xs text-amber font-bold">CAUTION</span>}
+                      </p>
+                      <p className="text-xs text-charcoal/60 mt-0.5">{ix.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Refill Tracker */}
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <RefreshCw className="h-5 w-5 text-teal" />
+                <h3 className="text-sm font-bold text-charcoal">Refill Tracker</h3>
+              </div>
+              <div className="space-y-2">
+                {REFILL_MOCK.map((r, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-charcoal truncate">{r.name}</p>
+                      <div className="mt-1 h-1.5 rounded-full bg-charcoal/5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${r.daysLeft <= 7 ? 'bg-terra' : r.daysLeft <= 14 ? 'bg-amber' : 'bg-sage'}`}
+                          style={{ width: `${Math.min(100, (r.daysLeft / 30) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className={`text-sm font-bold whitespace-nowrap ${r.daysLeft <= 7 ? 'text-terra' : r.daysLeft <= 14 ? 'text-amber' : 'text-charcoal/60'}`}>
+                      {r.daysLeft}d left
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {REFILL_MOCK.some(r => r.daysLeft <= 7) && (
+                <p className="mt-3 text-xs text-terra font-medium">
+                  Refill needed soon — contact your pharmacy or care team
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Medication Schedule by Time */}
       {TIME_GROUPS.map((group) => {
