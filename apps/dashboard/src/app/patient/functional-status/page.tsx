@@ -19,6 +19,7 @@ import {
   Heart,
   BarChart3,
   Target,
+  Award,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -651,6 +652,106 @@ export default function FunctionalStatusPage() {
               <span className="text-sage">{achievedCount} goal{achievedCount !== 1 ? 's' : ''} achieved</span>
               {improvingCount > 0 && <span className="text-amber">{improvingCount} improving</span>}
               <span className="text-charcoal/30 ml-auto">Goals adjust based on your scores</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 64 — Functional Independence Score */}
+      {latestEntry && (() => {
+        const weights: Record<string, number> = { mobility: 0.25, selfCare: 0.25, eating: 0.20, awareness: 0.15, activity: 0.15 };
+        const weightedScore = DOMAINS.reduce((sum, d) => {
+          const score = (latestEntry as any)[d.key] as number;
+          return sum + score * (weights[d.key] || 0.2);
+        }, 0);
+        const fisPercent = Math.round((weightedScore / 5) * 100);
+        const prevFIS = prevEntry ? Math.round(
+          (DOMAINS.reduce((sum, d) => sum + ((prevEntry as any)[d.key] as number) * (weights[d.key] || 0.2), 0) / 5) * 100
+        ) : null;
+        const fisDiff = prevFIS !== null ? fisPercent - prevFIS : 0;
+        const level = fisPercent >= 80 ? { label: 'High Independence', color: 'text-sage', ring: 'stroke-sage', bg: 'bg-sage/10' }
+          : fisPercent >= 60 ? { label: 'Moderate Independence', color: 'text-amber', ring: 'stroke-amber', bg: 'bg-amber/10' }
+          : fisPercent >= 40 ? { label: 'Low Independence', color: 'text-terra', ring: 'stroke-terra', bg: 'bg-terra/10' }
+          : { label: 'Dependent', color: 'text-alert-critical', ring: 'stroke-alert-critical', bg: 'bg-alert-critical/10' };
+
+        const domainContributions = DOMAINS.map((d) => {
+          const score = (latestEntry as any)[d.key] as number;
+          const contribution = Math.round((score * (weights[d.key] || 0.2) / weightedScore) * 100);
+          return { label: d.label, key: d.key, score, weight: weights[d.key], contribution, Icon: d.icon };
+        }).sort((a, b) => b.contribution - a.contribution);
+
+        const strongestDomain = domainContributions[0];
+        const weakestDomain = domainContributions[domainContributions.length - 1];
+
+        // Arc for ring gauge
+        const radius = 40;
+        const circumference = 2 * Math.PI * radius;
+        const strokeDash = (fisPercent / 100) * circumference;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Award className={clsx('h-4 w-4', level.color)} />
+              <h2 className="text-base font-semibold text-charcoal">Functional Independence Score</h2>
+            </div>
+            <div className="flex items-center gap-6">
+              {/* Ring gauge */}
+              <div className="relative flex-shrink-0">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="8" className="stroke-cream" />
+                  <circle
+                    cx="50" cy="50" r={radius} fill="none" strokeWidth="8"
+                    className={level.ring}
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={circumference - strokeDash}
+                    transform="rotate(-90 50 50)"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={clsx('text-xl font-bold', level.color)}>{fisPercent}</span>
+                  <span className="text-[8px] text-charcoal/40">/ 100</span>
+                </div>
+              </div>
+              {/* Info */}
+              <div className="flex-1">
+                <span className={clsx('rounded-full px-2.5 py-0.5 text-xs font-bold', level.bg, level.color)}>
+                  {level.label}
+                </span>
+                {prevFIS !== null && (
+                  <p className={clsx('mt-1.5 text-xs font-semibold',
+                    fisDiff > 0 ? 'text-sage' : fisDiff < 0 ? 'text-terra' : 'text-charcoal/40'
+                  )}>
+                    {fisDiff > 0 ? `+${fisDiff}` : fisDiff < 0 ? `${fisDiff}` : '±0'} pts from last assessment
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-charcoal/50">
+                  Weighted composite of all 5 functional domains
+                </p>
+              </div>
+            </div>
+            {/* Domain contribution breakdown */}
+            <div className="mt-4 space-y-2">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Domain Contributions</p>
+              {domainContributions.map((dc) => (
+                <div key={dc.key} className="flex items-center gap-2">
+                  <dc.Icon className="h-3.5 w-3.5 text-charcoal/40 flex-shrink-0" />
+                  <span className="text-xs text-charcoal/60 w-28">{dc.label}</span>
+                  <div className="flex-1 h-2 rounded-full bg-cream overflow-hidden">
+                    <div
+                      className={clsx('h-full rounded-full', domainBg(dc.score))}
+                      style={{ width: `${dc.contribution}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] font-bold text-charcoal/50 w-8 text-right">{dc.contribution}%</span>
+                  <span className="text-[9px] text-charcoal/30 w-6 text-right">×{dc.weight}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-[10px] border-t border-charcoal/5 pt-2">
+              <span className="text-sage">Strongest: {strongestDomain.label}</span>
+              <span className="text-terra">Focus area: {weakestDomain.label}</span>
+              <span className="text-charcoal/30 ml-auto">Mobility & self-care weighted highest</span>
             </div>
           </div>
         );

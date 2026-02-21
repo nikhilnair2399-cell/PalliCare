@@ -8,7 +8,7 @@ import { AlertsPreview } from '@/components/ui/AlertsPreview';
 import {
   Users, AlertTriangle, Activity, Pill, Loader2,
   ListChecks, ArrowRight, Clock, CalendarClock,
-  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble, Syringe,
+  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble, Syringe, LayoutGrid,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, useAlertCounts } from '@/lib/hooks';
@@ -402,6 +402,80 @@ export default function DashboardPage() {
                 </p>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 64 — Department Workload Heatmap */}
+      {(() => {
+        const TIME_SLOTS = ['06–09', '09–12', '12–15', '15–18', '18–21', '21–00'];
+        const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const WORKLOAD: number[][] = [
+          [2, 5, 4, 3, 2, 1], // Mon
+          [3, 5, 3, 4, 2, 1], // Tue
+          [2, 4, 5, 4, 3, 1], // Wed
+          [3, 5, 4, 5, 2, 2], // Thu
+          [2, 4, 3, 3, 2, 1], // Fri
+          [1, 3, 2, 2, 1, 1], // Sat
+          [1, 2, 2, 1, 1, 0], // Sun
+        ];
+        const heatColor = (v: number) =>
+          v >= 5 ? 'bg-alert-critical text-white' :
+          v >= 4 ? 'bg-terra text-white' :
+          v >= 3 ? 'bg-amber text-white' :
+          v >= 2 ? 'bg-amber/30 text-charcoal' :
+          v >= 1 ? 'bg-sage/20 text-charcoal/60' :
+          'bg-cream text-charcoal/20';
+        const totalTasks = WORKLOAD.flat().reduce((s, v) => s + v, 0);
+        const peakDay = DAYS[WORKLOAD.map((row) => row.reduce((s, v) => s + v, 0)).reduce((max, v, i, arr) => v > arr[max] ? i : max, 0)];
+        const peakSlot = TIME_SLOTS[WORKLOAD[0].map((_, ci) => WORKLOAD.reduce((s, row) => s + row[ci], 0)).reduce((max, v, i, arr) => v > arr[max] ? i : max, 0)];
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+                <LayoutGrid className="h-4 w-4" />
+                Department Workload Heatmap
+              </h2>
+              <span className="text-[10px] text-charcoal/40">This week · {totalTasks} task-slots</span>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[420px]">
+                {/* Time header */}
+                <div className="flex">
+                  <div className="w-10" />
+                  {TIME_SLOTS.map((t) => (
+                    <div key={t} className="flex-1 text-center text-[9px] font-semibold text-charcoal/40 pb-1">{t}</div>
+                  ))}
+                </div>
+                {/* Grid rows */}
+                {DAYS.map((day, di) => (
+                  <div key={day} className="flex items-center gap-0.5 mb-0.5">
+                    <span className="w-10 text-[10px] font-semibold text-charcoal/50">{day}</span>
+                    {WORKLOAD[di].map((v, ti) => (
+                      <div
+                        key={ti}
+                        className={cn('flex-1 h-6 rounded flex items-center justify-center text-[9px] font-bold', heatColor(v))}
+                        title={`${day} ${TIME_SLOTS[ti]}: ${v} tasks`}
+                      >
+                        {v > 0 ? v : ''}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[9px] text-charcoal/40">
+                <span className="flex items-center gap-1"><span className="h-2 w-4 rounded bg-sage/20" /> Low</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-4 rounded bg-amber/30" /> Moderate</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-4 rounded bg-amber" /> High</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-4 rounded bg-terra" /> Very High</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-4 rounded bg-alert-critical" /> Peak</span>
+              </div>
+              <p className="text-[10px] text-charcoal/40">
+                Peak: <strong className="text-charcoal/60">{peakDay}</strong> at <strong className="text-charcoal/60">{peakSlot}</strong>
+              </p>
+            </div>
           </div>
         );
       })()}

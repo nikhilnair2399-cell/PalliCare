@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp, CalendarDays, CheckCircle2, PieChart } from 'lucide-react';
+import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp, CalendarDays, CheckCircle2, PieChart, Tags } from 'lucide-react';
 import { useGoals, useCreateGoal, useGratitude, useSaveGratitude, useIntentions, useSaveIntention, useMilestones } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_GOALS, MOCK_GRATITUDE_ENTRIES, MOCK_MILESTONES } from '@/lib/patient-mock-data';
@@ -290,6 +290,104 @@ export default function JourneyPage() {
                 </div>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 64 — Gratitude Themes Analysis */}
+      {(() => {
+        const gratitudes: any[] = journey.gratitude || [];
+        if (gratitudes.length < 2) return null;
+
+        const THEME_KEYWORDS: Record<string, string[]> = {
+          'Family & Love': ['family', 'wife', 'husband', 'son', 'daughter', 'children', 'love', 'visit', 'visited', 'together', 'support'],
+          'Health & Relief': ['pain', 'better', 'relief', 'improved', 'comfortable', 'strength', 'sleep', 'rest', 'treatment', 'medication', 'doctor'],
+          'Kindness': ['kind', 'kindness', 'help', 'helped', 'neighbour', 'friend', 'care', 'food', 'brought', 'gift', 'generous'],
+          'Peace & Hope': ['peace', 'calm', 'grateful', 'hope', 'faith', 'prayer', 'blessed', 'thankful', 'content', 'happy', 'joy'],
+          'Small Joys': ['book', 'read', 'music', 'garden', 'walk', 'tea', 'sunshine', 'morning', 'smile', 'laugh', 'nature', 'bird'],
+          'Care Team': ['doctor', 'nurse', 'team', 'explained', 'understood', 'listened', 'appointment', 'hospital', 'clinic'],
+        };
+
+        const themeCounts: Record<string, { count: number; examples: string[] }> = {};
+        Object.keys(THEME_KEYWORDS).forEach((theme) => {
+          themeCounts[theme] = { count: 0, examples: [] };
+        });
+
+        gratitudes.forEach((g: any) => {
+          const text = (g.content || g.text || '').toLowerCase();
+          Object.entries(THEME_KEYWORDS).forEach(([theme, keywords]) => {
+            if (keywords.some((kw) => text.includes(kw))) {
+              themeCounts[theme].count++;
+              if (themeCounts[theme].examples.length < 1) {
+                themeCounts[theme].examples.push(g.content || g.text || '');
+              }
+            }
+          });
+        });
+
+        const sorted = Object.entries(themeCounts)
+          .filter(([, v]) => v.count > 0)
+          .sort((a, b) => b[1].count - a[1].count);
+
+        if (sorted.length === 0) return null;
+
+        const maxCount = sorted[0][1].count;
+        const THEME_COLORS: Record<string, string> = {
+          'Family & Love': 'bg-terra',
+          'Health & Relief': 'bg-teal',
+          'Kindness': 'bg-amber',
+          'Peace & Hope': 'bg-lavender',
+          'Small Joys': 'bg-sage',
+          'Care Team': 'bg-teal/60',
+        };
+        const THEME_ICONS: Record<string, string> = {
+          'Family & Love': '❤️',
+          'Health & Relief': '💊',
+          'Kindness': '🤝',
+          'Peace & Hope': '🕊️',
+          'Small Joys': '☀️',
+          'Care Team': '🩺',
+        };
+
+        const topTheme = sorted[0][0];
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Tags className="h-4 w-4 text-lavender" />
+              <h3 className="text-sm font-bold text-charcoal">Gratitude Themes</h3>
+              <span className="ml-auto text-[10px] text-charcoal/40">from {gratitudes.length} entries</span>
+            </div>
+            <div className="space-y-2.5">
+              {sorted.slice(0, 5).map(([theme, data]) => (
+                <div key={theme}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm">{THEME_ICONS[theme] || '✨'}</span>
+                    <span className="text-xs font-semibold text-charcoal/70 flex-1">{theme}</span>
+                    <span className="text-xs font-bold text-charcoal/50">{data.count}×</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-cream">
+                    <div
+                      className={clsx('h-full rounded-full transition-all', THEME_COLORS[theme] || 'bg-charcoal/20')}
+                      style={{ width: `${(data.count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                  {data.examples[0] && (
+                    <p className="mt-1 text-[10px] text-charcoal/40 italic truncate">
+                      &ldquo;{data.examples[0].length > 60 ? data.examples[0].slice(0, 60) + '...' : data.examples[0]}&rdquo;
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl bg-lavender/5 p-3">
+              <p className="text-xs text-charcoal/60">
+                <span className="font-semibold">{topTheme}</span> is your most frequent gratitude theme.
+                {sorted.length >= 3
+                  ? ' Your gratitude spans multiple areas of life — a sign of rich emotional awareness.'
+                  : ' Try noticing small joys throughout your day to broaden your themes.'}
+              </p>
+            </div>
           </div>
         );
       })()}
