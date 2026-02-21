@@ -344,6 +344,44 @@ export default function MDTPage() {
         </div>
       </div>
 
+      {/* Cross-Patient Action Summary */}
+      {(() => {
+        let totalTasks = 0, totalDone = 0, totalOverdue = 0, totalUrgent = 0;
+        PATIENTS_LIST.forEach((pt) => {
+          const ptTasks = tasksByPatient[pt.id] || (PATIENT_DATA[pt.id] || PATIENT_DATA['1']).carePlan.teamTasks;
+          totalTasks += ptTasks.length;
+          totalDone += ptTasks.filter((t: any) => t.done).length;
+          totalOverdue += ptTasks.filter((t: any) => !t.done && isOverdue(t.deadline)).length;
+          totalUrgent += ptTasks.filter((t: any) => !t.done && (t.priority === 'urgent' || t.priority === 'high')).length;
+        });
+        const pctDone = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0;
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-teal" />
+                <span className="text-sm text-charcoal/60">All Patients:</span>
+                <span className="text-sm font-bold text-charcoal">{totalDone}/{totalTasks} tasks done</span>
+                <span className="text-xs text-charcoal/40">({pctDone}%)</span>
+              </div>
+              {totalOverdue > 0 && (
+                <span className="flex items-center gap-1 rounded-full bg-alert-critical/10 px-2.5 py-0.5 text-xs font-bold text-alert-critical">
+                  <AlertTriangle className="h-3 w-3" /> {totalOverdue} overdue
+                </span>
+              )}
+              {totalUrgent > 0 && (
+                <span className="flex items-center gap-1 rounded-full bg-terra/10 px-2.5 py-0.5 text-xs font-bold text-terra">
+                  <ArrowUp className="h-3 w-3" /> {totalUrgent} urgent/high
+                </span>
+              )}
+              <div className="ml-auto h-2 w-32 overflow-hidden rounded-full bg-cream">
+                <div className="h-full rounded-full bg-teal transition-all" style={{ width: `${pctDone}%` }} />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Patient Selector */}
       <div className="relative">
         <button

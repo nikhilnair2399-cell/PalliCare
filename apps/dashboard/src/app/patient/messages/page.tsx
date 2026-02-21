@@ -50,12 +50,25 @@ export default function MessagesPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Messages</h1>
-        <p className="mt-1 text-base text-charcoal-light">
-          Communicate with your care team
-        </p>
-      </div>
+      {(() => {
+        const unread = messages.filter((m: any) => !m.is_patient && m.sender !== 'patient' && !m.read).length;
+        return (
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-heading text-3xl font-bold text-teal">Messages</h1>
+              <p className="mt-1 text-base text-charcoal-light">
+                Communicate with your care team
+              </p>
+            </div>
+            {unread > 0 && (
+              <span className="flex items-center gap-1.5 rounded-full bg-terra/10 px-3 py-1.5 text-sm font-bold text-terra">
+                <span className="h-2 w-2 rounded-full bg-terra animate-pulse" />
+                {unread} unread
+              </span>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Chat Container */}
       <div className="rounded-2xl bg-white">
@@ -69,6 +82,34 @@ export default function MessagesPage() {
             <p className="text-sm text-charcoal-light">AIIMS Bhopal &middot; Palliative Care</p>
           </div>
         </div>
+
+        {/* Suggested Reply */}
+        {(() => {
+          const lastFromTeam = [...messages].reverse().find((m: any) => m.sender !== 'patient' && !m.is_patient);
+          if (!lastFromTeam) return null;
+          const content = ((lastFromTeam.content || lastFromTeam.message) as string || '').toLowerCase();
+          const suggestions: string[] = [];
+          if (content.includes('pain') || content.includes('discomfort')) suggestions.push('My pain is better today, thank you', 'Pain is still the same', 'Pain has gotten worse');
+          else if (content.includes('medication') || content.includes('dose')) suggestions.push('I took all my doses', 'I missed a dose', 'I have a question about side effects');
+          else if (content.includes('appointment') || content.includes('visit')) suggestions.push('I will be there', 'Can we reschedule?', 'Thank you for the reminder');
+          else suggestions.push('Thank you', 'I understand', 'I have a question');
+          return (
+            <div className="border-b border-charcoal/5 px-6 py-3">
+              <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Suggested Replies</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setMessage(s)}
+                    className="rounded-full border border-teal/20 bg-teal/5 px-3 py-1.5 text-xs font-medium text-teal hover:bg-teal/10 transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Messages Area */}
         <div ref={scrollRef} className="h-[calc(100vh-24rem)] overflow-y-auto px-6 pb-4">

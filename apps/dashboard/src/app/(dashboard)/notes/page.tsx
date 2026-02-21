@@ -532,8 +532,41 @@ export default function ClinicalNotesPage() {
     setExpandedNote(note.id);
   }
 
+  // Note statistics
+  const notesToday = allNotes.filter((n: any) => {
+    const d = n.date || '';
+    const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.includes(today);
+  }).length;
+  const typeBreakdown = allNotes.reduce((acc: Record<string, number>, n: any) => {
+    acc[n.type] = (acc[n.type] || 0) + 1;
+    return acc;
+  }, {});
+  const topType = Object.entries(typeBreakdown).sort((a, b) => b[1] - a[1])[0];
+  const uniquePatients = new Set(allNotes.map((n: any) => n.patient)).size;
+
   return (
     <div className="space-y-6">
+      {/* Note Statistics Strip */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+          <p className="font-heading text-2xl font-bold text-charcoal">{allNotes.length}</p>
+          <p className="text-xs text-charcoal/50">Total Notes</p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+          <p className="font-heading text-2xl font-bold text-teal">{notesToday}</p>
+          <p className="text-xs text-charcoal/50">Today</p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+          <p className="font-heading text-2xl font-bold text-charcoal">{uniquePatients}</p>
+          <p className="text-xs text-charcoal/50">Patients</p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+          <p className="font-heading text-lg font-bold text-charcoal capitalize">{topType ? topType[0].replace('_', ' ') : '—'}</p>
+          <p className="text-xs text-charcoal/50">Most Common</p>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
