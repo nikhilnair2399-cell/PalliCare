@@ -16,6 +16,8 @@ import {
   Home,
   Building,
   PlusCircle,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -212,6 +214,57 @@ export default function MyWishesPage() {
           {editing ? <><Save className="h-4 w-4" /> Save</> : <><Edit3 className="h-4 w-4" /> Edit</>}
         </button>
       </div>
+
+      {/* Completion & Review Reminder */}
+      {(() => {
+        const fields = [
+          { label: 'Goals of care', done: wishes.goalsOfCare !== 'undecided' },
+          { label: 'Code status', done: wishes.codeStatus !== 'undecided' },
+          { label: 'Preferred place', done: wishes.preferredPlace !== 'undecided' },
+          { label: 'Decision makers', done: !!wishes.primarySurrogate.name },
+          { label: 'Living will', done: wishes.hasLivingWill },
+          { label: 'Power of attorney', done: wishes.hasPOA },
+          { label: 'Personal wishes', done: !!wishes.personalWishes.trim() },
+        ];
+        const doneCount = fields.filter(f => f.done).length;
+        const pct = Math.round((doneCount / fields.length) * 100);
+        const daysSinceReview = Math.floor((Date.now() - new Date(wishes.lastReviewDate).getTime()) / 86400000);
+        const needsReview = daysSinceReview > 90;
+        return (
+          <div className="space-y-3">
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-charcoal">Completion</span>
+                <span className="text-sm font-bold text-teal">{pct}%</span>
+              </div>
+              <div className="h-3 rounded-full bg-cream overflow-hidden">
+                <div className="h-full rounded-full bg-teal transition-all" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {fields.map(f => (
+                  <span key={f.label} className={clsx(
+                    'rounded-full px-3 py-1 text-xs font-medium',
+                    f.done ? 'bg-sage/10 text-sage' : 'bg-charcoal/5 text-charcoal/40',
+                  )}>
+                    {f.done ? '✓' : '○'} {f.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {needsReview && (
+              <div className="flex items-center gap-3 rounded-2xl bg-amber/10 px-5 py-3">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber" />
+                <div>
+                  <p className="text-sm font-semibold text-charcoal">Review recommended</p>
+                  <p className="text-xs text-charcoal-light">
+                    Last reviewed {daysSinceReview} days ago. We recommend reviewing your wishes with your family and care team every 3 months.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ─── Section 1: Goals of Care ─── */}
       <SectionHeader id="goals" title="Goals of Care" icon={Heart} />

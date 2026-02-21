@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, CheckCircle2, Clock } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Star, ArrowRight } from 'lucide-react';
 import { useEducationModules } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -46,6 +46,43 @@ export default function LearnPage() {
           />
         </div>
       </div>
+
+      {/* Recommended Next */}
+      {(() => {
+        const inProgress = modules.find((m: any) => !m.completed && m.progress > 0);
+        const nextNew = modules.find((m: any) => !m.completed && m.progress === 0);
+        const recommended = inProgress || nextNew;
+        if (!recommended) return null;
+        return (
+          <Link href={`/patient/learn/${recommended.id}`} className="block rounded-2xl bg-teal/5 p-5 transition-all hover:ring-2 hover:ring-teal/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-4 w-4 text-teal" />
+              <span className="text-xs font-bold text-teal uppercase">{inProgress ? 'Continue Learning' : 'Recommended Next'}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-charcoal">{recommended.title}</h3>
+                <p className="mt-1 text-sm text-charcoal-light">
+                  {recommended.progress > 0 ? `${recommended.progress}% complete — pick up where you left off` : `${recommended.duration} · ${recommended.category}`}
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-teal" />
+            </div>
+          </Link>
+        );
+      })()}
+
+      {/* Encouragement */}
+      {completed > 0 && completed < total && (
+        <p className="text-sm text-charcoal-light text-center">
+          Great progress! You&apos;ve completed <strong className="text-teal">{completed}</strong> of {total} modules. Keep going!
+        </p>
+      )}
+      {completed === total && total > 0 && (
+        <p className="text-sm text-sage text-center font-medium">
+          Congratulations — you&apos;ve completed all {total} learning modules!
+        </p>
+      )}
 
       {/* Module Cards */}
       <div className="space-y-4">

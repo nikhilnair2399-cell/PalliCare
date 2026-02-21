@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb } from 'lucide-react';
 import { useCreateSymptomLog } from '@/lib/patient-hooks';
 import { painColor } from '@/lib/utils';
 
@@ -22,6 +22,19 @@ const ESAS_SYMPTOMS = [
 const PAIN_QUALITIES = [
   'Aching', 'Burning', 'Stabbing', 'Throbbing', 'Shooting', 'Cramping', 'Dull', 'Sharp', 'Tingling', 'Pressure',
 ];
+
+const QUALITY_HINTS: Record<string, string> = {
+  Aching: 'Deep, constant discomfort — often from muscles or joints',
+  Burning: 'Hot, stinging sensation — may suggest nerve involvement',
+  Stabbing: 'Sudden, intense piercing pain — may be neuropathic',
+  Throbbing: 'Pulsing pain that comes in waves — often vascular',
+  Shooting: 'Electric-like pain that travels — typical of nerve pain',
+  Cramping: 'Squeezing, tightening pain — common in visceral/muscle pain',
+  Dull: 'Low-grade persistent ache — common background pain',
+  Sharp: 'Intense, focused pain — may be incident or mechanical',
+  Tingling: 'Pins-and-needles sensation — suggests nerve involvement',
+  Pressure: 'Heaviness or squeezing — may be visceral or tension',
+};
 
 export default function LogPage() {
   const [step, setStep] = useState(1);
@@ -65,8 +78,10 @@ export default function LogPage() {
   }
 
   if (submitted) {
+    const highSymptoms = ESAS_SYMPTOMS.filter(s => scores[s.key] >= 7);
+    const totalBurden = ESAS_SYMPTOMS.reduce((sum, s) => sum + scores[s.key], 0);
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex flex-col items-center rounded-2xl bg-white p-12 text-center">
           <CheckCircle2 className="h-16 w-16 text-sage" />
           <h2 className="mt-4 font-heading text-2xl font-bold text-charcoal">Symptoms Logged</h2>
@@ -79,6 +94,37 @@ export default function LogPage() {
           >
             Log Again
           </button>
+        </div>
+
+        {/* ESAS Summary */}
+        <div className="rounded-2xl bg-white p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-teal" />
+            <h3 className="text-base font-bold text-charcoal">Your Symptom Snapshot</h3>
+          </div>
+          <div className="space-y-2">
+            {ESAS_SYMPTOMS.map(s => (
+              <div key={s.key} className="flex items-center gap-3">
+                <span className="w-32 text-sm text-charcoal-light truncate">{s.label}</span>
+                <div className="flex-1 h-3 rounded-full bg-cream overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${scores[s.key] * 10}%`,
+                      backgroundColor: painColor(scores[s.key]),
+                    }}
+                  />
+                </div>
+                <span className="w-8 text-right text-sm font-bold text-charcoal">{scores[s.key]}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex items-center gap-4 text-sm text-charcoal-light">
+            <span>Total burden: <strong className="text-charcoal">{totalBurden}/90</strong></span>
+            {highSymptoms.length > 0 && (
+              <span className="text-terra font-medium">{highSymptoms.length} symptom{highSymptoms.length > 1 ? 's' : ''} ≥ 7/10</span>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -246,6 +292,16 @@ export default function LogPage() {
                 </button>
               ))}
             </div>
+            {selectedQualities.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {selectedQualities.map(q => (
+                  <div key={q} className="flex items-start gap-2 rounded-xl bg-teal/5 px-4 py-2">
+                    <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal" />
+                    <p className="text-sm text-charcoal-light"><strong className="text-charcoal">{q}:</strong> {QUALITY_HINTS[q]}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Notes */}
