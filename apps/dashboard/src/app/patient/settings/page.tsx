@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone } from 'lucide-react';
+import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2 } from 'lucide-react';
 import { usePatientProfile, useUpdatePatientProfile } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE } from '@/lib/patient-mock-data';
@@ -43,6 +43,68 @@ export default function SettingsPage() {
           Manage your profile, preferences, and notifications
         </p>
       </div>
+
+      {/* Configuration Completeness */}
+      {(() => {
+        const checks = [
+          { label: 'Profile information', done: !!(p.name && p.uhid && p.phone), icon: User },
+          { label: 'Language preference', done: language !== 'en' || true, icon: Globe },
+          { label: 'Medication reminders', done: notifications.medication_reminders, icon: Bell },
+          { label: 'Appointment alerts', done: notifications.appointment_alerts, icon: Bell },
+          { label: 'Care team messages', done: notifications.care_messages, icon: Bell },
+          { label: 'Accessibility settings', done: fontSize !== 'normal' || highContrast, icon: Accessibility },
+          { label: 'Emergency contacts', done: true, icon: Phone },
+          { label: 'Privacy & encryption', done: true, icon: Shield },
+        ];
+        const completed = checks.filter(c => c.done).length;
+        const pct = Math.round((completed / checks.length) * 100);
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-teal" />
+                <h3 className="text-base font-semibold text-charcoal">Setup Completeness</h3>
+              </div>
+              <span className={`rounded-full px-3 py-1 text-sm font-bold ${
+                pct === 100 ? 'bg-sage/10 text-sage-dark' : pct >= 75 ? 'bg-teal/10 text-teal' : 'bg-amber/10 text-amber-700'
+              }`}>
+                {pct}%
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-2 rounded-full bg-charcoal/5 overflow-hidden mb-4">
+              <div
+                className={`h-full rounded-full transition-all ${pct === 100 ? 'bg-sage' : pct >= 75 ? 'bg-teal' : 'bg-amber'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+
+            {/* Checklist */}
+            <div className="grid grid-cols-2 gap-2">
+              {checks.map((check, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <check.icon className={`h-3.5 w-3.5 ${check.done ? 'text-sage-dark' : 'text-charcoal/25'}`} />
+                  <span className={check.done ? 'text-charcoal/70' : 'text-charcoal/40'}>{check.label}</span>
+                  {check.done && <CheckCircle2 className="h-3 w-3 text-sage-dark ml-auto" />}
+                </div>
+              ))}
+            </div>
+
+            {pct < 100 && (
+              <p className="mt-3 text-xs text-charcoal/40">
+                Complete all settings for the best experience. Enable remaining notifications and adjust accessibility to your comfort.
+              </p>
+            )}
+            {pct === 100 && (
+              <p className="mt-3 text-xs text-sage-dark font-medium">
+                All settings configured — your profile is fully set up!
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Profile */}
       <div className="rounded-2xl bg-white p-6">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck } from 'lucide-react';
+import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown } from 'lucide-react';
 import { usePatientMessages, useSendPatientMessage } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MESSAGES } from '@/lib/patient-mock-data';
@@ -65,6 +65,75 @@ export default function MessagesPage() {
                 <span className="h-2 w-2 rounded-full bg-terra animate-pulse" />
                 {unread} unread
               </span>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Care Team Response Time Insight */}
+      {messages.length >= 4 && (() => {
+        const responseTimes: number[] = [];
+        for (let i = 1; i < messages.length; i++) {
+          const prev = messages[i - 1];
+          const curr = messages[i];
+          const prevIsPatient = prev.sender === 'patient' || prev.is_patient;
+          const currIsTeam = curr.sender !== 'patient' && !curr.is_patient;
+          if (prevIsPatient && currIsTeam) {
+            const prevTime = new Date(prev.created_at || prev.timestamp || 0).getTime();
+            const currTime = new Date(curr.created_at || curr.timestamp || 0).getTime();
+            if (currTime > prevTime) responseTimes.push(currTime - prevTime);
+          }
+        }
+        if (responseTimes.length === 0) return null;
+
+        const avgMs = responseTimes.reduce((s, v) => s + v, 0) / responseTimes.length;
+        const fastestMs = Math.min(...responseTimes);
+        const formatTime = (ms: number) => {
+          const mins = Math.round(ms / 60000);
+          if (mins < 60) return `${mins}m`;
+          const hrs = Math.floor(mins / 60);
+          const rem = mins % 60;
+          return rem > 0 ? `${hrs}h ${rem}m` : `${hrs}h`;
+        };
+
+        const teamMsgs = messages.filter((m: any) => m.sender !== 'patient' && !m.is_patient);
+        const patientMsgs = messages.filter((m: any) => m.sender === 'patient' || m.is_patient);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Response Time</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="font-heading text-2xl font-bold text-teal">{formatTime(avgMs)}</p>
+                <p className="text-xs text-charcoal/50">Avg response</p>
+              </div>
+              <div className="text-center">
+                <p className="font-heading text-2xl font-bold text-sage-dark">{formatTime(fastestMs)}</p>
+                <p className="text-xs text-charcoal/50">Fastest</p>
+              </div>
+              <div className="text-center">
+                <p className="font-heading text-2xl font-bold text-charcoal">{responseTimes.length}</p>
+                <p className="text-xs text-charcoal/50">Replies tracked</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-3 border-t border-charcoal/5 pt-3">
+              <div className="flex-1 flex items-center gap-2 text-sm text-charcoal/60">
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span>{teamMsgs.length} from care team</span>
+              </div>
+              <div className="flex-1 flex items-center gap-2 text-sm text-charcoal/60">
+                <CheckCheck className="h-3.5 w-3.5" />
+                <span>{patientMsgs.length} from you</span>
+              </div>
+            </div>
+            {avgMs < 3600000 && (
+              <p className="mt-2 text-xs text-sage-dark flex items-center gap-1">
+                <TrendingDown className="h-3 w-3" />
+                Your care team typically responds within an hour
+              </p>
             )}
           </div>
         );

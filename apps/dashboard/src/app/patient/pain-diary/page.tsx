@@ -1,7 +1,7 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb, Clock } from 'lucide-react';
 import { usePainDiary } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PAIN_DIARY } from '@/lib/patient-mock-data';
@@ -155,6 +155,117 @@ export default function PainDiaryPage() {
                 <p key={i} className="text-sm text-charcoal/70">&bull; {insight}</p>
               ))}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Pain Pattern Heatmap — Time of Day × Day of Week */}
+      {entries.length >= 5 && (() => {
+        const TIME_SLOTS = [
+          { label: 'Morning', range: [5, 12] },
+          { label: 'Afternoon', range: [12, 17] },
+          { label: 'Evening', range: [17, 21] },
+          { label: 'Night', range: [21, 5] },
+        ];
+        const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        const grid: Record<string, { sum: number; count: number }> = {};
+        DAYS.forEach(d => TIME_SLOTS.forEach(t => { grid[`${d}-${t.label}`] = { sum: 0, count: 0 }; }));
+
+        entries.forEach((e: any) => {
+          const dt = new Date(e.date || e.logged_at || Date.now());
+          const day = DAYS[dt.getDay()];
+          const hour = dt.getHours();
+          const slot = TIME_SLOTS.find(t =>
+            t.range[0] < t.range[1]
+              ? hour >= t.range[0] && hour < t.range[1]
+              : hour >= t.range[0] || hour < t.range[1]
+          );
+          if (slot) {
+            const key = `${day}-${slot.label}`;
+            grid[key].sum += (e.pain_score ?? e.score ?? 0);
+            grid[key].count += 1;
+          }
+        });
+
+        const cellColor = (avg: number | null) => {
+          if (avg === null) return 'bg-charcoal/5';
+          if (avg <= 2) return 'bg-sage/30';
+          if (avg <= 4) return 'bg-amber/20';
+          if (avg <= 6) return 'bg-amber/50';
+          if (avg <= 8) return 'bg-terra/40';
+          return 'bg-terra/70';
+        };
+
+        const worstSlot = Object.entries(grid)
+          .filter(([, v]) => v.count > 0)
+          .sort((a, b) => (b[1].sum / b[1].count) - (a[1].sum / a[1].count))[0];
+        const bestSlot = Object.entries(grid)
+          .filter(([, v]) => v.count > 0)
+          .sort((a, b) => (a[1].sum / a[1].count) - (b[1].sum / b[1].count))[0];
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Pain Pattern Heatmap</h3>
+            </div>
+            <p className="text-sm text-charcoal-light mb-4">Average pain by time of day and day of week</p>
+
+            {/* Grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[28rem]">
+                {/* Column headers */}
+                <div className="grid grid-cols-[5rem_repeat(7,1fr)] gap-1 mb-1">
+                  <div />
+                  {DAYS.map(d => (
+                    <div key={d} className="text-center text-xs font-semibold text-charcoal/50">{d}</div>
+                  ))}
+                </div>
+                {/* Rows */}
+                {TIME_SLOTS.map(slot => (
+                  <div key={slot.label} className="grid grid-cols-[5rem_repeat(7,1fr)] gap-1 mb-1">
+                    <div className="flex items-center text-xs font-medium text-charcoal/60">{slot.label}</div>
+                    {DAYS.map(day => {
+                      const cell = grid[`${day}-${slot.label}`];
+                      const avg = cell.count > 0 ? cell.sum / cell.count : null;
+                      return (
+                        <div
+                          key={day}
+                          className={`flex items-center justify-center rounded-lg h-10 text-xs font-bold ${cellColor(avg)} ${avg !== null ? 'text-charcoal/80' : 'text-charcoal/20'}`}
+                          title={avg !== null ? `${day} ${slot.label}: avg ${avg.toFixed(1)} (${cell.count} entries)` : 'No data'}
+                        >
+                          {avg !== null ? avg.toFixed(1) : '—'}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="mt-4 flex items-center gap-2 text-xs text-charcoal/50">
+              <span>Low pain</span>
+              <div className="flex gap-0.5">
+                {['bg-sage/30', 'bg-amber/20', 'bg-amber/50', 'bg-terra/40', 'bg-terra/70'].map((c, i) => (
+                  <div key={i} className={`h-3 w-6 rounded ${c}`} />
+                ))}
+              </div>
+              <span>High pain</span>
+            </div>
+
+            {/* Insight */}
+            {worstSlot && bestSlot && (
+              <div className="mt-3 space-y-1">
+                <p className="text-sm text-charcoal/60">
+                  <span className="font-semibold text-terra">{worstSlot[0].replace('-', ' ')}</span> has your highest average pain ({(worstSlot[1].sum / worstSlot[1].count).toFixed(1)})
+                </p>
+                <p className="text-sm text-charcoal/60">
+                  <span className="font-semibold text-sage-dark">{bestSlot[0].replace('-', ' ')}</span> has your lowest average pain ({(bestSlot[1].sum / bestSlot[1].count).toFixed(1)})
+                </p>
+              </div>
+            )}
           </div>
         );
       })()}
