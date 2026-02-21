@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Bell, AlertTriangle, AlertCircle, Info, Check, Clock,
   ChevronDown, ChevronUp, User, Loader2, BellOff,
-  CheckCheck, ArrowUpRight, History, TrendingUp, TrendingDown,
+  CheckCheck, ArrowUpRight, History, TrendingUp, TrendingDown, Timer,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlerts, useAcknowledgeAlert, useResolveAlert } from '@/lib/hooks';
@@ -300,6 +300,80 @@ export default function AlertsPage() {
                   <span className="flex items-center justify-center gap-0.5 text-alert-success"><TrendingDown className="h-3 w-3" /> all under control</span>
                 )}
               </p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 49 — Alert Response Time Analytics */}
+      {(() => {
+        const RESPONSE_DATA = [
+          { type: 'Critical Pain', avgAckMin: 8, avgResolveMin: 45, count: 5, severity: 'critical' as const },
+          { type: 'MEDD Threshold', avgAckMin: 12, avgResolveMin: 90, count: 3, severity: 'critical' as const },
+          { type: 'Non-Adherence', avgAckMin: 35, avgResolveMin: 180, count: 4, severity: 'warning' as const },
+          { type: 'Mood Distress', avgAckMin: 60, avgResolveMin: 240, count: 3, severity: 'warning' as const },
+          { type: 'Breakthrough Freq', avgAckMin: 20, avgResolveMin: 120, count: 4, severity: 'warning' as const },
+          { type: 'Functional Decline', avgAckMin: 90, avgResolveMin: 360, count: 2, severity: 'info' as const },
+          { type: 'Missing Data', avgAckMin: 120, avgResolveMin: 480, count: 3, severity: 'info' as const },
+        ];
+        const critAvg = RESPONSE_DATA.filter(d => d.severity === 'critical');
+        const warnAvg = RESPONSE_DATA.filter(d => d.severity === 'warning');
+        const critAckAvg = critAvg.length > 0 ? Math.round(critAvg.reduce((s, d) => s + d.avgAckMin, 0) / critAvg.length) : 0;
+        const warnAckAvg = warnAvg.length > 0 ? Math.round(warnAvg.reduce((s, d) => s + d.avgAckMin, 0) / warnAvg.length) : 0;
+        const maxResolve = Math.max(...RESPONSE_DATA.map(d => d.avgResolveMin));
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Timer className="h-4 w-4 text-teal" /> Response Time Analytics
+              </h2>
+              <span className="text-[10px] text-charcoal/40">30-day average</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-lg bg-red-50 p-3 text-center">
+                <p className="text-[10px] font-semibold text-red-500 uppercase">Critical Ack</p>
+                <p className="text-xl font-bold text-red-700">{critAckAvg}<span className="text-xs font-normal"> min</span></p>
+                <p className="text-[9px] text-red-400">Target: &lt;15 min</p>
+              </div>
+              <div className="rounded-lg bg-amber-50 p-3 text-center">
+                <p className="text-[10px] font-semibold text-amber-500 uppercase">Warning Ack</p>
+                <p className="text-xl font-bold text-amber-700">{warnAckAvg}<span className="text-xs font-normal"> min</span></p>
+                <p className="text-[9px] text-amber-400">Target: &lt;60 min</p>
+              </div>
+              <div className="rounded-lg bg-teal/5 p-3 text-center">
+                <p className="text-[10px] font-semibold text-teal uppercase">Overall</p>
+                <p className="text-xl font-bold text-charcoal">{RESPONSE_DATA.reduce((s, d) => s + d.count, 0)}</p>
+                <p className="text-[9px] text-charcoal/40">alerts processed</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {RESPONSE_DATA.map((d) => (
+                <div key={d.type} className="flex items-center gap-3">
+                  <span className={cn(
+                    'h-2 w-2 rounded-full flex-shrink-0',
+                    d.severity === 'critical' ? 'bg-red-500' : d.severity === 'warning' ? 'bg-amber-400' : 'bg-blue-400',
+                  )} />
+                  <span className="w-32 text-xs font-medium text-charcoal/70 truncate">{d.type}</span>
+                  <div className="flex-1 h-3 rounded-full bg-charcoal/5 relative">
+                    <div
+                      className="h-3 rounded-l-full bg-teal/40 absolute"
+                      style={{ width: `${(d.avgAckMin / maxResolve) * 100}%` }}
+                      title={`Ack: ${d.avgAckMin}min`}
+                    />
+                    <div
+                      className={cn('h-3 rounded-full absolute', d.severity === 'critical' ? 'bg-red-300/50' : d.severity === 'warning' ? 'bg-amber-300/50' : 'bg-blue-300/50')}
+                      style={{ width: `${(d.avgResolveMin / maxResolve) * 100}%` }}
+                      title={`Resolve: ${d.avgResolveMin}min`}
+                    />
+                  </div>
+                  <span className="w-16 text-right text-[10px] text-charcoal/50">{d.avgResolveMin < 60 ? `${d.avgResolveMin}m` : `${Math.round(d.avgResolveMin / 60)}h`}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-[10px] text-charcoal/40 border-t border-sage/10 pt-2">
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-teal/40" /> Acknowledgment</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-charcoal/20" /> Resolution</span>
             </div>
           </div>
         );

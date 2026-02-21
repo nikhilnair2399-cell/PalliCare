@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award, Calendar } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -202,6 +202,82 @@ export default function BreathePage() {
           </div>
         </div>
       )}
+
+      {/* Sprint 49 — Session Time & Weekly Consistency */}
+      {!isRunning && !sessionComplete && (() => {
+        const recentSessions = (s.recent_sessions || s.sessions || [
+          { technique: '4-7-8 Breathing', duration: 300, rating: 5, date: '2026-02-21T09:00:00' },
+          { technique: 'Box Breathing', duration: 240, rating: 4, date: '2026-02-20T14:30:00' },
+          { technique: 'Deep Belly Breathing', duration: 180, rating: 4, date: '2026-02-19T20:00:00' },
+          { technique: '4-7-8 Breathing', duration: 360, rating: 5, date: '2026-02-18T08:15:00' },
+          { technique: 'Triangle Breathing', duration: 150, rating: 3, date: '2026-02-17T21:00:00' },
+          { technique: 'Box Breathing', duration: 200, rating: 4, date: '2026-02-16T10:00:00' },
+          { technique: '4-7-8 Breathing', duration: 420, rating: 5, date: '2026-02-15T08:30:00' },
+        ]) as any[];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayCounts = Array(7).fill(0);
+        const todLabels = ['Morning', 'Afternoon', 'Evening', 'Night'];
+        const todCounts = [0, 0, 0, 0];
+        recentSessions.forEach((sess: any) => {
+          if (sess.date) {
+            const d = new Date(sess.date);
+            dayCounts[d.getDay()] += 1;
+            const hr = d.getHours();
+            if (hr >= 5 && hr < 12) todCounts[0]++;
+            else if (hr >= 12 && hr < 17) todCounts[1]++;
+            else if (hr >= 17 && hr < 21) todCounts[2]++;
+            else todCounts[3]++;
+          }
+        });
+        const maxDay = Math.max(...dayCounts, 1);
+        const maxTod = Math.max(...todCounts, 1);
+        const bestDay = dayNames[dayCounts.indexOf(Math.max(...dayCounts))];
+        const bestTod = todLabels[todCounts.indexOf(Math.max(...todCounts))];
+        const avgDuration = recentSessions.length > 0
+          ? Math.round(recentSessions.reduce((a: number, sess: any) => a + (sess.duration || 0), 0) / recentSessions.length / 60)
+          : 0;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Session Patterns</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">By Day of Week</p>
+                <div className="flex items-end gap-1.5" style={{ height: '48px' }}>
+                  {dayNames.map((day, i) => (
+                    <div key={day} className="flex-1 flex flex-col items-center gap-0.5">
+                      <div
+                        className="w-full rounded-t bg-teal/60"
+                        style={{ height: `${dayCounts[i] > 0 ? (dayCounts[i] / maxDay) * 40 + 4 : 2}px` }}
+                      />
+                      <span className="text-[8px] text-charcoal/40">{day}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[10px] text-charcoal/40">Most active: <span className="font-bold text-teal">{bestDay}</span></p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">By Time of Day</p>
+                <div className="space-y-1.5">
+                  {todLabels.map((label, i) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="w-14 text-[10px] text-charcoal/50">{label}</span>
+                      <div className="flex-1 h-2 rounded-full bg-cream">
+                        <div className="h-2 rounded-full bg-sage/60" style={{ width: `${(todCounts[i] / maxTod) * 100}%`, minWidth: todCounts[i] > 0 ? '4px' : '0' }} />
+                      </div>
+                      <span className="text-[10px] font-bold text-charcoal/40 w-3">{todCounts[i]}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[10px] text-charcoal/40">Preferred: <span className="font-bold text-sage">{bestTod}</span> · Avg {avgDuration}min</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Technique Selector */}
       {!isRunning && !sessionComplete && (

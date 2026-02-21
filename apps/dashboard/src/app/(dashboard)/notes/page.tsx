@@ -14,6 +14,8 @@ import {
   X,
   Save,
   Grid3x3,
+  Clock,
+  PenLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -640,6 +642,63 @@ export default function ClinicalNotesPage() {
               <div className="h-3 w-3 rounded-sm bg-teal/45" />
               <div className="h-3 w-3 rounded-sm bg-teal/80" />
               <span className="text-[9px] text-charcoal/40">More</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 49 — Note Writing Productivity */}
+      {(() => {
+        const totalChars = allNotes.reduce((s: number, n: any) => s + (n.content || '').length, 0);
+        const avgChars = allNotes.length > 0 ? Math.round(totalChars / allNotes.length) : 0;
+        const avgWords = Math.round(avgChars / 5.5);
+        const longestNote = allNotes.reduce((max: any, n: any) => (n.content || '').length > ((max?.content || '').length) ? n : max, allNotes[0]);
+        const shortestNote = allNotes.reduce((min: any, n: any) => (n.content || '').length < ((min?.content || '').length) ? n : min, allNotes[0]);
+        const typeStats = Object.entries(typeBreakdown).sort((a, b) => b[1] - a[1]);
+        const maxTypeCount = typeStats.length > 0 ? typeStats[0][1] : 1;
+        const templateTypes = Object.keys(NOTE_TEMPLATES);
+        const templatedCount = allNotes.filter((n: any) => templateTypes.includes(n.type)).length;
+        const templatedPct = allNotes.length > 0 ? Math.round((templatedCount / allNotes.length) * 100) : 0;
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <PenLine className="h-4 w-4 text-teal" /> Writing Productivity
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{allNotes.length} notes analyzed</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-4">
+              <div className="rounded-lg bg-teal/5 p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{avgWords}</p>
+                <p className="text-[10px] text-charcoal/40">avg words/note</p>
+              </div>
+              <div className="rounded-lg bg-sage/5 p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{templatedPct}%</p>
+                <p className="text-[10px] text-charcoal/40">use templates</p>
+              </div>
+              <div className="rounded-lg bg-amber/5 p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{longestNote ? Math.round((longestNote.content || '').length / 5.5) : 0}</p>
+                <p className="text-[10px] text-charcoal/40">longest (words)</p>
+              </div>
+              <div className="rounded-lg bg-lavender/5 p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{shortestNote ? Math.round((shortestNote.content || '').length / 5.5) : 0}</p>
+                <p className="text-[10px] text-charcoal/40">shortest (words)</p>
+              </div>
+            </div>
+            <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">Type Distribution</p>
+            <div className="space-y-1.5">
+              {typeStats.map(([type, count]) => (
+                <div key={type} className="flex items-center gap-2">
+                  <span className={cn('rounded px-1.5 py-0.5 text-[9px] font-bold capitalize', TYPE_COLORS[type] || 'bg-charcoal/10 text-charcoal/50')}>
+                    {type.replace('_', ' ')}
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-charcoal/5">
+                    <div className="h-2 rounded-full bg-teal/50 transition-all" style={{ width: `${(count / maxTypeCount) * 100}%` }} />
+                  </div>
+                  <span className="text-[10px] font-bold text-charcoal/50 w-4 text-right">{count}</span>
+                </div>
+              ))}
             </div>
           </div>
         );
