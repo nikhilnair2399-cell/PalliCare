@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb, History, Clock } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb, History, Clock, TrendingDown, TrendingUp, Activity } from 'lucide-react';
 import { useCreateSymptomLog } from '@/lib/patient-hooks';
 import { painColor } from '@/lib/utils';
 
@@ -148,6 +148,69 @@ export default function LogPage() {
           Tell us how you&apos;re feeling today
         </p>
       </div>
+
+      {/* Symptom Trend Analysis from History */}
+      {MOCK_LOG_HISTORY.length >= 3 && (() => {
+        const sorted = [...MOCK_LOG_HISTORY].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const recentPain = sorted.slice(-3).map(l => l.pain);
+        const olderPain = sorted.slice(0, Math.max(1, sorted.length - 3)).map(l => l.pain);
+        const recentAvg = recentPain.reduce((s, v) => s + v, 0) / recentPain.length;
+        const olderAvg = olderPain.reduce((s, v) => s + v, 0) / olderPain.length;
+        const painTrend = recentAvg - olderAvg;
+
+        const burdenValues = sorted.map(l => l.totalBurden);
+        const avgBurden = Math.round(burdenValues.reduce((s, v) => s + v, 0) / burdenValues.length);
+
+        const moodCounts = { good: 0, okay: 0, bad: 0 };
+        MOCK_LOG_HISTORY.forEach(l => { moodCounts[l.mood as keyof typeof moodCounts] += 1; });
+        const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+
+        const qualityCounts: Record<string, number> = {};
+        MOCK_LOG_HISTORY.forEach(l => l.qualities.forEach(q => { qualityCounts[q] = (qualityCounts[q] || 0) + 1; }));
+        const topQualities = Object.entries(qualityCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Your 5-Day Trend</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  {painTrend < -0.5 ? <TrendingDown className="h-4 w-4 text-sage-dark" /> : painTrend > 0.5 ? <TrendingUp className="h-4 w-4 text-terra" /> : null}
+                  <p className="font-heading text-xl font-bold text-charcoal">{recentAvg.toFixed(1)}</p>
+                </div>
+                <p className="text-xs text-charcoal/50">Recent pain</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{avgBurden}/90</p>
+                <p className="text-xs text-charcoal/50">Avg burden</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal capitalize">{topMood[0]}</p>
+                <p className="text-xs text-charcoal/50">Common mood</p>
+              </div>
+            </div>
+            {topQualities.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-charcoal/40">Top qualities:</span>
+                {topQualities.map(([q, count]) => (
+                  <span key={q} className="rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-medium text-teal">
+                    {q} ({count})
+                  </span>
+                ))}
+              </div>
+            )}
+            {painTrend < -0.5 && (
+              <p className="mt-2 text-xs text-sage-dark font-medium">Pain is trending down — your treatment plan is helping</p>
+            )}
+            {painTrend > 0.5 && (
+              <p className="mt-2 text-xs text-terra font-medium">Pain is trending up — consider reporting this to your care team</p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Step Progress */}
       <div className="flex items-center gap-2">

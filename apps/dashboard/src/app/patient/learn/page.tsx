@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, CheckCircle2, Clock, Star, ArrowRight, Flame, Filter } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Star, ArrowRight, Flame, Filter, Timer, BarChart3 } from 'lucide-react';
 import { useEducationModules } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -87,6 +87,69 @@ export default function LearnPage() {
           />
         </div>
       </div>
+
+      {/* Learning Time & Category Breakdown */}
+      {modules.length >= 2 && (() => {
+        const parseMins = (dur: string) => {
+          const match = dur?.match(/(\d+)/);
+          return match ? parseInt(match[1]) : 10;
+        };
+        const totalMins = modules.reduce((s: number, m: any) => s + parseMins(m.duration), 0);
+        const completedMins = modules.filter((m: any) => m.completed).reduce((s: number, m: any) => s + parseMins(m.duration), 0);
+        const remainingMins = totalMins - completedMins;
+
+        const catBreakdown: Record<string, { total: number; done: number }> = {};
+        modules.forEach((m: any) => {
+          const cat = m.category || 'General';
+          if (!catBreakdown[cat]) catBreakdown[cat] = { total: 0, done: 0 };
+          catBreakdown[cat].total += 1;
+          if (m.completed) catBreakdown[cat].done += 1;
+        });
+
+        const catColors: Record<string, string> = {
+          'Pain Management': 'bg-terra', 'Medication': 'bg-teal', 'Comfort': 'bg-sage',
+          'Nutrition': 'bg-amber', 'Emotional': 'bg-lavender', 'General': 'bg-charcoal/30',
+        };
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Learning Overview</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-charcoal">{totalMins}m</p>
+                <p className="text-xs text-charcoal/50">Total content</p>
+              </div>
+              <div className="rounded-xl bg-sage/10 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-sage-dark">{completedMins}m</p>
+                <p className="text-xs text-charcoal/50">Completed</p>
+              </div>
+              <div className="rounded-xl bg-teal/10 p-3 text-center">
+                <p className="font-heading text-xl font-bold text-teal">{remainingMins}m</p>
+                <p className="text-xs text-charcoal/50">Remaining</p>
+              </div>
+            </div>
+            <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">By Category</p>
+            <div className="space-y-2">
+              {Object.entries(catBreakdown).map(([cat, data]) => (
+                <div key={cat} className="flex items-center gap-3">
+                  <span className={`h-2 w-2 rounded-full flex-shrink-0 ${catColors[cat] || 'bg-charcoal/20'}`} />
+                  <span className="text-sm text-charcoal/70 w-28 truncate">{cat}</span>
+                  <div className="flex-1 h-2 rounded-full bg-charcoal/5 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${catColors[cat] || 'bg-charcoal/20'}`}
+                      style={{ width: `${(data.done / data.total) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-charcoal/40 w-10 text-right">{data.done}/{data.total}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Recommended Next */}
       {(() => {

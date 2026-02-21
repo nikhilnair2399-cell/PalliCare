@@ -8,7 +8,7 @@ import { AlertsPreview } from '@/components/ui/AlertsPreview';
 import {
   Users, AlertTriangle, Activity, Pill, Loader2,
   ListChecks, ArrowRight, Clock, CalendarClock,
-  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck,
+  ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, useAlertCounts } from '@/lib/hooks';
@@ -212,6 +212,54 @@ export default function DashboardPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* Sprint 46 — Department Bed Occupancy */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <BedDouble className="h-4 w-4 text-teal" />
+          <h2 className="text-sm font-bold text-teal">Bed Occupancy</h2>
+          <span className="ml-auto text-[10px] text-charcoal/40">Palliative Care Unit</span>
+        </div>
+        {(() => {
+          const beds = { total: 16, occupied: 12, reserved: 2, available: 2 };
+          const occupancyPct = Math.round((beds.occupied / beds.total) * 100);
+          const rows = [
+            { label: 'Occupied', count: beds.occupied, color: 'bg-teal' },
+            { label: 'Reserved', count: beds.reserved, color: 'bg-amber' },
+            { label: 'Available', count: beds.available, color: 'bg-sage/40' },
+          ];
+          return (
+            <>
+              <div className="flex h-4 overflow-hidden rounded-full mb-3">
+                {rows.map(r => (
+                  <div
+                    key={r.label}
+                    className={r.color}
+                    style={{ width: `${(r.count / beds.total) * 100}%` }}
+                    title={`${r.label}: ${r.count}`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-4">
+                  {rows.map(r => (
+                    <div key={r.label} className="flex items-center gap-1.5 text-xs text-charcoal/60">
+                      <span className={`h-2 w-2 rounded-full ${r.color}`} />
+                      {r.label}: <strong className="text-charcoal">{r.count}</strong>
+                    </div>
+                  ))}
+                </div>
+                <span className={cn(
+                  'text-xs font-bold',
+                  occupancyPct >= 90 ? 'text-terra' : occupancyPct >= 75 ? 'text-amber' : 'text-sage',
+                )}>
+                  {occupancyPct}% occupied
+                </span>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Sprint 42 — Clinical Quality Compliance */}
