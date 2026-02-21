@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown, BarChart3 } from 'lucide-react';
+import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown, BarChart3, CalendarDays } from 'lucide-react';
 import { usePatientMessages, useSendPatientMessage } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MESSAGES } from '@/lib/patient-mock-data';
@@ -192,6 +192,71 @@ export default function MessagesPage() {
                 ? 'Medication-related discussions are most common. Keep asking questions about your treatment.'
                 : 'Your conversations span multiple topics. Good communication with your care team!'}
             </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 58 — Daily Message Activity */}
+      {messages.length >= 3 && (() => {
+        const days = 14;
+        const now = new Date();
+        const dailyCounts: { label: string; you: number; team: number }[] = [];
+        for (let d = days - 1; d >= 0; d--) {
+          const date = new Date(now);
+          date.setDate(now.getDate() - d);
+          const dayStr = date.toISOString().split('T')[0];
+          const dayLabel = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+          let you = 0;
+          let team = 0;
+          messages.forEach((m: any) => {
+            const mDate = new Date(m.created_at || m.timestamp || 0).toISOString().split('T')[0];
+            if (mDate === dayStr) {
+              if (m.sender === 'patient' || m.is_patient) you++;
+              else team++;
+            }
+          });
+          dailyCounts.push({ label: dayLabel, you, team });
+        }
+        const maxMsg = Math.max(...dailyCounts.map((d) => d.you + d.team), 1);
+        const activeDays = dailyCounts.filter((d) => d.you + d.team > 0).length;
+        const totalYou = dailyCounts.reduce((s, d) => s + d.you, 0);
+        const totalTeam = dailyCounts.reduce((s, d) => s + d.team, 0);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarDays className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Message Activity</h3>
+              <span className="ml-auto text-xs text-charcoal/40">Last {days} days</span>
+            </div>
+            <div className="flex items-end gap-1" style={{ height: '80px' }}>
+              {dailyCounts.map((d, i) => {
+                const total = d.you + d.team;
+                const pct = (total / maxMsg) * 100;
+                const youPct = total > 0 ? (d.you / total) * 100 : 0;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div className="w-full rounded-t overflow-hidden" style={{ height: `${Math.max(pct, 4)}%` }}>
+                      <div className="w-full bg-teal/60 rounded-t" style={{ height: `${100 - youPct}%` }} />
+                      <div className="w-full bg-teal/25" style={{ height: `${youPct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-[8px] text-charcoal/30">{dailyCounts[0]?.label}</span>
+              <span className="text-[8px] text-charcoal/30">{dailyCounts[dailyCounts.length - 1]?.label}</span>
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-xs border-t border-charcoal/5 pt-2">
+              <span className="flex items-center gap-1.5 text-charcoal/50">
+                <span className="h-2 w-2 rounded-full bg-teal/60" /> Care Team ({totalTeam})
+              </span>
+              <span className="flex items-center gap-1.5 text-charcoal/50">
+                <span className="h-2 w-2 rounded-full bg-teal/25" /> You ({totalYou})
+              </span>
+              <span className="ml-auto text-charcoal/40">{activeDays} active days</span>
+            </div>
           </div>
         );
       })()}

@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked, HelpCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked, HelpCircle, GraduationCap } from 'lucide-react';
 import { useEducationModule, useUpdateEducationProgress } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -136,6 +136,76 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
               <div className="rounded-xl bg-cream/50 p-3 text-center">
                 <p className="font-heading text-xl font-bold text-charcoal">{hasTakeaways ? 'Yes' : 'No'}</p>
                 <p className="text-xs text-charcoal/50">takeaways</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 58 — Reading Difficulty & Accessibility */}
+      {(() => {
+        const sections = module.sections || module.content || [];
+        const allText = sections.map((s: any) => s.body || s.content || s.text || '').join(' ') + ' ' + (module.description || '');
+        const words = allText.split(/\s+/).filter(Boolean);
+        const wordCount = words.length;
+        const sentences = allText.split(/[.!?]+/).filter((s: string) => s.trim().length > 0).length || 1;
+        const avgWordsPerSentence = Math.round(wordCount / sentences);
+        const longWords = words.filter((w: string) => w.length > 6).length;
+        const longWordPct = wordCount > 0 ? Math.round((longWords / wordCount) * 100) : 0;
+
+        const difficultyScore = Math.min(5, Math.max(1, Math.round((avgWordsPerSentence / 5) + (longWordPct / 15))));
+        const diffLabel = difficultyScore <= 2 ? 'Easy' : difficultyScore <= 3 ? 'Moderate' : 'Advanced';
+        const diffColor = difficultyScore <= 2 ? 'text-sage' : difficultyScore <= 3 ? 'text-amber' : 'text-terra';
+        const diffBg = difficultyScore <= 2 ? 'bg-sage' : difficultyScore <= 3 ? 'bg-amber' : 'bg-terra';
+
+        const hasImages = sections.some((s: any) => (s.body || s.content || s.text || '').includes('!['));
+        const hasTips = sections.some((s: any) => s.tips);
+        const hasTakeaways = !!(module.key_takeaways && module.key_takeaways.length > 0);
+        const accessibilityFeatures = [
+          { label: 'Plain Language', present: avgWordsPerSentence <= 15 },
+          { label: 'Practical Tips', present: hasTips },
+          { label: 'Key Takeaways', present: hasTakeaways },
+          { label: 'Visual Aids', present: hasImages },
+        ];
+        const accessScore = accessibilityFeatures.filter((f) => f.present).length;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <GraduationCap className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Reading Level</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-lg font-bold ${diffColor}`}>{diffLabel}</span>
+                  <span className="text-xs text-charcoal/40">({difficultyScore}/5)</span>
+                </div>
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`h-2 flex-1 rounded-full ${i < difficultyScore ? diffBg : 'bg-charcoal/10'}`}
+                    />
+                  ))}
+                </div>
+                <div className="space-y-1 text-xs text-charcoal/50">
+                  <p>~{avgWordsPerSentence} words per sentence</p>
+                  <p>{longWordPct}% complex vocabulary</p>
+                  <p>{wordCount} total words</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 mb-2">Accessibility Features</p>
+                <div className="space-y-1.5">
+                  {accessibilityFeatures.map((f) => (
+                    <div key={f.label} className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${f.present ? 'bg-sage' : 'bg-charcoal/15'}`} />
+                      <span className={`text-xs ${f.present ? 'text-charcoal' : 'text-charcoal/30'}`}>{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[10px] text-charcoal/40">{accessScore}/4 features present</p>
               </div>
             </div>
           </div>

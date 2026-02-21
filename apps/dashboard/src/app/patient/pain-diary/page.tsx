@@ -1,7 +1,7 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb, Clock, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb, Clock, Zap, BarChart3 } from 'lucide-react';
 import { usePainDiary } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PAIN_DIARY } from '@/lib/patient-mock-data';
@@ -224,6 +224,75 @@ export default function PainDiaryPage() {
             </div>
             <p className="mt-4 text-xs text-charcoal/40">
               Based on your pain diary entries. Share this with your care team to optimize your management plan.
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 58 — Pain Score Distribution */}
+      {entries.length >= 3 && (() => {
+        const bins = Array.from({ length: 11 }, (_, i) => ({ score: i, count: 0 }));
+        entries.forEach((e: any) => {
+          const s = Math.round(e.pain_score ?? e.score ?? 0);
+          if (s >= 0 && s <= 10) bins[s].count++;
+        });
+        const maxCount = Math.max(...bins.map((b) => b.count), 1);
+        const modeScore = bins.reduce((max, b) => (b.count > max.count ? b : max), bins[0]);
+        const mildCount = bins.slice(0, 4).reduce((s, b) => s + b.count, 0);
+        const modCount = bins.slice(4, 7).reduce((s, b) => s + b.count, 0);
+        const severeCount = bins.slice(7).reduce((s, b) => s + b.count, 0);
+        const total = entries.length;
+
+        const barColor = (score: number) => {
+          if (score <= 3) return 'bg-sage';
+          if (score <= 6) return 'bg-amber';
+          return 'bg-terra';
+        };
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Pain Score Distribution</h3>
+              <span className="ml-auto text-xs text-charcoal/40">{total} entries</span>
+            </div>
+            <div className="flex items-end gap-1" style={{ height: '100px' }}>
+              {bins.map((b) => {
+                const pct = (b.count / maxCount) * 100;
+                return (
+                  <div key={b.score} className="flex-1 flex flex-col items-center gap-0.5">
+                    {b.count > 0 && (
+                      <span className="text-[9px] font-bold text-charcoal/40">{b.count}</span>
+                    )}
+                    <div
+                      className={`w-full rounded-t ${barColor(b.score)}`}
+                      style={{ height: `${Math.max(pct, b.count > 0 ? 8 : 2)}%`, opacity: b.count > 0 ? 1 : 0.2 }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-1 mb-3">
+              {bins.map((b) => (
+                <span key={b.score} className="flex-1 text-center text-[9px] text-charcoal/40">{b.score}</span>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-sage/10 p-3 text-center">
+                <p className="text-lg font-bold text-sage-dark">{total > 0 ? Math.round((mildCount / total) * 100) : 0}%</p>
+                <p className="text-[10px] text-charcoal/40">Mild (0-3)</p>
+              </div>
+              <div className="rounded-xl bg-amber/10 p-3 text-center">
+                <p className="text-lg font-bold text-amber">{total > 0 ? Math.round((modCount / total) * 100) : 0}%</p>
+                <p className="text-[10px] text-charcoal/40">Moderate (4-6)</p>
+              </div>
+              <div className="rounded-xl bg-terra/10 p-3 text-center">
+                <p className="text-lg font-bold text-terra">{total > 0 ? Math.round((severeCount / total) * 100) : 0}%</p>
+                <p className="text-[10px] text-charcoal/40">Severe (7-10)</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              Most common score: <strong className="text-charcoal">{modeScore.score}/10</strong> ({modeScore.count} times)
             </p>
           </div>
         );
