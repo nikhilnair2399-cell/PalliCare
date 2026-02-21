@@ -718,6 +718,58 @@ export default function CarePlansPage() {
         );
       })()}
 
+      {/* Sprint 56 — Goal Achievement Velocity */}
+      {allGoals.length >= 3 && (() => {
+        const VELOCITY_DATA = [
+          { week: 'W-4', completed: 1, started: 2, added: 3 },
+          { week: 'W-3', completed: 2, started: 1, added: 1 },
+          { week: 'W-2', completed: 1, started: 3, added: 2 },
+          { week: 'W-1', completed: goalsCompleted, started: goalsInProgress, added: goalsPending },
+        ];
+        const maxVal = Math.max(...VELOCITY_DATA.map(d => Math.max(d.completed, d.started, d.added)), 1);
+        const avgCompletion = VELOCITY_DATA.reduce((s, d) => s + d.completed, 0) / VELOCITY_DATA.length;
+        const trend = VELOCITY_DATA[3].completed >= VELOCITY_DATA[0].completed ? 'improving' : 'declining';
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Activity className="h-4 w-4 text-teal" /> Goal Velocity (4 Weeks)
+              </h2>
+              <span className={cn(
+                'rounded-full px-2.5 py-0.5 text-[10px] font-bold',
+                trend === 'improving' ? 'bg-alert-success/10 text-alert-success' : 'bg-amber/10 text-amber',
+              )}>
+                {trend === 'improving' ? 'Improving' : 'Needs attention'}
+              </span>
+            </div>
+            <div className="flex items-end gap-3" style={{ height: '70px' }}>
+              {VELOCITY_DATA.map((d, i) => {
+                const isLatest = i === VELOCITY_DATA.length - 1;
+                return (
+                  <div key={d.week} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div className="w-full flex gap-0.5 items-end justify-center" style={{ height: '50px' }}>
+                      <div className="w-2 rounded-t bg-alert-success/60" style={{ height: `${(d.completed / maxVal) * 50}px`, minHeight: '2px' }} title={`${d.completed} completed`} />
+                      <div className="w-2 rounded-t bg-amber/60" style={{ height: `${(d.started / maxVal) * 50}px`, minHeight: '2px' }} title={`${d.started} in progress`} />
+                      <div className="w-2 rounded-t bg-charcoal/20" style={{ height: `${(d.added / maxVal) * 50}px`, minHeight: '2px' }} title={`${d.added} pending`} />
+                    </div>
+                    <span className={cn('text-[9px]', isLatest ? 'font-bold text-teal' : 'text-charcoal/40')}>{d.week}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center justify-between text-[10px] text-charcoal/40 border-t border-sage/10 pt-2">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-alert-success/60" /> Completed</span>
+                <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-amber/60" /> In Progress</span>
+                <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-charcoal/20" /> Pending</span>
+              </div>
+              <span>Avg: {avgCompletion.toFixed(1)} goals/week</span>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

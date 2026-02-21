@@ -483,6 +483,64 @@ export default function MDTPage() {
         </div>
       </div>
 
+      {/* Sprint 56 — Team Communication Patterns */}
+      {(() => {
+        const allMsgs: { role: string; author: string }[] = [];
+        PATIENTS_LIST.forEach(pt => {
+          const msgs = messagesByPatient[pt.id] || (PATIENT_DATA[pt.id] || PATIENT_DATA['1']).teamMessages;
+          msgs.forEach((m: any) => allMsgs.push({ role: m.role, author: m.author }));
+        });
+        const roleComm: Record<string, { count: number; authors: Set<string> }> = {};
+        allMsgs.forEach(m => {
+          if (!roleComm[m.role]) roleComm[m.role] = { count: 0, authors: new Set() };
+          roleComm[m.role].count += 1;
+          roleComm[m.role].authors.add(m.author);
+        });
+        const entries = Object.entries(roleComm).sort((a, b) => b[1].count - a[1].count);
+        const maxMsgs = Math.max(...entries.map(e => e[1].count), 1);
+        const totalMsgs = allMsgs.length;
+        const uniqueAuthors = new Set(allMsgs.map(m => m.author)).size;
+        const topContributor = entries[0];
+
+        const roleColors: Record<string, string> = {
+          'Palliative Medicine': 'bg-teal', 'Palliative Nurse': 'bg-sage', 'Clinical Psychology': 'bg-lavender',
+          'Oncology': 'bg-amber', 'Pharmacy': 'bg-amber/70', 'Social Work': 'bg-terra',
+          'Dietetics': 'bg-sage/70', 'Spiritual Care': 'bg-charcoal/40',
+        };
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <MessageSquare className="h-4 w-4 text-teal" /> Communication Patterns
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{totalMsgs} messages · {uniqueAuthors} contributors</span>
+            </div>
+            <div className="space-y-1.5">
+              {entries.map(([role, data]) => {
+                const pct = Math.round((data.count / totalMsgs) * 100);
+                return (
+                  <div key={role} className="flex items-center gap-2">
+                    <span className={cn('h-2 w-2 rounded-full flex-shrink-0', roleColors[role] || 'bg-charcoal/20')} />
+                    <span className="text-xs text-charcoal/60 w-32 truncate">{role}</span>
+                    <div className="flex-1 h-2 rounded-full bg-charcoal/5 overflow-hidden">
+                      <div className={cn('h-full rounded-full', roleColors[role] || 'bg-charcoal/30')} style={{ width: `${(data.count / maxMsgs) * 100}%` }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-charcoal/50 w-8 text-right">{pct}%</span>
+                    <span className="text-[10px] text-charcoal/30 w-4 text-right">{data.count}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {topContributor && (
+              <p className="mt-2 text-[10px] text-charcoal/40">
+                {topContributor[0]} leads discussions with {topContributor[1].count} messages across {topContributor[1].authors.size} team member{topContributor[1].authors.size !== 1 ? 's' : ''}.
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Patient Selector */}
       <div className="relative">
         <button

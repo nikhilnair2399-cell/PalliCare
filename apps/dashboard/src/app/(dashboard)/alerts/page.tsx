@@ -427,6 +427,65 @@ export default function AlertsPage() {
         );
       })()}
 
+      {/* Sprint 56 — Alert Source Distribution */}
+      {(() => {
+        const typeCounts: Record<string, { count: number; severity: string }> = {};
+        alertsWithOverrides.forEach(a => {
+          const label = a.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          if (!typeCounts[label]) typeCounts[label] = { count: 0, severity: a.severity };
+          typeCounts[label].count += 1;
+        });
+        const entries = Object.entries(typeCounts).sort((a, b) => b[1].count - a[1].count);
+        const maxCount = Math.max(...entries.map(e => e[1].count), 1);
+        const sevColor = (s: string) => s === 'critical' ? 'bg-red-400' : s === 'warning' ? 'bg-amber-400' : 'bg-blue-400';
+        const patientAlertCounts: Record<string, number> = {};
+        alertsWithOverrides.forEach(a => { patientAlertCounts[a.patient] = (patientAlertCounts[a.patient] || 0) + 1; });
+        const topPatient = Object.entries(patientAlertCounts).sort((a, b) => b[1] - a[1])[0];
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Info className="h-4 w-4 text-teal" /> Alert Source Breakdown
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{alertsWithOverrides.length} total alerts</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold uppercase text-charcoal/40 mb-1">By Type</p>
+                {entries.map(([label, data]) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className={cn('h-2 w-2 rounded-full flex-shrink-0', sevColor(data.severity))} />
+                    <span className="text-xs text-charcoal/60 flex-1 truncate">{label}</span>
+                    <div className="w-16 h-1.5 rounded-full bg-charcoal/5 overflow-hidden">
+                      <div className={cn('h-full rounded-full', sevColor(data.severity))} style={{ width: `${(data.count / maxCount) * 100}%` }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-charcoal/50 w-4 text-right">{data.count}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase text-charcoal/40 mb-1">By Patient</p>
+                {Object.entries(patientAlertCounts).sort((a, b) => b[1] - a[1]).map(([name, count]) => (
+                  <div key={name} className="flex items-center justify-between">
+                    <span className="text-xs text-charcoal/60">{name}</span>
+                    <span className={cn(
+                      'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                      count >= 3 ? 'bg-red-50 text-red-600' : count >= 2 ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600',
+                    )}>{count} alert{count !== 1 ? 's' : ''}</span>
+                  </div>
+                ))}
+                {topPatient && (
+                  <p className="text-[10px] text-charcoal/40 mt-1">
+                    {topPatient[0]} has the most alerts — consider consolidated review.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Batch Actions Bar */}
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-teal/30 bg-teal/5 px-4 py-3">
