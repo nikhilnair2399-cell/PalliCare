@@ -382,6 +382,42 @@ export default function MDTPage() {
         );
       })()}
 
+      {/* Sprint 40 — Upcoming MDT Meetings Timeline */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <CalendarClock className="h-4 w-4 text-teal" />
+          <h3 className="text-sm font-bold text-charcoal">Upcoming MDT Meetings</h3>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          {[
+            { time: '10:00 AM', title: 'Ward Round', patients: 5, status: 'now' as const },
+            { time: '2:00 PM', title: 'MDT Conference', patients: 3, status: 'upcoming' as const },
+            { time: '3:30 PM', title: 'Family Meeting — Arjun Singh', patients: 1, status: 'upcoming' as const },
+            { time: 'Tomorrow', title: 'Opioid Review Committee', patients: 4, status: 'future' as const },
+            { time: 'Wed', title: 'Palliative Grand Rounds', patients: 0, status: 'future' as const },
+          ].map((meeting, i) => {
+            const isNow = meeting.status === 'now';
+            return (
+              <div key={i} className={cn(
+                'flex-shrink-0 rounded-lg border p-3 min-w-[140px]',
+                isNow ? 'border-teal bg-teal/5' : meeting.status === 'upcoming' ? 'border-sage-light/30 bg-white' : 'border-dashed border-charcoal/10 bg-cream/30',
+              )}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {isNow && <span className="h-2 w-2 rounded-full bg-teal animate-pulse" />}
+                  <span className={cn('text-[10px] font-bold uppercase', isNow ? 'text-teal' : 'text-charcoal/40')}>
+                    {isNow ? 'In Progress' : meeting.time}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-charcoal truncate">{meeting.title}</p>
+                {meeting.patients > 0 && (
+                  <p className="text-[10px] text-charcoal/40 mt-0.5">{meeting.patients} patient{meeting.patients !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Patient Selector */}
       <div className="relative">
         <button

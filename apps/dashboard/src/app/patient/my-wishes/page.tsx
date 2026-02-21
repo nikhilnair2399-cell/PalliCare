@@ -266,6 +266,29 @@ export default function MyWishesPage() {
         );
       })()}
 
+      {/* Sprint 40 — Key Decisions At-a-Glance */}
+      <div className="rounded-2xl bg-white p-5">
+        <h2 className="mb-3 text-sm font-bold text-charcoal">Key Decisions</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Goals of Care', value: wishes.goalsOfCare === 'comfort' ? 'Comfort-Focused' : wishes.goalsOfCare === 'life_prolonging' ? 'Life-Prolonging' : 'Undecided', icon: Heart, cls: wishes.goalsOfCare === 'comfort' ? 'text-teal bg-teal/10' : wishes.goalsOfCare === 'life_prolonging' ? 'text-amber bg-amber/10' : 'text-charcoal/40 bg-charcoal/5' },
+            { label: 'Code Status', value: wishes.codeStatus === 'dnr' ? 'DNR' : wishes.codeStatus === 'dni' ? 'DNI' : wishes.codeStatus === 'dnr_dni' ? 'DNR + DNI' : wishes.codeStatus === 'full_code' ? 'Full Code' : 'Undecided', icon: Shield, cls: wishes.codeStatus === 'undecided' ? 'text-charcoal/40 bg-charcoal/5' : 'text-terra bg-terra/10' },
+            { label: 'Preferred Place', value: wishes.preferredPlace === 'home' ? 'Home' : wishes.preferredPlace === 'hospital' ? 'Hospital' : wishes.preferredPlace === 'hospice' ? 'Hospice' : 'Undecided', icon: Home, cls: wishes.preferredPlace !== 'undecided' ? 'text-sage bg-sage/10' : 'text-charcoal/40 bg-charcoal/5' },
+            { label: 'Decision Maker', value: wishes.primarySurrogate.name || 'Not set', icon: Users, cls: wishes.primarySurrogate.name ? 'text-teal bg-teal/10' : 'text-charcoal/40 bg-charcoal/5' },
+          ].map(item => (
+            <div key={item.label} className="rounded-xl bg-cream/50 p-3.5">
+              <div className="flex items-center gap-2 mb-1">
+                <div className={clsx('flex h-7 w-7 items-center justify-center rounded-lg', item.cls)}>
+                  <item.icon className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-xs font-semibold text-charcoal/50">{item.label}</span>
+              </div>
+              <p className="text-sm font-bold text-charcoal">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ─── Section 1: Goals of Care ─── */}
       <SectionHeader id="goals" title="Goals of Care" icon={Heart} />
       {expandedSection === 'goals' && (

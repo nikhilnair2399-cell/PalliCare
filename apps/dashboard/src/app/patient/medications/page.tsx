@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star } from 'lucide-react';
+import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -93,6 +93,60 @@ export default function MedicationsPage() {
         <div className="mt-4 flex items-center gap-3 rounded-xl bg-cream/60 p-3">
           <Star className="h-5 w-5 flex-shrink-0 text-amber" />
           <p className="text-sm text-charcoal/70">{getMotivation(adherence).text}</p>
+        </div>
+      </div>
+
+      {/* Sprint 40 — 7-Day Adherence Trend + Next Dose */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* Weekly trend */}
+        <div className="rounded-2xl bg-white p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-4 w-4 text-teal" />
+            <h3 className="text-sm font-bold text-charcoal">7-Day Trend</h3>
+          </div>
+          <div className="flex items-end gap-1.5" style={{ height: '64px' }}>
+            {[85, 100, 75, 90, 100, 80, adherence].map((pct, i) => {
+              const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+              const isToday = i === 6;
+              return (
+                <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                  <span className="text-[9px] font-bold text-charcoal/60">{pct}%</span>
+                  <div
+                    className={`w-full rounded-t transition-all ${pct >= 80 ? 'bg-sage/60' : pct >= 50 ? 'bg-amber/60' : 'bg-terra/60'} ${isToday ? 'ring-1 ring-teal' : ''}`}
+                    style={{ height: `${pct * 0.5}px`, minHeight: '4px' }}
+                  />
+                  <span className={`text-[9px] ${isToday ? 'font-bold text-teal' : 'text-charcoal/40'}`}>{days[i]}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Next dose countdown */}
+        <div className="rounded-2xl bg-white p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Timer className="h-4 w-4 text-amber" />
+            <h3 className="text-sm font-bold text-charcoal">Next Dose</h3>
+          </div>
+          {(() => {
+            const pending = allDoses.filter((d: any) => d.status === 'pending');
+            if (pending.length === 0) return <p className="text-sm text-sage font-medium">All doses taken today!</p>;
+            const next = pending[0];
+            const now = new Date();
+            const [h, m] = (next.time || '12:00').split(':').map(Number);
+            const doseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+            const diff = Math.max(0, Math.round((doseTime.getTime() - now.getTime()) / 60000));
+            const hrs = Math.floor(diff / 60);
+            const mins = diff % 60;
+            return (
+              <div>
+                <p className="text-2xl font-bold text-charcoal">
+                  {hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`}
+                </p>
+                <p className="text-sm text-charcoal-light mt-1">{next.medName} · {next.medDose}</p>
+                <p className="text-xs text-charcoal/40 mt-0.5">Scheduled at {next.time}</p>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
