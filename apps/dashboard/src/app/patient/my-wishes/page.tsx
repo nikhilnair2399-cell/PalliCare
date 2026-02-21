@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { clsx } from 'clsx';
 import {
   Heart,
   FileText,
@@ -27,39 +28,24 @@ interface SurrogateContact {
 }
 
 interface WishesState {
-  /* Surrogate Decision Makers */
   primarySurrogate: SurrogateContact;
   alternateSurrogate: SurrogateContact;
-
-  /* Goals of Care */
   goalsOfCare: 'comfort' | 'life_prolonging' | 'undecided';
   goalsNotes: string;
-
-  /* Code Status & Preferences */
   codeStatus: 'full_code' | 'dnr' | 'dni' | 'dnr_dni' | 'undecided';
   hospitalPref: 'yes' | 'comfort_only' | 'no' | 'undecided';
   icuPref: 'yes' | 'no' | 'undecided';
   ventilatorPref: 'yes' | 'no' | 'undecided';
   feedingTubePref: 'yes' | 'no' | 'undecided';
-
-  /* Place of Care & Death */
   preferredPlace: 'home' | 'hospital' | 'hospice' | 'undecided';
-
-  /* Spiritual & Cultural */
   religion: string;
   ritualPreferences: string;
   dietaryRestrictions: string;
-
-  /* Legal Documents */
   hasLivingWill: boolean;
   livingWillDate: string;
   hasPOA: boolean;
   poaDate: string;
-
-  /* Free text */
   personalWishes: string;
-
-  /* Meta */
   lastUpdated: string;
   lastReviewDate: string;
 }
@@ -139,47 +125,46 @@ export default function MyWishesPage() {
     return (
       <button
         onClick={() => toggleSection(id)}
-        className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3.5 text-left"
-        style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}
+        className="flex w-full items-center gap-3 rounded-xl border border-sage-light/20 bg-white px-4 py-3.5 text-left shadow-sm"
       >
-        <Icon className="h-5 w-5 flex-shrink-0" style={{ color: '#2A6B6B' }} />
-        <span className="flex-1 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>{title}</span>
+        <Icon className="h-5 w-5 flex-shrink-0 text-teal" />
+        <span className="flex-1 text-sm font-semibold text-charcoal">{title}</span>
         {count !== undefined && (
-          <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ backgroundColor: 'rgba(42,107,107,0.08)', color: '#2A6B6B' }}>
+          <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-bold text-teal">
             {count} items
           </span>
         )}
-        {isOpen ? <ChevronUp className="h-4 w-4" style={{ color: '#4A4A4A' }} /> : <ChevronDown className="h-4 w-4" style={{ color: '#4A4A4A' }} />}
+        {isOpen ? <ChevronUp className="h-4 w-4 text-charcoal-light" /> : <ChevronDown className="h-4 w-4 text-charcoal-light" />}
       </button>
     );
   }
 
-  function RadioGroup({ name, value, options, onChange, disabled }: { name: string; value: string; options: { value: string; label: string; desc?: string; icon?: any }[]; onChange: (v: any) => void; disabled?: boolean }) {
+  function RadioGroup({ value, options, onChange, disabled }: { name: string; value: string; options: { value: string; label: string; desc?: string; icon?: any }[]; onChange: (v: any) => void; disabled?: boolean }) {
     return (
       <div className="space-y-2">
         {options.map((opt) => (
           <label
             key={opt.value}
-            className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all"
-            style={{
-              border: `1px solid ${value === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.2)'}`,
-              backgroundColor: value === opt.value ? 'rgba(42,107,107,0.04)' : 'white',
-              opacity: disabled ? 0.6 : 1,
-              pointerEvents: disabled ? 'none' : 'auto',
-            }}
+            className={clsx(
+              'flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all',
+              value === opt.value ? 'border-teal bg-teal/5' : 'border-sage-light/20 bg-white',
+              disabled && 'pointer-events-none opacity-60',
+            )}
           >
             <div
-              className="flex h-5 w-5 items-center justify-center rounded-full"
-              style={{ border: `2px solid ${value === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.4)'}` }}
+              className={clsx(
+                'flex h-5 w-5 items-center justify-center rounded-full border-2',
+                value === opt.value ? 'border-teal' : 'border-sage-light/40',
+              )}
             >
-              {value === opt.value && <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#2A6B6B' }} />}
+              {value === opt.value && <div className="h-2.5 w-2.5 rounded-full bg-teal" />}
             </div>
-            {opt.icon && <opt.icon className="h-4 w-4" style={{ color: value === opt.value ? '#2A6B6B' : '#4A4A4A' }} />}
+            {opt.icon && <opt.icon className={clsx('h-4 w-4', value === opt.value ? 'text-teal' : 'text-charcoal-light')} />}
             <div>
-              <span className="text-[13px] font-semibold" style={{ color: value === opt.value ? '#2A6B6B' : '#2D2D2D' }}>
+              <span className={clsx('text-sm font-semibold', value === opt.value ? 'text-teal' : 'text-charcoal')}>
                 {opt.label}
               </span>
-              {opt.desc && <p className="text-[11px]" style={{ color: '#4A4A4A' }}>{opt.desc}</p>}
+              {opt.desc && <p className="text-xs text-charcoal-light">{opt.desc}</p>}
             </div>
           </label>
         ))}
@@ -191,19 +176,17 @@ export default function MyWishesPage() {
     const Comp = multiline ? 'textarea' : 'input';
     return (
       <div>
-        <label className="mb-1 block text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>{label}</label>
+        <label className="mb-1 block text-xs font-semibold text-charcoal-light">{label}</label>
         <Comp
           value={value}
           onChange={(e: any) => onChange(e.target.value)}
           disabled={disabled}
           rows={multiline ? 3 : undefined}
-          className="w-full rounded-lg px-3 py-2 text-[13px] outline-none transition-colors focus:ring-2"
-          style={{
-            border: '1px solid rgba(168,203,181,0.3)',
-            backgroundColor: disabled ? '#FAFCFB' : 'white',
-            color: '#2D2D2D',
-            resize: multiline ? 'vertical' : undefined,
-          }}
+          className={clsx(
+            'w-full rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none transition-colors focus:ring-2 focus:ring-teal/20',
+            disabled ? 'bg-cream/30' : 'bg-white',
+            multiline && 'resize-y',
+          )}
         />
       </div>
     );
@@ -214,15 +197,17 @@ export default function MyWishesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-[24px] font-bold" style={{ color: '#2A6B6B' }}>My Wishes</h1>
-          <p className="mt-1 text-[14px]" style={{ color: '#4A4A4A' }}>
+          <h1 className="font-heading text-2xl font-bold text-teal">My Wishes</h1>
+          <p className="mt-1 text-sm text-charcoal-light">
             Your advance care preferences — last updated {wishes.lastUpdated}
           </p>
         </div>
         <button
           onClick={() => editing ? handleSave() : setEditing(true)}
-          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white"
-          style={{ backgroundColor: editing ? '#7BA68C' : '#2A6B6B' }}
+          className={clsx(
+            'flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white',
+            editing ? 'bg-sage' : 'bg-teal',
+          )}
         >
           {editing ? <><Save className="h-4 w-4" /> Save</> : <><Edit3 className="h-4 w-4" /> Edit</>}
         </button>
@@ -231,7 +216,7 @@ export default function MyWishesPage() {
       {/* ─── Section 1: Goals of Care ─── */}
       <SectionHeader id="goals" title="Goals of Care" icon={Heart} />
       {expandedSection === 'goals' && (
-        <div className="space-y-4 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="space-y-4 rounded-xl border border-sage-light/20 bg-white p-4">
           <RadioGroup
             name="goalsOfCare"
             value={wishes.goalsOfCare}
@@ -252,9 +237,9 @@ export default function MyWishesPage() {
       {/* ─── Section 2: Medical Preferences ─── */}
       <SectionHeader id="medical" title="Medical Preferences" icon={FileText} count={5} />
       {expandedSection === 'medical' && (
-        <div className="space-y-4 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="space-y-4 rounded-xl border border-sage-light/20 bg-white p-4">
           <div>
-            <p className="mb-2 text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>Code Status</p>
+            <p className="mb-2 text-sm font-semibold text-charcoal">Code Status</p>
             <RadioGroup
               name="codeStatus"
               value={wishes.codeStatus}
@@ -270,7 +255,7 @@ export default function MyWishesPage() {
             />
           </div>
 
-          <div className="h-px" style={{ backgroundColor: 'rgba(168,203,181,0.15)' }} />
+          <div className="h-px bg-sage-light/20" />
 
           {[
             { field: 'hospitalPref' as const, label: 'Would you want to go to the hospital?', options: [{ value: 'yes', label: 'Yes' }, { value: 'comfort_only', label: 'Only for comfort' }, { value: 'no', label: 'No' }, { value: 'undecided', label: 'Undecided' }] },
@@ -279,23 +264,24 @@ export default function MyWishesPage() {
             { field: 'feedingTubePref' as const, label: 'Would you want a feeding tube?', options: PREFERENCE_OPTIONS },
           ].map((item) => (
             <div key={item.field}>
-              <p className="mb-2 text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>{item.label}</p>
+              <p className="mb-2 text-sm font-semibold text-charcoal">{item.label}</p>
               <div className="flex flex-wrap gap-2">
-                {item.options.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => editing && update(item.field, opt.value)}
-                    className="rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all"
-                    style={{
-                      border: `1px solid ${wishes[item.field] === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.3)'}`,
-                      backgroundColor: wishes[item.field] === opt.value ? 'rgba(42,107,107,0.06)' : 'white',
-                      color: wishes[item.field] === opt.value ? '#2A6B6B' : '#4A4A4A',
-                      opacity: !editing && wishes[item.field] !== opt.value ? 0.4 : 1,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                {item.options.map((opt) => {
+                  const isSelected = wishes[item.field] === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => editing && update(item.field, opt.value)}
+                      className={clsx(
+                        'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                        isSelected ? 'border-teal bg-teal/5 text-teal' : 'border-sage-light/30 bg-white text-charcoal-light',
+                        !editing && !isSelected && 'opacity-40',
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -305,26 +291,28 @@ export default function MyWishesPage() {
       {/* ─── Section 3: Preferred Place ─── */}
       <SectionHeader id="place" title="Where I Want to Be" icon={Home} />
       {expandedSection === 'place' && (
-        <div className="space-y-4 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
-          <p className="text-[13px]" style={{ color: '#4A4A4A' }}>Where would you prefer to receive care in the final phase?</p>
+        <div className="space-y-4 rounded-xl border border-sage-light/20 bg-white p-4">
+          <p className="text-sm text-charcoal-light">Where would you prefer to receive care in the final phase?</p>
           <div className="grid grid-cols-2 gap-3">
-            {PLACE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => editing && update('preferredPlace', opt.value)}
-                className="flex flex-col items-center gap-2 rounded-xl p-4 transition-all"
-                style={{
-                  border: `1px solid ${wishes.preferredPlace === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.2)'}`,
-                  backgroundColor: wishes.preferredPlace === opt.value ? 'rgba(42,107,107,0.04)' : 'white',
-                  opacity: !editing && wishes.preferredPlace !== opt.value ? 0.4 : 1,
-                }}
-              >
-                <opt.icon className="h-6 w-6" style={{ color: wishes.preferredPlace === opt.value ? '#2A6B6B' : '#4A4A4A' }} />
-                <span className="text-[13px] font-semibold" style={{ color: wishes.preferredPlace === opt.value ? '#2A6B6B' : '#2D2D2D' }}>
-                  {opt.label}
-                </span>
-              </button>
-            ))}
+            {PLACE_OPTIONS.map((opt) => {
+              const isSelected = wishes.preferredPlace === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => editing && update('preferredPlace', opt.value)}
+                  className={clsx(
+                    'flex flex-col items-center gap-2 rounded-xl border p-4 transition-all',
+                    isSelected ? 'border-teal bg-teal/5' : 'border-sage-light/20 bg-white',
+                    !editing && !isSelected && 'opacity-40',
+                  )}
+                >
+                  <opt.icon className={clsx('h-6 w-6', isSelected ? 'text-teal' : 'text-charcoal-light')} />
+                  <span className={clsx('text-sm font-semibold', isSelected ? 'text-teal' : 'text-charcoal')}>
+                    {opt.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -332,36 +320,37 @@ export default function MyWishesPage() {
       {/* ─── Section 4: My People ─── */}
       <SectionHeader id="people" title="My Decision Makers" icon={Users} />
       {expandedSection === 'people' && (
-        <div className="space-y-4 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="space-y-4 rounded-xl border border-sage-light/20 bg-white p-4">
           {(['primarySurrogate', 'alternateSurrogate'] as const).map((type) => (
             <div key={type}>
-              <p className="mb-2 text-[13px] font-bold" style={{ color: '#2D2D2D' }}>
+              <p className="mb-2 text-sm font-bold text-charcoal">
                 {type === 'primarySurrogate' ? 'Primary Decision Maker' : 'Alternate Decision Maker'}
               </p>
               <div className="space-y-2">
                 <TextField label="Full Name" value={wishes[type].name} onChange={(v) => updateSurrogate(type, 'name', v)} disabled={!editing} />
                 <TextField label="Relationship" value={wishes[type].relationship} onChange={(v) => updateSurrogate(type, 'relationship', v)} disabled={!editing} />
                 <div>
-                  <label className="mb-1 block text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>Phone</label>
+                  <label className="mb-1 block text-xs font-semibold text-charcoal-light">Phone</label>
                   <div className="flex items-center gap-2">
                     <input
                       value={wishes[type].phone}
                       onChange={(e) => editing && updateSurrogate(type, 'phone', e.target.value)}
                       disabled={!editing}
-                      className="flex-1 rounded-lg px-3 py-2 text-[13px] outline-none"
-                      style={{ border: '1px solid rgba(168,203,181,0.3)', backgroundColor: !editing ? '#FAFCFB' : 'white', color: '#2D2D2D' }}
+                      className={clsx(
+                        'flex-1 rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none',
+                        !editing ? 'bg-cream/30' : 'bg-white',
+                      )}
                     />
                     <a
                       href={`tel:${wishes[type].phone.replace(/\s/g, '')}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: 'rgba(42,107,107,0.06)', color: '#2A6B6B' }}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal/10 text-teal"
                     >
                       <Phone className="h-4 w-4" />
                     </a>
                   </div>
                 </div>
               </div>
-              {type === 'primarySurrogate' && <div className="mt-3 h-px" style={{ backgroundColor: 'rgba(168,203,181,0.15)' }} />}
+              {type === 'primarySurrogate' && <div className="mt-3 h-px bg-sage-light/20" />}
             </div>
           ))}
         </div>
@@ -370,7 +359,7 @@ export default function MyWishesPage() {
       {/* ─── Section 5: Spiritual & Cultural ─── */}
       <SectionHeader id="spiritual" title="Spiritual & Cultural Preferences" icon={Heart} />
       {expandedSection === 'spiritual' && (
-        <div className="space-y-3 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="space-y-3 rounded-xl border border-sage-light/20 bg-white p-4">
           <TextField label="Religion / Faith" value={wishes.religion} onChange={(v) => update('religion', v)} disabled={!editing} />
           <TextField label="Ritual or ceremony preferences" value={wishes.ritualPreferences} onChange={(v) => update('ritualPreferences', v)} multiline disabled={!editing} />
           <TextField label="Dietary restrictions" value={wishes.dietaryRestrictions} onChange={(v) => update('dietaryRestrictions', v)} disabled={!editing} />
@@ -380,22 +369,26 @@ export default function MyWishesPage() {
       {/* ─── Section 6: Legal Documents ─── */}
       <SectionHeader id="legal" title="Legal Documents" icon={FileText} />
       {expandedSection === 'legal' && (
-        <div className="space-y-3 rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+        <div className="space-y-3 rounded-xl border border-sage-light/20 bg-white p-4">
           {[
             { field: 'hasLivingWill' as const, dateField: 'livingWillDate' as const, label: 'Living Will / Advance Directive' },
             { field: 'hasPOA' as const, dateField: 'poaDate' as const, label: 'Power of Attorney (Medical)' },
           ].map((doc) => (
-            <div key={doc.field} className="flex items-center justify-between rounded-lg p-3" style={{ backgroundColor: '#FAFCFB' }}>
+            <div key={doc.field} className="flex items-center justify-between rounded-lg bg-cream/30 p-3">
               <div className="flex items-center gap-3">
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: wishes[doc.field] ? 'rgba(123,166,140,0.15)' : 'rgba(168,203,181,0.15)' }}
+                  className={clsx(
+                    'flex h-8 w-8 items-center justify-center rounded-lg',
+                    wishes[doc.field] ? 'bg-sage/15' : 'bg-sage-light/15',
+                  )}
                 >
-                  {wishes[doc.field] ? <CheckCircle2 className="h-4 w-4" style={{ color: '#7BA68C' }} /> : <FileText className="h-4 w-4" style={{ color: '#4A4A4A' }} />}
+                  {wishes[doc.field]
+                    ? <CheckCircle2 className="h-4 w-4 text-sage" />
+                    : <FileText className="h-4 w-4 text-charcoal-light" />}
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>{doc.label}</p>
-                  <p className="text-[11px]" style={{ color: '#4A4A4A' }}>
+                  <p className="text-sm font-semibold text-charcoal">{doc.label}</p>
+                  <p className="text-xs text-charcoal-light">
                     {wishes[doc.field] ? `Completed on ${wishes[doc.dateField]}` : 'Not yet completed'}
                   </p>
                 </div>
@@ -403,8 +396,7 @@ export default function MyWishesPage() {
               {editing && (
                 <button
                   onClick={() => update(doc.field, !wishes[doc.field])}
-                  className="rounded-lg px-3 py-1 text-[11px] font-medium"
-                  style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}
+                  className="rounded-lg border border-sage-light/30 px-3 py-1 text-xs font-medium text-charcoal-light"
                 >
                   Toggle
                 </button>
@@ -417,8 +409,8 @@ export default function MyWishesPage() {
       {/* ─── Section 7: Personal Wishes ─── */}
       <SectionHeader id="personal" title="In My Own Words" icon={Edit3} />
       {expandedSection === 'personal' && (
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
-          <p className="mb-2 text-[12px]" style={{ color: '#4A4A4A' }}>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+          <p className="mb-2 text-xs text-charcoal-light">
             Anything else you want your care team and family to know — in your own words.
           </p>
           <textarea
@@ -426,25 +418,19 @@ export default function MyWishesPage() {
             onChange={(e) => editing && update('personalWishes', e.target.value)}
             disabled={!editing}
             rows={4}
-            className="w-full rounded-lg px-3 py-2 text-[13px] outline-none"
-            style={{
-              border: '1px solid rgba(168,203,181,0.3)',
-              backgroundColor: !editing ? '#FAFCFB' : 'white',
-              color: '#2D2D2D',
-              resize: 'vertical',
-            }}
+            className={clsx(
+              'w-full resize-y rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none',
+              !editing ? 'bg-cream/30' : 'bg-white',
+            )}
           />
         </div>
       )}
 
       {/* Privacy Notice */}
-      <div
-        className="rounded-xl p-4"
-        style={{ backgroundColor: 'rgba(42,107,107,0.04)', border: '1px solid rgba(42,107,107,0.1)' }}
-      >
+      <div className="rounded-xl border border-teal/10 bg-teal/5 p-4">
         <div className="flex items-start gap-3">
-          <Shield className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: '#2A6B6B' }} />
-          <p className="text-[12px] leading-relaxed" style={{ color: '#4A4A4A' }}>
+          <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal" />
+          <p className="text-xs leading-relaxed text-charcoal-light">
             Your advance care preferences are shared only with your care team and designated decision makers.
             You can update these at any time. We recommend reviewing with your family and care team regularly.
           </p>

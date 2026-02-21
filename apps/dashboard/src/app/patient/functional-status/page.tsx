@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { clsx } from 'clsx';
 import {
   Activity,
   TrendingUp,
@@ -18,16 +19,37 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/* ───── Domain Score Color Helpers ───── */
+function domainText(score: number): string {
+  if (score >= 4) return 'text-sage';
+  if (score >= 3) return 'text-amber';
+  return 'text-terra';
+}
+
+function domainBg(score: number): string {
+  if (score >= 4) return 'bg-sage';
+  if (score >= 3) return 'bg-amber';
+  return 'bg-terra';
+}
+
+/* ───── PPS Category ───── */
+function getPPSCategory(pps: number) {
+  if (pps >= 80) return { label: 'Good', text: 'text-sage', bg: 'bg-sage', lightBg: 'bg-sage/10', border: 'border-sage/20', desc: 'You are maintaining good functional ability' };
+  if (pps >= 60) return { label: 'Moderate', text: 'text-amber', bg: 'bg-amber', lightBg: 'bg-amber/10', border: 'border-amber/20', desc: 'Some functional limitations but still active' };
+  if (pps >= 40) return { label: 'Limited', text: 'text-terra', bg: 'bg-terra', lightBg: 'bg-terra/10', border: 'border-terra/20', desc: 'Significant limitations in daily activities' };
+  return { label: 'Very Limited', text: 'text-alert-critical', bg: 'bg-alert-critical', lightBg: 'bg-alert-critical/10', border: 'border-alert-critical/20', desc: 'Extensive support needed for daily activities' };
+}
+
 /* ───── Simplified PPS (Patient Self-Assessment) ───── */
 interface FunctionalEntry {
   id: string;
   date: string;
-  mobility: number; // 1-5
-  selfCare: number; // 1-5
-  eating: number; // 1-5
-  awareness: number; // 1-5
-  activity: number; // 1-5
-  ppsEstimate: number; // 10-100 derived
+  mobility: number;
+  selfCare: number;
+  eating: number;
+  awareness: number;
+  activity: number;
+  ppsEstimate: number;
   notes: string;
 }
 
@@ -96,14 +118,7 @@ const DOMAINS = [
 
 function calculatePPS(scores: Record<string, number>): number {
   const avg = Object.values(scores).reduce((s, v) => s + v, 0) / Object.values(scores).length;
-  return Math.round(avg * 20); // 1-5 → 20-100
-}
-
-function getPPSCategory(pps: number): { label: string; color: string; desc: string } {
-  if (pps >= 80) return { label: 'Good', color: '#7BA68C', desc: 'You are maintaining good functional ability' };
-  if (pps >= 60) return { label: 'Moderate', color: '#E8A838', desc: 'Some functional limitations but still active' };
-  if (pps >= 40) return { label: 'Limited', color: '#D4856B', desc: 'Significant limitations in daily activities' };
-  return { label: 'Very Limited', color: '#C25A45', desc: 'Extensive support needed for daily activities' };
+  return Math.round(avg * 20);
 }
 
 /* ───── Mock History ───── */
@@ -179,59 +194,63 @@ export default function FunctionalStatusPage() {
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-[20px] font-bold" style={{ color: '#2A6B6B' }}>How Are You Doing?</h1>
-            <p className="mt-1 text-[12px]" style={{ color: '#4A4A4A' }}>Tell us about your abilities this week</p>
+            <h1 className="font-heading text-xl font-bold text-teal">How Are You Doing?</h1>
+            <p className="mt-1 text-xs text-charcoal-light">Tell us about your abilities this week</p>
           </div>
-          <button onClick={() => setMode('home')} className="rounded-lg px-3 py-1.5 text-[12px] font-medium" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>Cancel</button>
+          <button onClick={() => setMode('home')} className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light">Cancel</button>
         </div>
 
         {/* Progress */}
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>
+            <span className="text-xs font-semibold text-charcoal">
               {currentDomain + 1} of {DOMAINS.length}: {domain.label}
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(168,203,181,0.2)' }}>
-            <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: 'linear-gradient(135deg, #7BA68C, #2A6B6B)' }} />
+          <div className="h-2 overflow-hidden rounded-full bg-sage-light/20">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-sage to-teal transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
 
         {/* Domain Question */}
-        <div className="rounded-xl bg-white p-5" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(42,107,107,0.08)' }}>
-              <domain.icon className="h-5 w-5" style={{ color: '#2A6B6B' }} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal/10">
+              <domain.icon className="h-5 w-5 text-teal" />
             </div>
-            <h2 className="text-[16px] font-bold" style={{ color: '#2D2D2D' }}>{domain.label}</h2>
+            <h2 className="text-base font-bold text-charcoal">{domain.label}</h2>
           </div>
 
           <div className="space-y-2.5">
-            {domain.options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => selectScore(opt.value)}
-                className="flex w-full items-center gap-3 rounded-xl p-3.5 text-left transition-all"
-                style={{
-                  border: `1px solid ${scores[domain.key] === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.2)'}`,
-                  backgroundColor: scores[domain.key] === opt.value ? 'rgba(42,107,107,0.04)' : 'white',
-                }}
-              >
-                <div
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
-                  style={{
-                    backgroundColor: scores[domain.key] === opt.value ? '#2A6B6B' : 'rgba(168,203,181,0.15)',
-                    color: scores[domain.key] === opt.value ? 'white' : '#4A4A4A',
-                  }}
+            {domain.options.map((opt) => {
+              const isSelected = scores[domain.key] === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => selectScore(opt.value)}
+                  className={clsx(
+                    'flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-all',
+                    isSelected ? 'border-teal bg-teal/5' : 'border-sage-light/20 bg-white',
+                  )}
                 >
-                  {opt.value}
-                </div>
-                <div>
-                  <p className="text-[13px] font-semibold" style={{ color: scores[domain.key] === opt.value ? '#2A6B6B' : '#2D2D2D' }}>{opt.label}</p>
-                  <p className="text-[11px]" style={{ color: '#4A4A4A' }}>{opt.desc}</p>
-                </div>
-              </button>
-            ))}
+                  <div
+                    className={clsx(
+                      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                      isSelected ? 'bg-teal text-white' : 'bg-sage-light/15 text-charcoal-light',
+                    )}
+                  >
+                    {opt.value}
+                  </div>
+                  <div>
+                    <p className={clsx('text-sm font-semibold', isSelected ? 'text-teal' : 'text-charcoal')}>{opt.label}</p>
+                    <p className="text-xs text-charcoal-light">{opt.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -240,8 +259,7 @@ export default function FunctionalStatusPage() {
           <button
             onClick={() => setCurrentDomain(Math.max(0, currentDomain - 1))}
             disabled={currentDomain === 0}
-            className="rounded-lg px-3 py-2 text-[13px] font-medium transition-colors disabled:opacity-30"
-            style={{ color: '#4A4A4A' }}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-charcoal-light transition-colors disabled:opacity-30"
           >
             ← Previous
           </button>
@@ -250,19 +268,18 @@ export default function FunctionalStatusPage() {
               <button
                 key={d.key}
                 onClick={() => setCurrentDomain(i)}
-                className="h-2.5 w-2.5 rounded-full transition-all"
-                style={{
-                  backgroundColor: scores[d.key] !== undefined ? '#2A6B6B' : i === currentDomain ? '#7BA68C' : 'rgba(168,203,181,0.3)',
-                  transform: i === currentDomain ? 'scale(1.3)' : 'scale(1)',
-                }}
+                className={clsx(
+                  'h-2.5 w-2.5 rounded-full transition-all',
+                  scores[d.key] !== undefined ? 'bg-teal' : i === currentDomain ? 'bg-sage' : 'bg-sage-light/30',
+                  i === currentDomain && 'scale-125',
+                )}
               />
             ))}
           </div>
           {currentDomain < DOMAINS.length - 1 ? (
             <button
               onClick={() => setCurrentDomain(currentDomain + 1)}
-              className="rounded-lg px-3 py-2 text-[13px] font-medium"
-              style={{ color: '#2A6B6B' }}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-teal"
             >
               Next →
             </button>
@@ -276,34 +293,32 @@ export default function FunctionalStatusPage() {
         {/* Submit when all answered */}
         {allAnswered && (
           <div className="space-y-3">
-            <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)' }}>
-              <label className="mb-1.5 block text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>Anything else? (optional)</label>
+            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+              <label className="mb-1.5 block text-xs font-semibold text-charcoal-light">Anything else? (optional)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any changes you noticed this week..."
                 rows={2}
-                className="w-full rounded-lg px-3 py-2 text-[13px] outline-none"
-                style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#2D2D2D', resize: 'vertical' }}
+                className="w-full resize-y rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none placeholder:text-charcoal-light/50"
               />
             </div>
 
             {/* Preview */}
-            <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(42,107,107,0.04)', border: '1px solid rgba(42,107,107,0.1)' }}>
-              <p className="mb-2 text-[13px] font-semibold" style={{ color: '#2A6B6B' }}>
+            <div className="rounded-xl border border-teal/10 bg-teal/5 p-4">
+              <p className="mb-2 text-sm font-semibold text-teal">
                 Your Functional Score: {calculatePPS(scores)}%
               </p>
-              <p className="text-[12px]" style={{ color: '#4A4A4A' }}>
+              <p className="text-xs text-charcoal-light">
                 {getPPSCategory(calculatePPS(scores)).desc}
               </p>
             </div>
 
             <button
               onClick={handleSave}
-              className="w-full rounded-xl py-3 text-[14px] font-semibold text-white"
-              style={{ backgroundColor: '#2A6B6B' }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3 text-sm font-semibold text-white"
             >
-              <CheckCircle2 className="mb-0.5 mr-2 inline h-4 w-4" /> Save Assessment
+              <CheckCircle2 className="h-4 w-4" /> Save Assessment
             </button>
           </div>
         )}
@@ -316,14 +331,14 @@ export default function FunctionalStatusPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-[24px] font-bold" style={{ color: '#2A6B6B' }}>Functional Status</h1>
-          <p className="mt-1 text-[14px]" style={{ color: '#4A4A4A' }}>Track how you are doing with daily activities</p>
+          <h1 className="font-heading text-2xl font-bold text-teal">Functional Status</h1>
+          <p className="mt-1 text-sm text-charcoal-light">Track how you are doing with daily activities</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowHelp(!showHelp)} className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>
+          <button onClick={() => setShowHelp(!showHelp)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-charcoal-light">
             <HelpCircle className="h-4 w-4" />
           </button>
-          <button onClick={startAssessment} className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white" style={{ backgroundColor: '#2A6B6B' }}>
+          <button onClick={startAssessment} className="flex items-center gap-1.5 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white">
             <PlusCircle className="h-4 w-4" /> Assess
           </button>
         </div>
@@ -331,8 +346,8 @@ export default function FunctionalStatusPage() {
 
       {/* Help card */}
       {showHelp && (
-        <div className="rounded-xl p-4" style={{ backgroundColor: 'rgba(42,107,107,0.04)', border: '1px solid rgba(42,107,107,0.1)' }}>
-          <p className="text-[12px] leading-relaxed" style={{ color: '#4A4A4A' }}>
+        <div className="rounded-xl border border-teal/10 bg-teal/5 p-4">
+          <p className="text-xs leading-relaxed text-charcoal-light">
             This assessment helps your care team understand how you are managing daily activities.
             It covers 5 areas: mobility, self-care, eating, alertness, and activity level.
             We recommend completing this weekly. Your answers help tailor your care plan.
@@ -342,39 +357,37 @@ export default function FunctionalStatusPage() {
 
       {/* Current Score */}
       {latestEntry && (
-        <div
-          className="rounded-xl bg-white p-5 text-center"
-          style={{ border: `1px solid ${ppsCat.color}25`, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-        >
-          <p className="text-[12px] font-medium" style={{ color: '#4A4A4A' }}>Current Functional Score</p>
+        <div className={clsx('rounded-xl border bg-white p-5 text-center shadow-sm', ppsCat.border)}>
+          <p className="text-xs font-medium text-charcoal-light">Current Functional Score</p>
           <div className="mt-2 flex items-center justify-center gap-3">
-            <span className="font-mono text-[48px] font-bold leading-none" style={{ color: ppsCat.color }}>
+            <span className={clsx('font-mono text-5xl font-bold leading-none', ppsCat.text)}>
               {currentPPS}%
             </span>
             <div className="text-left">
-              <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold" style={{ backgroundColor: `${ppsCat.color}15`, color: ppsCat.color }}>
+              <span className={clsx('rounded-full px-2.5 py-0.5 text-xs font-bold', ppsCat.lightBg, ppsCat.text)}>
                 {ppsCat.label}
               </span>
-              <div className="mt-1 flex items-center gap-1 text-[11px]" style={{
-                color: ppsTrend === 'improving' ? '#7BA68C' : ppsTrend === 'declining' ? '#C25A45' : '#E8A838',
-              }}>
+              <div className={clsx(
+                'mt-1 flex items-center gap-1 text-xs',
+                ppsTrend === 'improving' ? 'text-sage' : ppsTrend === 'declining' ? 'text-alert-critical' : 'text-amber',
+              )}>
                 {ppsTrend === 'improving' ? <TrendingUp className="h-3 w-3" /> : ppsTrend === 'declining' ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
                 {ppsTrend === 'improving' ? 'Improving' : ppsTrend === 'declining' ? 'Declining' : 'Stable'}
               </div>
             </div>
           </div>
-          <p className="mt-2 text-[12px]" style={{ color: '#4A4A4A' }}>{ppsCat.desc}</p>
-          <p className="mt-1 text-[11px]" style={{ color: '#4A4A4A' }}>Last assessed: {latestEntry.date}</p>
+          <p className="mt-2 text-xs text-charcoal-light">{ppsCat.desc}</p>
+          <p className="mt-1 text-xs text-charcoal-light">Last assessed: {latestEntry.date}</p>
         </div>
       )}
 
       {/* Decline alert */}
       {ppsTrend === 'declining' && (
-        <div className="flex items-start gap-3 rounded-xl p-4" style={{ backgroundColor: 'rgba(212,133,107,0.06)', border: '1px solid rgba(212,133,107,0.15)' }}>
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: '#C25A45' }} />
+        <div className="flex items-start gap-3 rounded-xl border border-alert-critical/15 bg-alert-critical/5 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-alert-critical" />
           <div>
-            <p className="text-[13px] font-semibold" style={{ color: '#C25A45' }}>Functional Decline Detected</p>
-            <p className="mt-1 text-[12px]" style={{ color: '#4A4A4A' }}>
+            <p className="text-sm font-semibold text-alert-critical">Functional Decline Detected</p>
+            <p className="mt-1 text-xs text-charcoal-light">
               Your care team has been notified about the change in your functional status. They will review your care plan.
             </p>
           </div>
@@ -383,23 +396,25 @@ export default function FunctionalStatusPage() {
 
       {/* Domain Breakdown (latest) */}
       {latestEntry && (
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <h2 className="mb-3 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>Domain Breakdown</h2>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-charcoal">Domain Breakdown</h2>
           <div className="space-y-2.5">
             {DOMAINS.map((d) => {
               const score = (latestEntry as any)[d.key] as number;
               const pct = (score / 5) * 100;
-              const color = score >= 4 ? '#7BA68C' : score >= 3 ? '#E8A838' : '#D4856B';
               return (
                 <div key={d.key}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-[12px] font-medium" style={{ color: '#4A4A4A' }}>
-                      <d.icon className="h-3.5 w-3.5" style={{ color }} /> {d.label}
+                    <span className="flex items-center gap-2 text-xs font-medium text-charcoal-light">
+                      <d.icon className={clsx('h-3.5 w-3.5', domainText(score))} /> {d.label}
                     </span>
-                    <span className="text-[12px] font-bold" style={{ color }}>{score}/5</span>
+                    <span className={clsx('text-xs font-bold', domainText(score))}>{score}/5</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(168,203,181,0.15)' }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+                  <div className="h-2 overflow-hidden rounded-full bg-sage-light/15">
+                    <div
+                      className={clsx('h-full rounded-full transition-all', domainBg(score))}
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
                 </div>
               );
@@ -410,22 +425,22 @@ export default function FunctionalStatusPage() {
 
       {/* History */}
       <div>
-        <h2 className="mb-3 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>Assessment History</h2>
+        <h2 className="mb-3 text-sm font-semibold text-charcoal">Assessment History</h2>
         <div className="space-y-2">
           {history.slice().reverse().map((h) => {
             const cat = getPPSCategory(h.ppsEstimate);
             return (
-              <div key={h.id} className="flex items-center justify-between rounded-xl bg-white px-4 py-3" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+              <div key={h.id} className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${cat.color}15` }}>
-                    <span className="font-mono text-[14px] font-bold" style={{ color: cat.color }}>{h.ppsEstimate}</span>
+                  <div className={clsx('flex h-10 w-10 items-center justify-center rounded-xl', cat.lightBg)}>
+                    <span className={clsx('font-mono text-sm font-bold', cat.text)}>{h.ppsEstimate}</span>
                   </div>
                   <div>
-                    <span className="text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>{cat.label}</span>
-                    {h.notes && <p className="text-[11px]" style={{ color: '#4A4A4A' }}>{h.notes}</p>}
+                    <span className="text-sm font-semibold text-charcoal">{cat.label}</span>
+                    {h.notes && <p className="text-xs text-charcoal-light">{h.notes}</p>}
                   </div>
                 </div>
-                <span className="text-[11px]" style={{ color: '#4A4A4A' }}>{h.date}</span>
+                <span className="text-xs text-charcoal-light">{h.date}</span>
               </div>
             );
           })}

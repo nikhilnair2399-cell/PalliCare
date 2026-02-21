@@ -1,28 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils';
+type Phase = 'inhale' | 'hold' | 'exhale' | 'idle';
 
 interface BreatheCircleProps {
-  /** Inhale duration in seconds */
   inhale: number;
-  /** Hold duration in seconds */
   hold: number;
-  /** Exhale duration in seconds */
   exhale: number;
-  /** Whether the exercise is running */
   isRunning: boolean;
-  /** Total elapsed seconds */
   elapsed: number;
 }
 
-type Phase = 'inhale' | 'hold' | 'exhale' | 'idle';
-
 const phaseConfig: Record<Phase, { label: string; color: string }> = {
-  inhale: { label: 'Breathe In', color: 'text-sage' },
-  hold: { label: 'Hold', color: 'text-amber' },
-  exhale: { label: 'Breathe Out', color: 'text-teal' },
-  idle: { label: 'Ready', color: 'text-charcoal-light' },
+  inhale: { label: 'Breathe In', color: '#7BA68C' },
+  hold:   { label: 'Hold',       color: '#E8A838' },
+  exhale: { label: 'Breathe Out', color: '#2A6B6B' },
+  idle:   { label: 'Ready',      color: '#4A4A4A' },
 };
 
 export function BreatheCircle({
@@ -51,7 +43,6 @@ export function BreatheCircle({
     }
   }
 
-  // Scale: 0.6 when exhaled, 1.0 when inhaled
   let scale = 0.6;
   if (phase === 'inhale') scale = 0.6 + 0.4 * phaseProgress;
   else if (phase === 'hold') scale = 1.0;
@@ -59,7 +50,6 @@ export function BreatheCircle({
 
   const config = phaseConfig[phase];
 
-  // Phase countdown
   let countdown = 0;
   if (phase === 'inhale') countdown = Math.ceil(inhale - positionInCycle);
   else if (phase === 'hold') countdown = Math.ceil(inhale + hold - positionInCycle);
@@ -71,25 +61,27 @@ export function BreatheCircle({
       <div className="relative flex h-56 w-56 items-center justify-center">
         {/* Outer glow */}
         <div
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-sage/20 to-teal/20 blur-xl transition-transform"
+          className="absolute inset-0 rounded-full blur-xl"
           style={{
+            background: 'linear-gradient(135deg, rgba(123,166,140,0.2), rgba(42,107,107,0.2))',
             transform: `scale(${scale * 1.1})`,
-            transitionDuration: '0.3s',
+            transition: 'transform 0.3s ease',
           }}
         />
         {/* Main circle */}
         <div
-          className="relative flex h-48 w-48 items-center justify-center rounded-full bg-gradient-to-br from-sage via-teal to-teal-dark shadow-lg transition-transform"
+          className="relative flex h-48 w-48 items-center justify-center rounded-full shadow-lg"
           style={{
+            background: 'linear-gradient(135deg, #7BA68C, #2A6B6B, #1A4A4A)',
             transform: `scale(${scale})`,
-            transitionDuration: '0.3s',
+            transition: 'transform 0.3s ease',
           }}
         >
           <div className="text-center text-white">
             <p className="text-3xl font-bold">
               {isRunning ? countdown : ''}
             </p>
-            <p className={cn('mt-1 text-sm font-medium text-white/80')}>
+            <p className="mt-1 text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>
               {config.label}
             </p>
           </div>
@@ -98,16 +90,16 @@ export function BreatheCircle({
 
       {/* Phase indicators */}
       {isRunning && (
-        <div className="flex items-center gap-4 text-xs font-medium">
-          <span className={cn(phase === 'inhale' ? 'text-sage font-bold' : 'text-charcoal/30')}>
+        <div className="flex items-center gap-4 text-[12px] font-medium">
+          <span style={{ color: phase === 'inhale' ? '#7BA68C' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'inhale' ? 700 : 400 }}>
             In ({inhale}s)
           </span>
-          <span className="text-charcoal/20">&bull;</span>
-          <span className={cn(phase === 'hold' ? 'text-amber font-bold' : 'text-charcoal/30')}>
+          <span style={{ color: 'rgba(45,45,45,0.15)' }}>&bull;</span>
+          <span style={{ color: phase === 'hold' ? '#E8A838' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'hold' ? 700 : 400 }}>
             Hold ({hold}s)
           </span>
-          <span className="text-charcoal/20">&bull;</span>
-          <span className={cn(phase === 'exhale' ? 'text-teal font-bold' : 'text-charcoal/30')}>
+          <span style={{ color: 'rgba(45,45,45,0.15)' }}>&bull;</span>
+          <span style={{ color: phase === 'exhale' ? '#2A6B6B' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'exhale' ? 700 : 400 }}>
             Out ({exhale}s)
           </span>
         </div>

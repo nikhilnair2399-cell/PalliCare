@@ -1,226 +1,171 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, Check, X, Clock, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Pill, CheckCircle2, Clock, X, AlertCircle } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
-import { MOCK_MEDICATIONS_TODAY } from '@/lib/patient-mock-data';
+import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
+import { StatCard } from '@/components/ui/StatCard';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const categoryColors: Record<string, string> = {
-  opioid: 'bg-terra/10 text-terra',
-  adjuvant: 'bg-lavender text-charcoal',
-  supportive: 'bg-sage/10 text-sage-dark',
-};
-
-const timeGroups = [
-  { key: 'Morning', times: ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00'] },
-  { key: 'Afternoon', times: ['12:00', '13:00', '14:00', '15:00', '16:00'] },
-  { key: 'Evening', times: ['17:00', '18:00', '19:00'] },
-  { key: 'Night', times: ['20:00', '21:00', '22:00', '23:00'] },
+const TIME_GROUPS = [
+  { key: 'morning', label: 'Morning', range: '6:00 AM - 12:00 PM' },
+  { key: 'afternoon', label: 'Afternoon', range: '12:00 PM - 5:00 PM' },
+  { key: 'evening', label: 'Evening', range: '5:00 PM - 9:00 PM' },
+  { key: 'night', label: 'Night', range: '9:00 PM - 6:00 AM' },
 ];
 
 export default function MedicationsPage() {
+  const [showPrnModal, setShowPrnModal] = useState(false);
   const medsQuery = usePatientMedications();
   const logAdherence = useLogMedicationAdherence();
-  const { data: rawMeds } = useWithFallback(medsQuery, MOCK_MEDICATIONS_TODAY);
-  const meds: any[] = Array.isArray(rawMeds) ? rawMeds : MOCK_MEDICATIONS_TODAY;
+  const { data: rawMeds } = useWithFallback(medsQuery, MOCK_MEDICATIONS);
+  const meds: any[] = Array.isArray(rawMeds) ? rawMeds : MOCK_MEDICATIONS;
 
-  // Track local status overrides (for optimistic UI)
-  const [localStatus, setLocalStatus] = useState<Record<string, string>>({});
-
-  // Calculate adherence
-  const allDoses = meds.flatMap((m: any) => m.schedule || []);
-  const takenCount = allDoses.filter(
-    (d: any) => localStatus[`${d.time}-${d.label}`] === 'taken' || (!localStatus[`${d.time}-${d.label}`] && d.status === 'taken'),
-  ).length;
-  const totalDoses = allDoses.length || 1;
-  const adherencePercent = Math.round((takenCount / totalDoses) * 100);
-
-  function handleMarkStatus(medId: string, time: string, label: string, status: 'taken' | 'skipped') {
-    setLocalStatus((prev) => ({ ...prev, [`${time}-${label}`]: status }));
-    logAdherence.mutate({
-      medicationId: medId,
-      status,
-      timeTaken: status === 'taken' ? new Date().toISOString() : undefined,
-    });
-  }
-
-  // Group medications by time of day
-  function getTimeGroup(time: string): string {
-    const hour = parseInt(time.split(':')[0], 10);
-    if (hour < 12) return 'Morning';
-    if (hour < 17) return 'Afternoon';
-    if (hour < 20) return 'Evening';
-    return 'Night';
-  }
-
-  const groupedDoses: Record<string, any[]> = {};
-  meds.forEach((med: any) => {
-    if (med.is_prn) return;
-    (med.schedule || []).forEach((s: any) => {
-      const group = s.label || getTimeGroup(s.time);
-      if (!groupedDoses[group]) groupedDoses[group] = [];
-      groupedDoses[group].push({
-        ...s,
-        medId: med.id,
-        medName: med.name,
-        dose: med.dose,
-        category: med.category,
-        effectiveStatus: localStatus[`${s.time}-${s.label}`] || s.status,
-      });
-    });
-  });
-
+  const allDoses = meds.flatMap((m: any) =>
+    (m.schedule || []).map((s: any) => ({ ...s, medName: m.name, medDose: m.dose, medId: m.id })),
+  );
+  const taken = allDoses.filter((d: any) => d.status === 'taken').length;
+  const total = allDoses.length;
+  const adherence = total > 0 ? Math.round((taken / total) * 100) : 0;
   const prnMeds = meds.filter((m: any) => m.is_prn);
-  const orderedGroups = ['Morning', 'Afternoon', 'Evening', 'Night'];
+
+  function handleMarkTaken(medId: string, time: string) {
+    logAdherence.mutate({ medicationId: medId, status: 'taken', timeTaken: time });
+  }
+
+  function handleMarkSkipped(medId: string, time: string) {
+    logAdherence.mutate({ medicationId: medId, status: 'skipped', timeTaken: time });
+  }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">
-          Medications
-        </h1>
+        <h1 className="font-heading text-2xl font-bold text-teal">Medications</h1>
         <p className="text-sm text-charcoal-light">
-          Today&apos;s medication schedule and adherence
+          Track your daily medication schedule and adherence
         </p>
       </div>
 
-      {/* Adherence Card */}
-      <div className="rounded-2xl border border-sage-light/20 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-charcoal-light">Today&apos;s Adherence</p>
-            <p className="mt-1 font-heading text-3xl font-bold text-sage-dark">
-              {adherencePercent}%
-            </p>
-          </div>
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sage/10">
-            <Pill className="h-7 w-7 text-sage" />
-          </div>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-sage-light/20">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-sage to-teal transition-all"
-            style={{ width: `${adherencePercent}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-charcoal-light">
-          {takenCount} of {totalDoses} doses taken
-        </p>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Adherence Today"
+          value={`${adherence}%`}
+          change={`${taken} of ${total} doses taken`}
+          changeType={adherence >= 80 ? 'increase' : 'alert'}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Total Medications"
+          value={String(meds.length)}
+          change="Active prescriptions"
+          changeType="info"
+          icon={<Pill className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Pending Doses"
+          value={String(total - taken - allDoses.filter((d: any) => d.status === 'skipped').length)}
+          change="Remaining today"
+          changeType={total - taken > 0 ? 'alert' : 'increase'}
+          icon={<Clock className="h-5 w-5" />}
+        />
+        <StatCard
+          title="PRN Available"
+          value={String(prnMeds.length)}
+          change="As-needed medications"
+          changeType="info"
+          icon={<AlertCircle className="h-5 w-5" />}
+        />
       </div>
 
-      {/* Scheduled Medications by Time Group */}
-      {orderedGroups.map((group) => {
-        const doses = groupedDoses[group];
-        if (!doses || doses.length === 0) return null;
+      {/* Medication Schedule by Time */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {TIME_GROUPS.map((group) => {
+          const groupDoses = allDoses.filter((d: any) => {
+            const hour = parseInt(d.time?.split(':')[0] || '0');
+            if (group.key === 'morning') return hour >= 6 && hour < 12;
+            if (group.key === 'afternoon') return hour >= 12 && hour < 17;
+            if (group.key === 'evening') return hour >= 17 && hour < 21;
+            return hour >= 21 || hour < 6;
+          });
 
-        return (
-          <div key={group}>
-            <h2 className="mb-3 flex items-center gap-2 font-heading text-base font-bold text-charcoal">
-              <Clock className="h-4 w-4 text-charcoal-light" />
-              {group}
-            </h2>
-            <div className="space-y-3">
-              {doses.map((dose: any, i: number) => (
-                <div
-                  key={`${dose.medId}-${dose.time}-${i}`}
-                  className={cn(
-                    'flex items-center gap-4 rounded-xl border bg-white p-4 shadow-sm transition-all',
-                    dose.effectiveStatus === 'taken'
-                      ? 'border-sage/30 bg-sage/5'
-                      : dose.effectiveStatus === 'skipped'
-                        ? 'border-terra/20 bg-terra/5'
-                        : 'border-sage-light/20',
-                  )}
-                >
-                  <div className="flex-1">
+          if (groupDoses.length === 0) return null;
+
+          return (
+            <div key={group.key} className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
+              <div className="border-b border-sage-light/20 px-5 py-4">
+                <h3 className="text-base font-semibold text-charcoal">{group.label}</h3>
+                <p className="text-xs text-charcoal-light">{group.range}</p>
+              </div>
+              <div className="divide-y divide-sage-light/10">
+                {groupDoses.map((dose: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        dose.status === 'taken' ? 'bg-sage/10' : dose.status === 'skipped' ? 'bg-alert-critical/10' : 'bg-amber/10'
+                      }`}>
+                        <Pill className={`h-4 w-4 ${
+                          dose.status === 'taken' ? 'text-sage-dark' : dose.status === 'skipped' ? 'text-alert-critical' : 'text-amber'
+                        }`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-charcoal">{dose.medName}</p>
+                        <p className="text-xs text-charcoal-light">{dose.medDose} &middot; {dose.time}</p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-charcoal">
-                        {dose.medName}
-                      </span>
-                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', categoryColors[dose.category] || categoryColors.supportive)}>
-                        {dose.category}
-                      </span>
+                      {dose.status === 'taken' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-sage/10 px-2.5 py-0.5 text-xs font-medium text-sage-dark">
+                          <CheckCircle2 className="h-3 w-3" /> Taken
+                        </span>
+                      ) : dose.status === 'skipped' ? (
+                        <span className="rounded-full bg-alert-critical/10 px-2.5 py-0.5 text-xs font-medium text-alert-critical">
+                          Skipped
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleMarkTaken(dose.medId, dose.time)}
+                            className="rounded-lg bg-teal px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-teal/90"
+                          >
+                            Take
+                          </button>
+                          <button
+                            onClick={() => handleMarkSkipped(dose.medId, dose.time)}
+                            className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light transition-colors hover:bg-cream"
+                          >
+                            Skip
+                          </button>
+                        </>
+                      )}
                     </div>
-                    <p className="mt-0.5 text-xs text-charcoal-light">
-                      {dose.dose} &middot; {dose.time}
-                    </p>
                   </div>
-
-                  {dose.effectiveStatus === 'taken' ? (
-                    <div className="flex items-center gap-1 rounded-full bg-sage/10 px-3 py-1.5 text-xs font-semibold text-sage">
-                      <Check className="h-3.5 w-3.5" />
-                      Taken
-                    </div>
-                  ) : dose.effectiveStatus === 'skipped' ? (
-                    <div className="flex items-center gap-1 rounded-full bg-terra/10 px-3 py-1.5 text-xs font-semibold text-terra">
-                      <X className="h-3.5 w-3.5" />
-                      Skipped
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleMarkStatus(dose.medId, dose.time, dose.label, 'taken')}
-                        className="flex items-center gap-1 rounded-full bg-sage/10 px-3 py-1.5 text-xs font-semibold text-sage hover:bg-sage/20"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                        Taken
-                      </button>
-                      <button
-                        onClick={() => handleMarkStatus(dose.medId, dose.time, dose.label, 'skipped')}
-                        className="flex items-center gap-1 rounded-full bg-terra/10 px-3 py-1.5 text-xs font-semibold text-terra hover:bg-terra/20"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        Skip
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {/* PRN Medications */}
       {prnMeds.length > 0 && (
-        <div>
-          <h2 className="mb-3 flex items-center gap-2 font-heading text-base font-bold text-charcoal">
-            <AlertCircle className="h-4 w-4 text-lavender" />
-            As Needed (PRN)
-          </h2>
-          <div className="space-y-3">
+        <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
+          <div className="border-b border-sage-light/20 px-5 py-4">
+            <h3 className="text-base font-semibold text-charcoal">As-Needed (PRN) Medications</h3>
+          </div>
+          <div className="divide-y divide-sage-light/10">
             {prnMeds.map((med: any) => (
-              <div
-                key={med.id}
-                className="flex items-center gap-4 rounded-xl border border-lavender/30 bg-white p-4 shadow-sm"
-              >
-                <div className="flex-1">
-                  <span className="text-sm font-semibold text-charcoal">
-                    {med.name}
-                  </span>
-                  <p className="mt-0.5 text-xs text-charcoal-light">
-                    {med.dose} &middot; Take as needed
-                  </p>
-                  {med.last_taken && (
-                    <p className="mt-1 text-[11px] text-charcoal/40">
-                      Last taken:{' '}
-                      {new Date(med.last_taken).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  )}
+              <div key={med.id} className="flex items-center justify-between px-5 py-3">
+                <div>
+                  <p className="text-sm font-medium text-charcoal">{med.name}</p>
+                  <p className="text-xs text-charcoal-light">{med.dose} &middot; {med.instructions || 'As needed'}</p>
                 </div>
                 <button
-                  onClick={() =>
-                    handleMarkStatus(med.id, 'prn', 'prn', 'taken')
-                  }
-                  className="rounded-xl bg-lavender/30 px-4 py-2 text-xs font-semibold text-charcoal hover:bg-lavender/50"
+                  onClick={() => setShowPrnModal(true)}
+                  className="rounded-lg border border-teal/30 px-3 py-1.5 text-xs font-semibold text-teal transition-colors hover:bg-teal/5"
                 >
                   Log Dose
                 </button>

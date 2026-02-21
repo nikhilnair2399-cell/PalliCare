@@ -442,3 +442,14 @@ export function useMarkPatientNotificationRead() {
     },
   });
 }
+
+/* ================================================================== */
+/*  Aliases (for refactored patient pages)                             */
+/* ================================================================== */
+
+export const useMedications = usePatientMedications;
+export const usePatientWellnessSummary = useWellnessSummary;
+
+export function usePainDiary() {
+  return usePatientSymptoms({ log_type: 'pain_diary' });
+}

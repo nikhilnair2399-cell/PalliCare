@@ -330,3 +330,26 @@ export const MOCK_RECENT_LOGS = [
     logged_at: '2024-02-19T20:00:00Z',
   },
 ];
+
+/* ================================================================== */
+/*  Aliases (for refactored patient pages)                             */
+/* ================================================================== */
+
+export const MOCK_MEDICATIONS = MOCK_MEDICATIONS_TODAY;
+
+export const MOCK_JOURNEY = {
+  goals: MOCK_GOALS,
+  gratitude: MOCK_GRATITUDE_ENTRIES,
+  intentions: [MOCK_TODAY_INTENTION],
+  milestones: MOCK_MILESTONES,
+};
+
+export const MOCK_PAIN_DIARY = {
+  entries: MOCK_PAIN_TRENDS,
+  summary: {
+    avg_pain_7d: MOCK_SYMPTOM_SUMMARY.week_avg_pain,
+    highest_pain: Math.max(...MOCK_PAIN_TRENDS.map((p) => p.pain_score)),
+    breakthrough_count: MOCK_PAIN_TRENDS.filter((p) => p.breakthrough).length,
+    trend: MOCK_SYMPTOM_SUMMARY.trend,
+  },
+};

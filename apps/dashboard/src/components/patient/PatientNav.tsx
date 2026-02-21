@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { clsx } from 'clsx';
 import {
   Home,
   Activity,
@@ -16,14 +16,12 @@ import {
   LogOut,
   Leaf,
   Brain,
-  Heart,
   Moon,
   Apple,
   Footprints,
+  Heart,
 } from 'lucide-react';
 import { usePatientAuth } from '@/lib/patient-auth';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface PatientNavProps {
   onNavigate?: () => void;
@@ -45,29 +43,31 @@ const navigation = [
   { name: 'Messages', href: '/patient/messages', icon: MessageCircle },
 ];
 
+const bottomNav = [
+  { name: 'Settings', href: '/patient/settings', icon: Settings },
+];
+
 export function PatientNav({ onNavigate }: PatientNavProps) {
   const pathname = usePathname();
   const { user, logout } = usePatientAuth();
 
   return (
-    <aside className="flex h-full flex-col bg-white" style={{ borderRight: '1px solid rgba(168,203,181,0.2)' }}>
+    <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-sage-light/30 bg-white">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-6" style={{ borderBottom: '1px solid rgba(168,203,181,0.2)' }}>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: '#2A6B6B' }}>
-          <Leaf className="h-4 w-4 text-white" />
+      <div className="flex h-16 items-center gap-3 border-b border-sage-light/30 px-6">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal font-heading text-lg font-bold text-white">
+          <Leaf className="h-4 w-4" />
         </div>
         <div>
-          <h1 className="font-heading text-lg font-bold" style={{ color: '#2A6B6B' }}>
+          <h1 className="font-heading text-lg font-bold text-teal">
             PalliCare
           </h1>
-          <p className="text-[10px] font-medium" style={{ color: '#4A4A4A' }}>
-            Your Wellness Companion
-          </p>
+          <p className="text-[10px] text-charcoal-light">Your Wellness Companion</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -78,62 +78,59 @@ export function PatientNav({ onNavigate }: PatientNavProps) {
               key={item.name}
               href={item.href}
               onClick={onNavigate}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
+              className={clsx(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-teal/10 text-teal'
+                  : 'text-charcoal-light hover:bg-cream hover:text-charcoal',
               )}
-              style={{
-                backgroundColor: isActive ? 'rgba(42,107,107,0.06)' : 'transparent',
-                color: isActive ? '#2A6B6B' : '#4A4A4A',
-              }}
             >
-              <item.icon className="h-[18px] w-[18px] flex-shrink-0" />
+              <item.icon className="h-5 w-5 flex-shrink-0" />
               {item.name}
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom: Settings + Sign Out */}
-      <div className="px-3 pb-2" style={{ borderTop: '1px solid rgba(168,203,181,0.15)' }}>
-        <div className="pt-2">
+      {/* Bottom Navigation */}
+      <div className="border-t border-sage-light/30 px-3 py-4">
+        {bottomNav.map((item) => (
           <Link
-            href="/patient/settings"
+            key={item.name}
+            href={item.href}
             onClick={onNavigate}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors"
-            style={{
-              color: pathname === '/patient/settings' ? '#2A6B6B' : '#4A4A4A',
-              backgroundColor: pathname === '/patient/settings' ? 'rgba(42,107,107,0.06)' : 'transparent',
-            }}
+            className={clsx(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              pathname === item.href
+                ? 'bg-teal/10 text-teal'
+                : 'text-charcoal-light hover:bg-cream hover:text-charcoal',
+            )}
           >
-            <Settings className="h-[18px] w-[18px]" />
-            Settings
+            <item.icon className="h-5 w-5" />
+            {item.name}
           </Link>
-          <button
-            onClick={logout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors"
-            style={{ color: '#C25A45' }}
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-            Sign Out
-          </button>
-        </div>
+        ))}
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-alert-critical"
+        >
+          <LogOut className="h-5 w-5" />
+          Sign Out
+        </button>
       </div>
 
-      {/* User info footer */}
+      {/* User Info */}
       {user && (
-        <div className="px-4 py-3.5" style={{ borderTop: '1px solid rgba(168,203,181,0.15)', backgroundColor: '#FAFCFB' }}>
+        <div className="border-t border-sage-light/30 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[13px] font-bold text-white"
-              style={{ backgroundColor: '#7BA68C' }}
-            >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sage text-xs font-bold text-white">
               {user.name.charAt(0)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>
+              <p className="truncate text-sm font-medium text-charcoal">
                 {user.name}
               </p>
-              <p className="truncate text-[11px]" style={{ color: '#4A4A4A' }}>
+              <p className="truncate text-xs text-charcoal-light">
                 {user.uhid}
               </p>
             </div>

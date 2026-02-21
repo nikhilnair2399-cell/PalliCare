@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Phone, ArrowRight, Shield, Heart, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Shield, Heart, Loader2, CheckCircle2, Leaf, Activity, BookOpen, Wind, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Stage = 'phone' | 'otp' | 'success';
@@ -46,7 +46,6 @@ export default function PatientLoginPage() {
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
     setStage('otp');
-    setResendCooldown(30);
   }
 
   function handleOtpChange(index: number, value: string) {
@@ -63,6 +62,18 @@ export default function PatientLoginPage() {
     }
   }
 
+  function handleOtpPaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    const digits = pasted.split('');
+    const next = [...otp];
+    digits.forEach((d, i) => { next[i] = d; });
+    setOtp(next);
+    const focusIdx = Math.min(digits.length, 5);
+    otpRefs.current[focusIdx]?.focus();
+  }
+
   async function handleVerifyOtp() {
     const code = otp.join('');
     if (code.length !== 6) {
@@ -72,18 +83,18 @@ export default function PatientLoginPage() {
     setLoading(true);
     setError('');
     await new Promise((r) => setTimeout(r, 1000));
-
     if (code === '000000' || code === '123456') {
-      // Store patient session
-      const devUser = {
-        id: 'dev-patient-001',
-        name: 'Rajesh Kumar',
-        phone,
-        uhid: 'AIIMS-BPL-2024-001234',
-        preferred_language: 'en',
-      };
       localStorage.setItem('patient_token', 'dev-patient-jwt-token');
-      localStorage.setItem('patient_user', JSON.stringify(devUser));
+      localStorage.setItem(
+        'patient_user',
+        JSON.stringify({
+          id: 'patient-001',
+          name: 'Rajesh Kumar',
+          phone,
+          uhid: 'AIIMS-BPL-2024-001234',
+          preferred_language: 'en',
+        }),
+      );
       setStage('success');
       setLoading(false);
       setTimeout(() => router.push('/patient'), 800);
@@ -96,11 +107,11 @@ export default function PatientLoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left: Branding panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-sage via-teal to-teal-dark p-12 text-white">
+      <div className="hidden flex-col justify-between bg-teal p-12 text-white lg:flex lg:w-1/2">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 font-heading text-2xl font-bold">
-              P
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+              <Leaf className="h-6 w-6" />
             </div>
             <div>
               <h1 className="font-heading text-3xl font-bold">PalliCare</h1>
@@ -109,64 +120,65 @@ export default function PatientLoginPage() {
           </div>
           <div className="mt-16 max-w-md">
             <h2 className="text-2xl font-bold leading-snug">
-              Your Wellness Companion
+              Your Comfort Is Our Care
             </h2>
-            <p className="mt-4 text-white/70 leading-relaxed">
-              Track your symptoms, manage medications, practice breathing exercises,
-              and stay connected with your care team &mdash; all in one place.
+            <p className="mt-4 leading-relaxed text-white/70">
+              Track symptoms, manage medications, practice breathing exercises,
+              and stay connected with your care team &mdash; all in one calm, simple space.
             </p>
           </div>
-          <div className="mt-12 space-y-4">
+          <div className="mt-12 grid grid-cols-2 gap-4">
             {[
-              { icon: '🌿', text: 'Log symptoms easily and track your progress' },
-              { icon: '💊', text: 'Never miss a medication with smart reminders' },
-              { icon: '🧘', text: 'Breathing exercises for comfort and calm' },
-              { icon: '💬', text: 'Message your care team anytime' },
+              { label: 'Symptom Tracking', desc: 'Log how you feel daily', icon: Activity },
+              { label: 'Education', desc: 'Learn about your care', icon: BookOpen },
+              { label: 'Breathing Exercises', desc: 'Find calm and comfort', icon: Wind },
+              { label: 'Care Team Chat', desc: 'Stay connected always', icon: MessageSquare },
             ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3">
-                <span className="text-xl">{item.icon}</span>
-                <p className="text-sm text-white/90">{item.text}</p>
+              <div key={item.label} className="rounded-xl bg-white/10 p-4">
+                <item.icon className="mb-2.5 h-5 w-5 text-sage-light" />
+                <p className="text-[13px] font-semibold text-white/85">{item.label}</p>
+                <p className="mt-0.5 text-[11px] text-white/35">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-white/40">
           <Shield className="h-3.5 w-3.5" />
-          DPDPA 2023 Compliant &middot; Your data is safe and secure
+          DPDPA 2023 Compliant &middot; Data stored in AIIMS infrastructure
         </div>
       </div>
 
       {/* Right: Login form */}
-      <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-cream to-lavender-light/30 p-6 lg:p-12">
+      <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="mb-10 flex items-center gap-3 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sage to-teal text-lg font-bold text-white">
-              P
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal text-white">
+              <Leaf className="h-5 w-5" />
             </div>
             <h1 className="font-heading text-2xl font-bold text-teal">PalliCare</h1>
           </div>
 
           <h2 className="font-heading text-2xl font-bold text-charcoal">
-            {stage === 'phone' && 'Welcome'}
+            {stage === 'phone' && 'Patient Sign In'}
             {stage === 'otp' && 'Enter OTP'}
-            {stage === 'success' && 'Welcome Back'}
+            {stage === 'success' && 'Welcome'}
           </h2>
-          <p className="mt-2 text-sm text-charcoal-light">
-            {stage === 'phone' && 'Sign in with your registered mobile number'}
+          <p className="mt-2 text-sm text-charcoal/60">
+            {stage === 'phone' && 'Enter your registered mobile number to receive an OTP'}
             {stage === 'otp' && `We sent a 6-digit code to +91 ${phone}`}
-            {stage === 'success' && 'Taking you to your wellness dashboard...'}
+            {stage === 'success' && 'Authentication successful. Redirecting...'}
           </p>
 
           {/* Phone stage */}
           {stage === 'phone' && (
             <div className="mt-8 space-y-4">
               <div>
-                <label className="text-xs font-semibold uppercase text-charcoal-light">
+                <label className="text-xs font-semibold uppercase text-charcoal/60">
                   Mobile Number
                 </label>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="flex h-12 items-center rounded-l-xl border border-r-0 border-sage-light/30 bg-cream/50 px-3 text-sm font-medium text-charcoal-light">
+                  <span className="flex h-12 items-center rounded-l-xl border border-r-0 border-sage-light/30 bg-cream/50 px-3 text-sm font-medium text-charcoal/60">
                     +91
                   </span>
                   <input
@@ -185,26 +197,27 @@ export default function PatientLoginPage() {
                 </div>
               </div>
 
-              {error && <p className="text-xs text-alert-critical">{error}</p>}
+              {error && (
+                <p className="text-xs text-alert-critical">{error}</p>
+              )}
 
               <button
                 onClick={handleRequestOtp}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sage to-teal py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-teal/90 disabled:opacity-50"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Continue
+                    Request OTP
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </button>
 
               <p className="text-center text-xs text-charcoal/40">
-                Dev mode: any number works. OTP bypass:{' '}
-                <code className="font-mono text-teal">000000</code>
+                Dev mode: any number works. OTP bypass: <code className="font-mono text-teal">000000</code>
               </p>
             </div>
           )}
@@ -212,13 +225,11 @@ export default function PatientLoginPage() {
           {/* OTP stage */}
           {stage === 'otp' && (
             <div className="mt-8 space-y-4">
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-3" onPaste={handleOtpPaste}>
                 {otp.map((digit, i) => (
                   <input
                     key={i}
-                    ref={(el) => {
-                      otpRefs.current[i] = el;
-                    }}
+                    ref={(el) => { otpRefs.current[i] = el; }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
@@ -237,13 +248,13 @@ export default function PatientLoginPage() {
               <button
                 onClick={handleVerifyOtp}
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sage to-teal py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-teal/90 disabled:opacity-50"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    Verify & Sign In
+                    Verify &amp; Sign In
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -251,11 +262,7 @@ export default function PatientLoginPage() {
 
               <div className="flex items-center justify-between text-xs">
                 <button
-                  onClick={() => {
-                    setStage('phone');
-                    setOtp(['', '', '', '', '', '']);
-                    setError('');
-                  }}
+                  onClick={() => { setStage('phone'); setOtp(['', '', '', '', '', '']); setError(''); }}
                   className="text-teal hover:underline"
                 >
                   Change number
@@ -263,12 +270,7 @@ export default function PatientLoginPage() {
                 <button
                   onClick={handleResendOtp}
                   disabled={resendCooldown > 0}
-                  className={cn(
-                    'transition-colors',
-                    resendCooldown > 0
-                      ? 'cursor-not-allowed text-charcoal/30'
-                      : 'text-teal hover:underline',
-                  )}
+                  className={cn('transition-colors', resendCooldown > 0 ? 'cursor-not-allowed text-charcoal/30' : 'text-teal hover:underline')}
                 >
                   {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : 'Resend OTP'}
                 </button>
@@ -279,10 +281,8 @@ export default function PatientLoginPage() {
           {/* Success stage */}
           {stage === 'success' && (
             <div className="mt-8 flex flex-col items-center gap-3">
-              <CheckCircle2 className="h-16 w-16 text-sage" />
-              <p className="text-sm text-charcoal-light">
-                Redirecting to your dashboard...
-              </p>
+              <CheckCircle2 className="h-16 w-16 text-alert-success" />
+              <p className="text-sm text-charcoal/60">Redirecting to dashboard...</p>
               <Loader2 className="h-5 w-5 animate-spin text-teal" />
             </div>
           )}
@@ -290,7 +290,7 @@ export default function PatientLoginPage() {
           {/* Footer */}
           <div className="mt-12 border-t border-sage-light/20 pt-6 text-center">
             <p className="text-xs text-charcoal/40">
-              PalliCare v1.0.0 &middot; AIIMS Bhopal
+              PalliCare v1.0 &middot; AIIMS Bhopal &middot; Patient Wellness Portal
             </p>
             <div className="mt-2 flex items-center justify-center gap-1 text-xs text-charcoal/30">
               <Heart className="h-3 w-3" />

@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Check, Clock, X, Pill } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -9,14 +8,13 @@ interface MedicationStripProps {
   medications: any[];
 }
 
-const statusConfig: Record<string, { color: string; icon: typeof Check; label: string }> = {
-  taken: { color: 'bg-sage/10 text-sage border-sage/30', icon: Check, label: 'Taken' },
-  pending: { color: 'bg-amber/10 text-amber border-amber/30', icon: Clock, label: 'Pending' },
-  skipped: { color: 'bg-terra/10 text-terra border-terra/30', icon: X, label: 'Skipped' },
+const statusConfig: Record<string, { bg: string; color: string; icon: typeof Check; label: string }> = {
+  taken:   { bg: 'rgba(123,166,140,0.08)', color: '#7BA68C', icon: Check, label: 'Taken' },
+  pending: { bg: 'rgba(232,168,56,0.08)',  color: '#E8A838', icon: Clock, label: 'Pending' },
+  skipped: { bg: 'rgba(212,133,107,0.08)', color: '#D4856B', icon: X,     label: 'Skipped' },
 };
 
 export function MedicationStrip({ medications }: MedicationStripProps) {
-  // Flatten into individual dose cards
   const doses: any[] = [];
   medications.forEach((med) => {
     if (med.is_prn) {
@@ -41,9 +39,12 @@ export function MedicationStrip({ medications }: MedicationStripProps) {
     }
   });
 
-  // Sort: pending first, then taken, then skipped
   const order = { pending: 0, prn: 1, taken: 2, skipped: 3 };
-  doses.sort((a, b) => (order[a.status as keyof typeof order] ?? 4) - (order[b.status as keyof typeof order] ?? 4));
+  doses.sort(
+    (a, b) =>
+      (order[a.status as keyof typeof order] ?? 4) -
+      (order[b.status as keyof typeof order] ?? 4),
+  );
 
   return (
     <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-2">
@@ -54,28 +55,37 @@ export function MedicationStrip({ medications }: MedicationStripProps) {
         return (
           <div
             key={dose.id}
-            className={cn(
-              'flex min-w-[140px] flex-shrink-0 flex-col rounded-xl border bg-white p-3 shadow-sm',
-              dose.is_prn ? 'border-lavender/50' : 'border-sage-light/20',
-            )}
+            className="flex min-w-[148px] flex-shrink-0 flex-col rounded-xl bg-white p-3.5"
+            style={{
+              border: dose.is_prn
+                ? '1px solid rgba(217,212,231,0.4)'
+                : '1px solid rgba(168,203,181,0.2)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}
           >
             <div className="flex items-center gap-2">
-              <Pill className="h-3.5 w-3.5 text-charcoal-light" />
-              <span className="truncate text-xs font-semibold text-charcoal">
+              <Pill className="h-3.5 w-3.5" style={{ color: '#4A4A4A' }} />
+              <span className="truncate text-[12px] font-semibold" style={{ color: '#2D2D2D' }}>
                 {dose.name}
               </span>
             </div>
-            <span className="mt-1 text-[11px] text-charcoal-light">
+            <span className="mt-1 text-[11px]" style={{ color: '#4A4A4A' }}>
               {dose.dose} &middot; {dose.time}
             </span>
             {!dose.is_prn && (
-              <div className={cn('mt-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', config.color)}>
+              <div
+                className="mt-2.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ backgroundColor: config.bg, color: config.color }}
+              >
                 <StatusIcon className="h-3 w-3" />
                 {config.label}
               </div>
             )}
             {dose.is_prn && (
-              <div className="mt-2 rounded-full bg-lavender/30 px-2 py-0.5 text-center text-[10px] font-semibold text-charcoal-light">
+              <div
+                className="mt-2.5 rounded-full px-2 py-0.5 text-center text-[10px] font-semibold"
+                style={{ backgroundColor: 'rgba(217,212,231,0.25)', color: '#4A4A4A' }}
+              >
                 PRN
               </div>
             )}

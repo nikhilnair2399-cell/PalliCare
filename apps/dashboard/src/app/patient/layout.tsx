@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { PatientAuthProvider } from '@/lib/patient-auth';
 import { PatientNav } from '@/components/patient/PatientNav';
 import { PatientHeader } from '@/components/patient/PatientHeader';
-import { PatientBottomNav } from '@/components/patient/PatientBottomNav';
 
 export default function PatientLayout({
   children,
@@ -12,38 +12,38 @@ export default function PatientLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Login page gets its own full-screen layout — no sidebar/header
+  if (pathname === '/patient/login') {
+    return <>{children}</>;
+  }
 
   return (
     <PatientAuthProvider>
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-lavender-light/30">
-        {/* Desktop sidebar */}
+      <div className="flex min-h-screen">
+        {/* Desktop sidebar — always visible on lg */}
         <div className="hidden lg:block">
-          <div className="fixed inset-y-0 left-0 w-72">
-            <PatientNav />
-          </div>
+          <PatientNav onNavigate={() => setSidebarOpen(false)} />
         </div>
 
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <>
             <div
-              className="fixed inset-0 z-40 bg-charcoal/30 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-black/30 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
             <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
-              <PatientNav />
+              <PatientNav onNavigate={() => setSidebarOpen(false)} />
             </div>
           </>
         )}
 
-        {/* Main content area */}
-        <div className="flex flex-1 flex-col lg:pl-72">
+        <div className="flex flex-1 flex-col lg:pl-64">
           <PatientHeader onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <main className="flex-1 p-4 pb-20 lg:p-6 lg:pb-6">{children}</main>
+          <main className="flex-1 p-4 lg:p-6">{children}</main>
         </div>
-
-        {/* Mobile bottom navigation */}
-        <PatientBottomNav />
       </div>
     </PatientAuthProvider>
   );

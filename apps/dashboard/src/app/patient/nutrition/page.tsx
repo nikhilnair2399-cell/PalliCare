@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { clsx } from 'clsx';
 import {
   Apple,
   Droplets,
@@ -17,22 +18,44 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/* ───── Appetite Color Helpers ───── */
+function appetiteText(a: number): string {
+  if (a <= 3) return 'text-alert-critical';
+  if (a <= 5) return 'text-terra';
+  if (a <= 7) return 'text-amber';
+  return 'text-sage';
+}
+
+function appetiteBg(a: number): string {
+  if (a <= 3) return 'bg-alert-critical';
+  if (a <= 5) return 'bg-terra';
+  if (a <= 7) return 'bg-amber';
+  return 'bg-sage';
+}
+
+function appetiteLightBg(a: number): string {
+  if (a <= 3) return 'bg-alert-critical/10';
+  if (a <= 5) return 'bg-terra/10';
+  if (a <= 7) return 'bg-amber/10';
+  return 'bg-sage/10';
+}
+
 /* ───── Types ───── */
 interface NutritionEntry {
   id: string;
   date: string;
   weight?: number;
-  appetite: number; // 0-10
+  appetite: number;
   oral_intake: 'normal' | 'reduced' | 'minimal' | 'nil';
-  fluid_intake: number; // glasses (approx 250ml each)
-  meals_eaten: number; // 0-3
+  fluid_intake: number;
+  meals_eaten: number;
   nausea_affected: boolean;
   mouth_problems: boolean;
   notes: string;
 }
 
 /* ───── Mock Data ───── */
-const BASELINE_WEIGHT = 62; // kg
+const BASELINE_WEIGHT = 62;
 
 const MOCK_NUTRITION: NutritionEntry[] = Array.from({ length: 14 }, (_, i) => {
   const d = new Date();
@@ -53,13 +76,13 @@ const MOCK_NUTRITION: NutritionEntry[] = Array.from({ length: 14 }, (_, i) => {
 });
 
 const INTAKE_OPTIONS = [
-  { value: 'normal', label: 'Normal', desc: 'Eating regular meals', color: '#7BA68C' },
-  { value: 'reduced', label: 'Reduced', desc: 'Eating less than usual', color: '#E8A838' },
-  { value: 'minimal', label: 'Minimal', desc: 'Only a few mouthfuls', color: '#D4856B' },
-  { value: 'nil', label: 'Nothing', desc: 'Unable to eat', color: '#C25A45' },
+  { value: 'normal', label: 'Normal', desc: 'Eating regular meals', text: 'text-sage', border: 'border-sage', lightBg: 'bg-sage/10' },
+  { value: 'reduced', label: 'Reduced', desc: 'Eating less than usual', text: 'text-amber', border: 'border-amber', lightBg: 'bg-amber/10' },
+  { value: 'minimal', label: 'Minimal', desc: 'Only a few mouthfuls', text: 'text-terra', border: 'border-terra', lightBg: 'bg-terra/10' },
+  { value: 'nil', label: 'Nothing', desc: 'Unable to eat', text: 'text-alert-critical', border: 'border-alert-critical', lightBg: 'bg-alert-critical/10' },
 ];
 
-function getMUSTRisk(bmi: number, weightLossPct: number): { level: string; color: string; advice: string } {
+function getMUSTRisk(bmi: number, weightLossPct: number) {
   let bmiScore = 0;
   if (bmi < 18.5) bmiScore = 2;
   else if (bmi <= 20) bmiScore = 1;
@@ -69,9 +92,9 @@ function getMUSTRisk(bmi: number, weightLossPct: number): { level: string; color
   else if (weightLossPct >= 5) wlScore = 1;
 
   const total = bmiScore + wlScore;
-  if (total === 0) return { level: 'Low Risk', color: '#7BA68C', advice: 'Continue routine monitoring. Log your nutrition weekly.' };
-  if (total === 1) return { level: 'Medium Risk', color: '#E8A838', advice: 'Monitor your food intake closely. Aim for small, frequent meals.' };
-  return { level: 'High Risk', color: '#C25A45', advice: 'Your nutrition needs attention. Your care team has been notified.' };
+  if (total === 0) return { level: 'Low Risk', text: 'text-sage', lightBg: 'bg-sage/5', border: 'border-sage/20', advice: 'Continue routine monitoring. Log your nutrition weekly.' };
+  if (total === 1) return { level: 'Medium Risk', text: 'text-amber', lightBg: 'bg-amber/5', border: 'border-amber/20', advice: 'Monitor your food intake closely. Aim for small, frequent meals.' };
+  return { level: 'High Risk', text: 'text-alert-critical', lightBg: 'bg-alert-critical/5', border: 'border-alert-critical/20', advice: 'Your nutrition needs attention. Your care team has been notified.' };
 }
 
 export default function NutritionPage() {
@@ -87,13 +110,12 @@ export default function NutritionPage() {
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
 
-  // Compute stats
   const weightsRecorded = history.filter((h) => h.weight !== undefined).map((h) => ({ date: h.date, weight: h.weight! }));
   const currentWeight = weightsRecorded.length > 0 ? weightsRecorded[weightsRecorded.length - 1].weight : BASELINE_WEIGHT;
   const firstWeight = weightsRecorded.length > 0 ? weightsRecorded[0].weight : BASELINE_WEIGHT;
   const weightChange = currentWeight - firstWeight;
   const weightChangePct = Math.abs(Math.round((weightChange / firstWeight) * 1000) / 10);
-  const bmi = Math.round((currentWeight / (1.68 * 1.68)) * 10) / 10; // assume 168cm height
+  const bmi = Math.round((currentWeight / (1.68 * 1.68)) * 10) / 10;
   const mustRisk = getMUSTRisk(bmi, weightChangePct);
   const avgAppetite = history.length > 0 ? Math.round((history.reduce((s, h) => s + h.appetite, 0) / history.length) * 10) / 10 : 0;
   const avgFluids = history.length > 0 ? Math.round((history.reduce((s, h) => s + h.fluid_intake, 0) / history.length) * 10) / 10 : 0;
@@ -116,29 +138,22 @@ export default function NutritionPage() {
     setTimeout(() => { setSaved(false); setMode('home'); }, 2000);
   }
 
-  function getAppetiteColor(a: number): string {
-    if (a <= 3) return '#C25A45';
-    if (a <= 5) return '#D4856B';
-    if (a <= 7) return '#E8A838';
-    return '#7BA68C';
-  }
-
   /* ─────── LOG ─────── */
   if (mode === 'log') {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-[24px] font-bold" style={{ color: '#2A6B6B' }}>Log Nutrition</h1>
-            <p className="mt-1 text-[14px]" style={{ color: '#4A4A4A' }}>How was your eating and drinking today?</p>
+            <h1 className="font-heading text-2xl font-bold text-teal">Log Nutrition</h1>
+            <p className="mt-1 text-sm text-charcoal-light">How was your eating and drinking today?</p>
           </div>
-          <button onClick={() => setMode('home')} className="rounded-lg px-3 py-1.5 text-[12px] font-medium" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>Cancel</button>
+          <button onClick={() => setMode('home')} className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light">Cancel</button>
         </div>
 
         {/* Weight (optional) */}
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <label className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>
-            <Scale className="h-4 w-4" style={{ color: '#7BA68C' }} /> Weight (optional, kg)
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+          <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-charcoal-light">
+            <Scale className="h-4 w-4 text-sage" /> Weight (optional, kg)
           </label>
           <input
             type="number"
@@ -146,64 +161,65 @@ export default function NutritionPage() {
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
             placeholder={`Last: ${currentWeight} kg`}
-            className="w-full rounded-lg px-3 py-2.5 text-[15px] font-medium outline-none"
-            style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#2D2D2D' }}
+            className="w-full rounded-lg border border-sage-light/30 px-3 py-2.5 text-base font-medium text-charcoal outline-none placeholder:text-charcoal-light/50"
           />
         </div>
 
         {/* Appetite */}
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <label className="mb-3 block text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>
-            Appetite: <span style={{ color: getAppetiteColor(appetite) }}>{appetite}/10</span>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+          <label className="mb-3 block text-sm font-semibold text-charcoal">
+            Appetite: <span className={appetiteText(appetite)}>{appetite}/10</span>
           </label>
           <input type="range" min={0} max={10} value={appetite} onChange={(e) => setAppetite(Number(e.target.value))} className="w-full accent-teal" />
-          <div className="mt-1 flex justify-between text-[10px]" style={{ color: '#4A4A4A' }}>
+          <div className="mt-1 flex justify-between text-[10px] text-charcoal-light">
             <span>No appetite</span>
             <span>Excellent</span>
           </div>
         </div>
 
         {/* Oral Intake */}
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <p className="mb-3 text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>Food Intake Today</p>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+          <p className="mb-3 text-sm font-semibold text-charcoal">Food Intake Today</p>
           <div className="grid grid-cols-2 gap-2">
-            {INTAKE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setOralIntake(opt.value)}
-                className="rounded-xl p-3 text-left transition-all"
-                style={{
-                  border: `1px solid ${oralIntake === opt.value ? opt.color : 'rgba(168,203,181,0.2)'}`,
-                  backgroundColor: oralIntake === opt.value ? `${opt.color}10` : 'white',
-                }}
-              >
-                <p className="text-[13px] font-semibold" style={{ color: oralIntake === opt.value ? opt.color : '#2D2D2D' }}>{opt.label}</p>
-                <p className="text-[11px]" style={{ color: '#4A4A4A' }}>{opt.desc}</p>
-              </button>
-            ))}
+            {INTAKE_OPTIONS.map((opt) => {
+              const isSelected = oralIntake === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setOralIntake(opt.value)}
+                  className={clsx(
+                    'rounded-xl border p-3 text-left transition-all',
+                    isSelected ? clsx(opt.border, opt.lightBg) : 'border-sage-light/20 bg-white',
+                  )}
+                >
+                  <p className={clsx('text-sm font-semibold', isSelected ? opt.text : 'text-charcoal')}>{opt.label}</p>
+                  <p className="text-xs text-charcoal-light">{opt.desc}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Meals & Fluids */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)' }}>
-            <label className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>
-              <Utensils className="h-3.5 w-3.5" style={{ color: '#E8A838' }} /> Meals Eaten
+          <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+            <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-charcoal-light">
+              <Utensils className="h-3.5 w-3.5 text-amber" /> Meals Eaten
             </label>
             <div className="flex items-center justify-between">
-              <button onClick={() => setMealsEaten(Math.max(0, mealsEaten - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>−</button>
-              <span className="font-mono text-[20px] font-bold" style={{ color: '#2D2D2D' }}>{mealsEaten}</span>
-              <button onClick={() => setMealsEaten(Math.min(6, mealsEaten + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>+</button>
+              <button onClick={() => setMealsEaten(Math.max(0, mealsEaten - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-lg font-bold text-charcoal-light">−</button>
+              <span className="font-mono text-xl font-bold text-charcoal">{mealsEaten}</span>
+              <button onClick={() => setMealsEaten(Math.min(6, mealsEaten + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-lg font-bold text-charcoal-light">+</button>
             </div>
           </div>
-          <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)' }}>
-            <label className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>
-              <Droplets className="h-3.5 w-3.5" style={{ color: '#6B9BD2' }} /> Glasses of Water
+          <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+            <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-charcoal-light">
+              <Droplets className="h-3.5 w-3.5 text-teal" /> Glasses of Water
             </label>
             <div className="flex items-center justify-between">
-              <button onClick={() => setFluidIntake(Math.max(0, fluidIntake - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>−</button>
-              <span className="font-mono text-[20px] font-bold" style={{ color: '#2D2D2D' }}>{fluidIntake}</span>
-              <button onClick={() => setFluidIntake(Math.min(15, fluidIntake + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg text-lg font-bold" style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#4A4A4A' }}>+</button>
+              <button onClick={() => setFluidIntake(Math.max(0, fluidIntake - 1))} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-lg font-bold text-charcoal-light">−</button>
+              <span className="font-mono text-xl font-bold text-charcoal">{fluidIntake}</span>
+              <button onClick={() => setFluidIntake(Math.min(15, fluidIntake + 1))} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-lg font-bold text-charcoal-light">+</button>
             </div>
           </div>
         </div>
@@ -216,36 +232,38 @@ export default function NutritionPage() {
           ].map((item) => (
             <div
               key={item.label}
-              className="flex items-center justify-between rounded-xl bg-white px-4 py-3"
-              style={{ border: '1px solid rgba(168,203,181,0.2)' }}
+              className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3"
             >
-              <span className="text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>{item.label}</span>
+              <span className="text-sm font-semibold text-charcoal">{item.label}</span>
               <button
                 onClick={() => item.set(!item.value)}
-                className="relative h-6 w-11 rounded-full transition-colors"
-                style={{ backgroundColor: item.value ? '#D4856B' : 'rgba(168,203,181,0.3)' }}
+                className={clsx('relative h-6 w-11 rounded-full transition-colors', item.value ? 'bg-terra' : 'bg-sage-light/30')}
               >
-                <span className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform" style={{ left: item.value ? '22px' : '2px' }} />
+                <span
+                  className={clsx(
+                    'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
+                    item.value && 'translate-x-5',
+                  )}
+                />
               </button>
             </div>
           ))}
         </div>
 
         {/* Notes */}
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)' }}>
-          <label className="mb-1.5 block text-[12px] font-semibold" style={{ color: '#4A4A4A' }}>Notes (optional)</label>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+          <label className="mb-1.5 block text-xs font-semibold text-charcoal-light">Notes (optional)</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="What did you eat today?"
             rows={2}
-            className="w-full rounded-lg px-3 py-2 text-[13px] outline-none"
-            style={{ border: '1px solid rgba(168,203,181,0.3)', color: '#2D2D2D', resize: 'vertical' }}
+            className="w-full resize-y rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none placeholder:text-charcoal-light/50"
           />
         </div>
 
-        <button onClick={handleSave} className="w-full rounded-xl py-3 text-[14px] font-semibold text-white transition-all hover:shadow-md" style={{ backgroundColor: '#2A6B6B' }}>
-          <CheckCircle2 className="mb-0.5 mr-2 inline h-4 w-4" /> Save Nutrition Log
+        <button onClick={handleSave} className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3 text-sm font-semibold text-white transition-all hover:shadow-md">
+          <CheckCircle2 className="h-4 w-4" /> Save Nutrition Log
         </button>
       </div>
     );
@@ -256,61 +274,57 @@ export default function NutritionPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-[24px] font-bold" style={{ color: '#2A6B6B' }}>Nutrition</h1>
-          <p className="mt-1 text-[14px]" style={{ color: '#4A4A4A' }}>Track your eating, drinking, and weight</p>
+          <h1 className="font-heading text-2xl font-bold text-teal">Nutrition</h1>
+          <p className="mt-1 text-sm text-charcoal-light">Track your eating, drinking, and weight</p>
         </div>
-        <button onClick={() => setMode('log')} className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white" style={{ backgroundColor: '#2A6B6B' }}>
+        <button onClick={() => setMode('log')} className="flex items-center gap-1.5 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white">
           <PlusCircle className="h-4 w-4" /> Log Today
         </button>
       </div>
 
       {/* MUST Risk Banner */}
-      <div
-        className="flex items-start gap-3 rounded-xl p-4"
-        style={{ backgroundColor: `${mustRisk.color}08`, border: `1px solid ${mustRisk.color}25` }}
-      >
-        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: mustRisk.color }} />
+      <div className={clsx('flex items-start gap-3 rounded-xl border p-4', mustRisk.lightBg, mustRisk.border)}>
+        <AlertTriangle className={clsx('mt-0.5 h-5 w-5 flex-shrink-0', mustRisk.text)} />
         <div>
-          <p className="text-[13px] font-semibold" style={{ color: mustRisk.color }}>
+          <p className={clsx('text-sm font-semibold', mustRisk.text)}>
             Nutrition Risk: {mustRisk.level}
           </p>
-          <p className="mt-1 text-[12px]" style={{ color: '#4A4A4A' }}>{mustRisk.advice}</p>
+          <p className="mt-1 text-xs text-charcoal-light">{mustRisk.advice}</p>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Current Weight', value: `${currentWeight} kg`, sub: `BMI ${bmi}`, icon: Scale, color: '#2A6B6B' },
+          { label: 'Current Weight', value: `${currentWeight} kg`, sub: `BMI ${bmi}`, icon: Scale, textCls: 'text-teal' },
           {
             label: 'Weight Change',
             value: `${weightChange >= 0 ? '+' : ''}${Math.round(weightChange * 10) / 10} kg`,
             sub: `${weightChangePct}% ${weightChange >= 0 ? 'gained' : 'lost'}`,
             icon: weightChange < -1 ? TrendingDown : weightChange > 1 ? TrendingUp : Minus,
-            color: weightChange < -2 ? '#C25A45' : weightChange < 0 ? '#D4856B' : '#7BA68C',
+            textCls: weightChange < -2 ? 'text-alert-critical' : weightChange < 0 ? 'text-terra' : 'text-sage',
           },
-          { label: 'Avg Appetite', value: `${avgAppetite}/10`, sub: 'Last 14 days', icon: Apple, color: getAppetiteColor(avgAppetite) },
-          { label: 'Avg Fluids', value: `${avgFluids}`, sub: 'Glasses/day', icon: Droplets, color: avgFluids >= 6 ? '#7BA68C' : '#D4856B' },
+          { label: 'Avg Appetite', value: `${avgAppetite}/10`, sub: 'Last 14 days', icon: Apple, textCls: appetiteText(avgAppetite) },
+          { label: 'Avg Fluids', value: `${avgFluids}`, sub: 'Glasses/day', icon: Droplets, textCls: avgFluids >= 6 ? 'text-sage' : 'text-terra' },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl bg-white p-3"
-            style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+            className="rounded-xl border border-sage-light/20 bg-white p-3 shadow-sm"
           >
             <div className="mb-2 flex items-center gap-2">
-              <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
-              <span className="text-[11px] font-medium" style={{ color: '#4A4A4A' }}>{stat.label}</span>
+              <stat.icon className={clsx('h-4 w-4', stat.textCls)} />
+              <span className="text-xs font-medium text-charcoal-light">{stat.label}</span>
             </div>
-            <p className="font-mono text-[18px] font-bold" style={{ color: stat.color }}>{stat.value}</p>
-            <p className="text-[10px]" style={{ color: '#4A4A4A' }}>{stat.sub}</p>
+            <p className={clsx('font-mono text-lg font-bold', stat.textCls)}>{stat.value}</p>
+            <p className="text-[10px] text-charcoal-light">{stat.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Weight Trend (dots) */}
       {weightsRecorded.length > 1 && (
-        <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <h2 className="mb-3 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>Weight Trend</h2>
+        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-charcoal">Weight Trend</h2>
           <div className="flex items-end gap-2" style={{ height: '80px' }}>
             {weightsRecorded.map((w) => {
               const min = Math.min(...weightsRecorded.map((x) => x.weight)) - 1;
@@ -318,11 +332,11 @@ export default function NutritionPage() {
               const pct = ((w.weight - min) / (max - min)) * 100;
               return (
                 <div key={w.date} className="flex flex-1 flex-col items-center gap-1">
-                  <span className="text-[9px] font-bold" style={{ color: '#2D2D2D' }}>{w.weight}</span>
+                  <span className="text-[9px] font-bold text-charcoal">{w.weight}</span>
                   <div style={{ height: `${pct}%` }} className="flex items-end">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: '#2A6B6B' }} />
+                    <div className="h-3 w-3 rounded-full bg-teal" />
                   </div>
-                  <span className="text-[8px]" style={{ color: '#4A4A4A' }}>{new Date(w.date).getDate()}</span>
+                  <span className="text-[8px] text-charcoal-light">{new Date(w.date).getDate()}</span>
                 </div>
               );
             })}
@@ -331,16 +345,19 @@ export default function NutritionPage() {
       )}
 
       {/* Appetite Chart */}
-      <div className="rounded-xl bg-white p-4" style={{ border: '1px solid rgba(168,203,181,0.2)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-        <h2 className="mb-3 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>Appetite (last 14 days)</h2>
+      <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-charcoal">Appetite (last 14 days)</h2>
         <div className="flex items-end gap-1.5" style={{ height: '100px' }}>
           {history.slice(-14).map((h) => {
             const pct = (h.appetite / 10) * 100;
             return (
               <div key={h.id} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[9px] font-bold" style={{ color: getAppetiteColor(h.appetite) }}>{h.appetite}</span>
-                <div className="w-full overflow-hidden rounded-t" style={{ height: `${pct}%`, backgroundColor: getAppetiteColor(h.appetite), minHeight: '4px', opacity: 0.8 }} />
-                <span className="text-[8px]" style={{ color: '#4A4A4A' }}>{new Date(h.date).getDate()}</span>
+                <span className={clsx('text-[9px] font-bold', appetiteText(h.appetite))}>{h.appetite}</span>
+                <div
+                  className={clsx('w-full overflow-hidden rounded-t opacity-80', appetiteBg(h.appetite))}
+                  style={{ height: `${pct}%`, minHeight: '4px' }}
+                />
+                <span className="text-[8px] text-charcoal-light">{new Date(h.date).getDate()}</span>
               </div>
             );
           })}
@@ -349,26 +366,26 @@ export default function NutritionPage() {
 
       {/* Recent Logs */}
       <div>
-        <h2 className="mb-3 text-[14px] font-semibold" style={{ color: '#2D2D2D' }}>Recent Logs</h2>
+        <h2 className="mb-3 text-sm font-semibold text-charcoal">Recent Logs</h2>
         <div className="space-y-2">
           {history.slice(-5).reverse().map((h) => (
-            <div key={h.id} className="flex items-center justify-between rounded-xl bg-white px-4 py-3" style={{ border: '1px solid rgba(168,203,181,0.15)' }}>
+            <div key={h.id} className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: `${getAppetiteColor(h.appetite)}15` }}>
-                  <Coffee className="h-4 w-4" style={{ color: getAppetiteColor(h.appetite) }} />
+                <div className={clsx('flex h-9 w-9 items-center justify-center rounded-lg', appetiteLightBg(h.appetite))}>
+                  <Coffee className={clsx('h-4 w-4', appetiteText(h.appetite))} />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold" style={{ color: '#2D2D2D' }}>
+                  <p className="text-sm font-semibold text-charcoal">
                     Appetite {h.appetite}/10 · {h.meals_eaten} meals · {h.fluid_intake} glasses
                   </p>
-                  <p className="text-[11px]" style={{ color: '#4A4A4A' }}>
+                  <p className="text-xs text-charcoal-light">
                     Intake: {h.oral_intake}{h.weight ? ` · ${h.weight} kg` : ''}
                     {h.nausea_affected ? ' · Nausea' : ''}
                     {h.mouth_problems ? ' · Mouth issues' : ''}
                   </p>
                 </div>
               </div>
-              <span className="text-[11px]" style={{ color: '#4A4A4A' }}>{h.date}</span>
+              <span className="text-xs text-charcoal-light">{h.date}</span>
             </div>
           ))}
         </div>
