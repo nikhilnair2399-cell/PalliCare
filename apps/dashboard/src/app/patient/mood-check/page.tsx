@@ -18,6 +18,7 @@ import {
   Wind,
   Heart,
   Sparkles,
+  Calendar,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -211,6 +212,68 @@ export default function MoodCheckPage() {
             </div>
           </Link>
         </div>
+
+        {/* Sprint 52 — 14-Day Mood Log Pattern */}
+        {(() => {
+          const MOOD_LOG = Array.from({ length: 14 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (13 - i));
+            const moods = ['good', 'good', 'okay', 'okay', 'okay', 'low', 'good', 'okay', 'good', 'low', 'okay', 'good', 'good', 'okay'];
+            return { date: d.toISOString().split('T')[0], day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()], mood: moods[i] };
+          });
+          const moodValue: Record<string, number> = { good: 3, okay: 2, low: 1 };
+          const moodColor: Record<string, string> = { good: 'bg-sage', okay: 'bg-amber', low: 'bg-terra' };
+          const moodEmoji: Record<string, string> = { good: '😊', okay: '😐', low: '😔' };
+          const counts = { good: 0, okay: 0, low: 0 };
+          MOOD_LOG.forEach((m) => { counts[m.mood as keyof typeof counts] += 1; });
+          const avgVal = MOOD_LOG.reduce((s, m) => s + moodValue[m.mood], 0) / MOOD_LOG.length;
+          const first7 = MOOD_LOG.slice(0, 7);
+          const last7 = MOOD_LOG.slice(7);
+          const firstAvg = first7.reduce((s, m) => s + moodValue[m.mood], 0) / first7.length;
+          const lastAvg = last7.reduce((s, m) => s + moodValue[m.mood], 0) / last7.length;
+          const trendDir = lastAvg > firstAvg + 0.2 ? 'improving' : lastAvg < firstAvg - 0.2 ? 'declining' : 'stable';
+          return (
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="h-5 w-5 text-lavender" />
+                <h3 className="text-base font-semibold text-charcoal">14-Day Mood Pattern</h3>
+                <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                  trendDir === 'improving' ? 'bg-sage/10 text-sage-dark' : trendDir === 'declining' ? 'bg-terra/10 text-terra' : 'bg-amber/10 text-amber'
+                }`}>
+                  {trendDir === 'improving' ? 'Improving' : trendDir === 'declining' ? 'Needs attention' : 'Steady'}
+                </span>
+              </div>
+              {/* Grid of mood dots */}
+              <div className="flex gap-1 mb-3">
+                {MOOD_LOG.map((m, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] ${moodColor[m.mood]}/20`}>
+                      {moodEmoji[m.mood]}
+                    </div>
+                    <span className="text-[8px] text-charcoal/40">{new Date(m.date).getDate()}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Summary */}
+              <div className="grid grid-cols-3 gap-2">
+                {(['good', 'okay', 'low'] as const).map((m) => (
+                  <div key={m} className={`rounded-xl p-2.5 text-center ${moodColor[m]}/10`}>
+                    <span className="text-lg">{moodEmoji[m]}</span>
+                    <p className="text-sm font-bold text-charcoal">{counts[m]}</p>
+                    <p className="text-[10px] text-charcoal/40 capitalize">{m} days</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-charcoal/40">
+                {avgVal >= 2.5
+                  ? 'Your mood has been predominantly positive. Keep up your wellbeing practices!'
+                  : avgVal >= 1.8
+                  ? 'Mixed mood patterns. Consider the full PHQ-9 screening if low days persist.'
+                  : 'Several low-mood days detected. Please talk to your care team or try the full screening below.'}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Emotional Wellness Pattern */}
         {history.length >= 2 && (() => {

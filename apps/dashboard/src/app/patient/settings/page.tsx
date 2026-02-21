@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2 } from 'lucide-react';
+import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2, Activity } from 'lucide-react';
 import { usePatientProfile, useUpdatePatientProfile } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE } from '@/lib/patient-mock-data';
@@ -102,6 +102,58 @@ export default function SettingsPage() {
                 All settings configured — your profile is fully set up!
               </p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 52 — App Usage Activity */}
+      {(() => {
+        const ACTIVITY_LOG = [
+          { section: 'Pain Diary', lastUsed: '2h ago', visits: 42, streak: 7, icon: '📝' },
+          { section: 'Medications', lastUsed: '4h ago', visits: 38, streak: 5, icon: '💊' },
+          { section: 'Sleep Tracker', lastUsed: '1d ago', visits: 28, streak: 3, icon: '🌙' },
+          { section: 'Breathe', lastUsed: '1d ago', visits: 19, streak: 2, icon: '🌬️' },
+          { section: 'Mood Check', lastUsed: '3d ago', visits: 8, streak: 0, icon: '🧠' },
+          { section: 'Messages', lastUsed: '5h ago', visits: 31, streak: 4, icon: '💬' },
+        ];
+        const totalVisits = ACTIVITY_LOG.reduce((s, a) => s + a.visits, 0);
+        const maxVisits = Math.max(...ACTIVITY_LOG.map((a) => a.visits));
+        const activeStreak = ACTIVITY_LOG.filter((a) => a.streak > 0).length;
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-teal" />
+                <h3 className="text-base font-semibold text-charcoal">Your App Activity</h3>
+              </div>
+              <span className="rounded-full bg-teal/10 px-3 py-1 text-xs font-bold text-teal">{totalVisits} visits</span>
+            </div>
+            <div className="space-y-2.5">
+              {ACTIVITY_LOG.map((a) => (
+                <div key={a.section} className="flex items-center gap-3">
+                  <span className="text-base w-6">{a.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-sm font-medium text-charcoal">{a.section}</span>
+                      <span className="text-[10px] text-charcoal/40">{a.lastUsed}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-cream">
+                      <div className="h-full rounded-full bg-teal/60" style={{ width: `${(a.visits / maxVisits) * 100}%` }} />
+                    </div>
+                  </div>
+                  {a.streak > 0 && (
+                    <span className="rounded-full bg-sage/10 px-2 py-0.5 text-[10px] font-bold text-sage-dark">
+                      {a.streak}d streak
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {activeStreak >= 4
+                ? 'Excellent engagement! You are actively using most features. This helps your care team support you better.'
+                : 'Try exploring features you haven\'t used recently. Regular logging helps your care team understand your needs.'}
+            </p>
           </div>
         );
       })()}

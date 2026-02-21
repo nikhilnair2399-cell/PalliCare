@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown } from 'lucide-react';
+import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown, BarChart3 } from 'lucide-react';
 import { usePatientMessages, useSendPatientMessage } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MESSAGES } from '@/lib/patient-mock-data';
@@ -135,6 +135,63 @@ export default function MessagesPage() {
                 Your care team typically responds within an hour
               </p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 52 — Conversation Topics Breakdown */}
+      {messages.length >= 3 && (() => {
+        const TOPIC_KEYWORDS: { topic: string; keywords: string[]; color: string; icon: string }[] = [
+          { topic: 'Pain', keywords: ['pain', 'hurt', 'ache', 'discomfort', 'morphine', 'opioid'], color: 'bg-terra', icon: '🔥' },
+          { topic: 'Medication', keywords: ['medication', 'dose', 'medicine', 'tablet', 'side effect', 'drug'], color: 'bg-amber', icon: '💊' },
+          { topic: 'Appointment', keywords: ['appointment', 'visit', 'schedule', 'follow-up', 'clinic'], color: 'bg-teal', icon: '📅' },
+          { topic: 'Nausea', keywords: ['nausea', 'nauseous', 'vomit', 'sick', 'stomach'], color: 'bg-lavender', icon: '🤢' },
+          { topic: 'General', keywords: ['thank', 'question', 'help', 'good', 'better', 'okay'], color: 'bg-sage', icon: '💬' },
+        ];
+        const topicCounts: Record<string, number> = {};
+        TOPIC_KEYWORDS.forEach((t) => { topicCounts[t.topic] = 0; });
+        messages.forEach((m: any) => {
+          const text = ((m.content || m.message) as string || '').toLowerCase();
+          let matched = false;
+          TOPIC_KEYWORDS.forEach((t) => {
+            if (t.keywords.some((kw) => text.includes(kw))) {
+              topicCounts[t.topic] += 1;
+              matched = true;
+            }
+          });
+          if (!matched) topicCounts['General'] += 1;
+        });
+        const totalTagged = Object.values(topicCounts).reduce((s, v) => s + v, 0);
+        const sorted = TOPIC_KEYWORDS.map((t) => ({ ...t, count: topicCounts[t.topic] })).filter((t) => t.count > 0).sort((a, b) => b.count - a.count);
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Conversation Topics</h3>
+              <span className="ml-auto text-[10px] text-charcoal/40">{messages.length} messages</span>
+            </div>
+            <div className="space-y-2">
+              {sorted.map((t) => {
+                const pct = totalTagged > 0 ? Math.round((t.count / totalTagged) * 100) : 0;
+                return (
+                  <div key={t.topic} className="flex items-center gap-3">
+                    <span className="text-sm w-5">{t.icon}</span>
+                    <span className="w-20 text-xs font-medium text-charcoal">{t.topic}</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-cream">
+                      <div className={`h-full rounded-full ${t.color}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="w-8 text-right text-xs font-bold text-charcoal/50">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {sorted[0]?.topic === 'Pain'
+                ? 'Most conversations are about pain management. Your team is monitoring closely.'
+                : sorted[0]?.topic === 'Medication'
+                ? 'Medication-related discussions are most common. Keep asking questions about your treatment.'
+                : 'Your conversations span multiple topics. Good communication with your care team!'}
+            </p>
           </div>
         );
       })()}
