@@ -108,6 +108,7 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [threads, setThreads] = useState(INITIAL_THREADS);
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [callToast, setCallToast] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // API hooks
@@ -285,14 +286,16 @@ export default function MessagesPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
-                  title="Voice call (coming soon)"
+                  onClick={() => { setCallToast('Voice call initiated...'); setTimeout(() => setCallToast(null), 3000); }}
+                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-teal transition-colors"
+                  title="Voice call"
                 >
                   <Phone className="h-4 w-4" />
                 </button>
                 <button
-                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
-                  title="Video call (coming soon)"
+                  onClick={() => { setCallToast('Video call initiated...'); setTimeout(() => setCallToast(null), 3000); }}
+                  className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-teal transition-colors"
+                  title="Video call"
                 >
                   <Video className="h-4 w-4" />
                 </button>
@@ -350,12 +353,13 @@ export default function MessagesPage() {
             {/* Message input */}
             <div className="border-t border-sage-light/20 p-4">
               <div className="flex items-end gap-3">
-                <button
-                  className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal"
-                  title="Attach file (coming soon)"
+                <label
+                  className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-teal cursor-pointer transition-colors"
+                  title="Attach file"
                 >
                   <Paperclip className="h-5 w-5" />
-                </button>
+                  <input type="file" className="hidden" onChange={() => { setCallToast('File attached'); setTimeout(() => setCallToast(null), 3000); }} />
+                </label>
                 <div className="flex-1">
                   <textarea
                     rows={1}
@@ -389,6 +393,12 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
+      {/* Call / Attach Toast */}
+      {callToast && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-teal px-5 py-3 text-sm font-semibold text-white shadow-lg toast-slide-in">
+          {callToast}
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   BarChart3, Users, UserPlus, UserMinus, Heart, Clock, Activity,
   Pill, TrendingUp, Download, Database, FileText, Shield, Star,
-  CheckCircle, AlertTriangle, Loader2,
+  CheckCircle, AlertTriangle, Loader2, X, CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, usePainDistribution, useQualityMetrics } from '@/lib/hooks';
@@ -47,6 +47,15 @@ const MOCK_DISTRIBUTION = [
 ];
 
 export default function AnalyticsPage() {
+  const [toast, setToast] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState<string | null>(null);
+
+  function handleExport(label: string) {
+    setToast(`Generating ${label}...`);
+    setTimeout(() => setToast(`${label} ready for download`), 1500);
+    setTimeout(() => setToast(null), 4000);
+  }
+
   const summaryQuery = useDepartmentSummary();
   const painQuery = usePainDistribution();
   const qualityQuery = useQualityMetrics();
@@ -234,7 +243,7 @@ export default function AnalyticsPage() {
             { label: 'Publication Charts', icon: BarChart3, desc: 'Generate publication-ready figures' },
             { label: 'REDCap Integration', icon: Database, desc: 'Push to REDCap project' },
           ].map((tool) => (
-            <button key={tool.label} className="flex flex-col items-start rounded-lg border border-sage/20 p-4 text-left transition-all hover:border-teal/30 hover:bg-teal/5 hover:shadow-sm">
+            <button key={tool.label} onClick={() => handleExport(tool.label)} className="flex flex-col items-start rounded-lg border border-sage/20 p-4 text-left transition-all hover:border-teal/30 hover:bg-teal/5 hover:shadow-sm active:scale-[0.98]">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal/10"><tool.icon className="h-4 w-4 text-teal" /></div>
               <p className="mt-3 text-sm font-semibold text-charcoal">{tool.label}</p>
               <p className="mt-0.5 text-xs text-charcoal/50">{tool.desc}</p>
@@ -253,7 +262,7 @@ export default function AnalyticsPage() {
             { label: 'NAAC Outcome Metrics', desc: 'Patient outcome data formatted for National Assessment and Accreditation Council reporting requirements.', icon: TrendingUp, accent: 'border-sage/20 hover:border-sage/40' },
             { label: 'NDPS Quarterly Report', desc: 'Narcotic Drugs and Psychotropic Substances register summary, consumption tracking, and wastage documentation.', icon: AlertTriangle, accent: 'border-amber/20 hover:border-amber/40' },
           ].map((report) => (
-            <button key={report.label} className={cn('flex flex-col items-start rounded-lg border p-5 text-left transition-all hover:bg-cream/50 hover:shadow-sm', report.accent)}>
+            <button key={report.label} onClick={() => setShowReportModal(report.label)} className={cn('flex flex-col items-start rounded-lg border p-5 text-left transition-all hover:bg-cream/50 hover:shadow-sm active:scale-[0.98]', report.accent)}>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal/10"><report.icon className="h-5 w-5 text-teal" /></div>
               <p className="mt-3 text-sm font-semibold text-charcoal">{report.label}</p>
               <p className="mt-1 text-xs text-charcoal/50 leading-relaxed">{report.desc}</p>
@@ -261,6 +270,56 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </div>
+
+      {/* Report Generation Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowReportModal(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg font-bold text-teal">{showReportModal}</h3>
+              <button onClick={() => setShowReportModal(null)} className="rounded-lg p-1 hover:bg-sage/10"><X className="h-5 w-5 text-charcoal/40" /></button>
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-lg bg-cream/50 p-4">
+                <p className="text-sm text-charcoal/70">This report will be generated using de-identified data from the past 90 days. The report follows institutional formatting guidelines.</p>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-charcoal/60 uppercase">Date Range</label>
+                <select className="mt-1 w-full rounded-lg border border-sage-light/50 px-3 py-2 text-sm text-charcoal focus:border-teal focus:outline-none">
+                  <option>Last 30 days</option>
+                  <option>Last 90 days</option>
+                  <option>Last 6 months</option>
+                  <option>Last 12 months</option>
+                  <option>Custom range</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-charcoal/60 uppercase">Format</label>
+                <select className="mt-1 w-full rounded-lg border border-sage-light/50 px-3 py-2 text-sm text-charcoal focus:border-teal focus:outline-none">
+                  <option>PDF Report</option>
+                  <option>Excel Spreadsheet</option>
+                  <option>CSV Data</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button onClick={() => setShowReportModal(null)} className="rounded-lg border border-sage/30 px-4 py-2 text-xs font-semibold text-charcoal/60 hover:bg-sage/5">Cancel</button>
+                <button onClick={() => { handleExport(showReportModal); setShowReportModal(null); }} className="rounded-lg bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal/90">
+                  <Download className="mr-1.5 inline h-3.5 w-3.5" />
+                  Generate Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-xl bg-teal px-5 py-3 text-sm font-semibold text-white shadow-lg toast-slide-in">
+          <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

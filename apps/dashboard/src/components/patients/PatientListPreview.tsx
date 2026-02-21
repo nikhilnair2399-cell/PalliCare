@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronRight, TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
 import { usePatients } from '@/lib/hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -81,6 +82,7 @@ function TrendIcon({ trend }: { trend: PatientRow['painTrend'] }) {
 }
 
 export function PatientListPreview() {
+  const router = useRouter();
   const patientsQuery = usePatients({ sort_by: 'pain', page: 1 });
   const { data: rawData, isLoading, isFromApi } = useWithFallback(patientsQuery, MOCK_PATIENTS);
 
@@ -122,7 +124,7 @@ export function PatientListPreview() {
           </thead>
           <tbody className="divide-y divide-sage-light/10">
             {patients.map((patient) => (
-              <tr key={patient.id} className="cursor-pointer transition-colors hover:bg-cream/30">
+              <tr key={patient.id} onClick={() => router.push(`/patients/${patient.id}`)} className="cursor-pointer transition-colors hover:bg-cream/30">
                 <td className="px-5 py-3"><StatusDot status={patient.status} /></td>
                 <td className="px-3 py-3">
                   <Link href={`/patients/${patient.id}`}>

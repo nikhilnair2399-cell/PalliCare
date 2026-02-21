@@ -28,7 +28,9 @@ const PATIENTS_LIST = [
   { id: '5', name: 'Mahesh Verma', age: 65, diagnosis: 'Head & Neck Ca' },
 ];
 
-const CARE_PLAN = {
+const PATIENT_DATA: Record<string, { carePlan: typeof CARE_PLAN_1; sbar: typeof SBAR_1; teamMessages: typeof MESSAGES_1 }> = {};
+
+const CARE_PLAN_1 = {
   goalsOfCare: [
     'Comfort-focused care with emphasis on pain control (target NRS < 4)',
     'Maintain functional independence for basic ADLs as long as possible',
@@ -53,82 +55,183 @@ const CARE_PLAN = {
   ],
 };
 
-const SBAR = {
+const SBAR_1 = {
   situation: 'Ramesh Kumar, 58M with Stage IIIB Lung Ca and bone metastases, currently admitted with escalating pain. Pain score sustained at NRS 7-8/10 over the past 72 hours despite background opioid therapy. MEDD has reached 220mg/day, exceeding the 200mg safety threshold.',
   background: 'Diagnosed 8 months ago. Progressive disease with new T10 vertebral metastasis on recent CT. On Morphine SR 60mg q12h plus Morphine IR 15mg PRN. Gabapentin 300mg TID for neuropathic component. Adherence to Gabapentin has been suboptimal at 78%. PPS 50%, ECOG 2. DNR status documented. Caregiver (wife Sunita) showing moderate distress (6/10).',
   assessment: 'Pain is mixed somatic-neuropathic from bone metastases. Breakthrough frequency has increased to 5 doses/day (baseline 2/day), suggesting inadequate background analgesia. Mood has been low for 3 consecutive days. Sleep disrupted averaging 4.2 hrs/night. Functional decline noted.',
   recommendation: 'Recommend: (1) Increase Morphine SR to 90mg q12h based on breakthrough consumption. (2) Titrate Gabapentin to 600mg TID for neuropathic component. (3) Urgent palliative RT referral for T10 met. (4) PHQ-9 screening for depression. (5) Caregiver support counselling. (6) Review in 48 hours with MDT.',
 };
 
-const TEAM_MESSAGES = [
-  {
-    id: 'm1',
-    author: 'Dr. Nikhil N.',
-    role: 'Palliative Medicine',
-    badge: 'Dr.',
-    badgeColor: 'bg-teal text-white',
-    time: '09:15 AM',
-    content: 'Reviewed pain trajectory. The breakthrough frequency clearly indicates background dose is insufficient. Planning to increase Morphine SR to 90mg q12h. Will also review Gabapentin titration.',
-  },
-  {
-    id: 'm2',
-    author: 'Sr. Meena R.',
-    role: 'Palliative Nurse',
-    badge: 'Sr.',
-    badgeColor: 'bg-sage text-white',
-    time: '09:22 AM',
-    content: 'Caregiver Sunita shared that patient has been reluctant to take Gabapentin due to dizziness. She is managing pain diary well but seems overwhelmed. Recommend social work referral.',
-  },
-  {
-    id: 'm3',
-    author: 'Dr. Anil K.',
-    role: 'Oncology',
-    badge: 'Dr.',
-    badgeColor: 'bg-teal text-white',
-    time: '09:35 AM',
-    content: 'Radiation oncology slot available Friday. Single fraction 8Gy to T10 would be appropriate. Patient is fit enough for transport. Will coordinate with Sr. Meena for logistics.',
-  },
-  {
-    id: 'm4',
-    author: 'Ms. Priya S.',
-    role: 'Clinical Psychology',
-    badge: 'Psy.',
-    badgeColor: 'bg-lavender text-charcoal',
-    time: '09:48 AM',
-    content: 'Will administer PHQ-9 this afternoon. The sustained low mood pattern and sleep disruption are concerning. May need to consider low-dose mirtazapine if depression confirmed -- has sleep and appetite benefits.',
-  },
-  {
-    id: 'm5',
-    author: 'Pharm. Rajan T.',
-    role: 'Pharmacy',
-    badge: 'Rx',
-    badgeColor: 'bg-amber text-white',
-    time: '10:01 AM',
-    content: 'NDPS register updated for morphine dose change. Current stock sufficient for 2 weeks. Reminder: if MEDD crosses 300mg, mandatory second signatory required per institutional policy.',
-  },
+const MESSAGES_1 = [
+  { id: 'm1', author: 'Dr. Nikhil N.', role: 'Palliative Medicine', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '09:15 AM', content: 'Reviewed pain trajectory. The breakthrough frequency clearly indicates background dose is insufficient. Planning to increase Morphine SR to 90mg q12h. Will also review Gabapentin titration.' },
+  { id: 'm2', author: 'Sr. Meena R.', role: 'Palliative Nurse', badge: 'Sr.', badgeColor: 'bg-sage text-white', time: '09:22 AM', content: 'Caregiver Sunita shared that patient has been reluctant to take Gabapentin due to dizziness. She is managing pain diary well but seems overwhelmed. Recommend social work referral.' },
+  { id: 'm3', author: 'Dr. Anil K.', role: 'Oncology', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '09:35 AM', content: 'Radiation oncology slot available Friday. Single fraction 8Gy to T10 would be appropriate. Patient is fit enough for transport. Will coordinate with Sr. Meena for logistics.' },
+  { id: 'm4', author: 'Ms. Priya S.', role: 'Clinical Psychology', badge: 'Psy.', badgeColor: 'bg-lavender text-charcoal', time: '09:48 AM', content: 'Will administer PHQ-9 this afternoon. The sustained low mood pattern and sleep disruption are concerning. May need to consider low-dose mirtazapine if depression confirmed -- has sleep and appetite benefits.' },
+  { id: 'm5', author: 'Pharm. Rajan T.', role: 'Pharmacy', badge: 'Rx', badgeColor: 'bg-amber text-white', time: '10:01 AM', content: 'NDPS register updated for morphine dose change. Current stock sufficient for 2 weeks. Reminder: if MEDD crosses 300mg, mandatory second signatory required per institutional policy.' },
 ];
+
+PATIENT_DATA['1'] = { carePlan: CARE_PLAN_1, sbar: SBAR_1, teamMessages: MESSAGES_1 };
+
+PATIENT_DATA['2'] = {
+  carePlan: {
+    goalsOfCare: [
+      'Symptom control with focus on nausea and appetite management',
+      'Emotional and psychological support for anticipatory grief',
+      'Caregiver education on medication administration',
+    ],
+    painManagementPlan: [
+      'Paracetamol 1g QID as baseline analgesic',
+      'Tramadol 50mg TID for moderate bone pain',
+      'Ondansetron 8mg TID for chemotherapy-induced nausea',
+      'Bland diet plan with small frequent meals',
+    ],
+    teamTasks: [
+      { id: 't1', text: 'Monitor nausea severity daily and adjust anti-emetics', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+      { id: 't2', text: 'Weekly dietary assessment and calorie intake monitoring', assignee: 'Dt. Anita P.', role: 'Dietetics', done: true },
+      { id: 't3', text: 'Psychological support session for disease progression anxiety', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
+      { id: 't4', text: 'Educate family on subcutaneous medication administration', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+    ],
+  },
+  sbar: {
+    situation: 'Sunita Devi, 55F with Stage IV Breast Ca, reporting improved nausea control after anti-emetic switch. Pain remains moderate at NRS 4/10.',
+    background: 'Diagnosed 14 months ago with bone and liver metastases. Previous nausea episodes 4/day reduced to 1/day after switching to ondansetron. Tolerating small frequent meals. PPS 60%, ECOG 2.',
+    assessment: 'Nausea improving with current regime. Appetite slowly recovering. Mild anxiety about disease progression. Caregiver (husband Mohan) coping well with medication schedule.',
+    recommendation: 'Recommend: (1) Continue current anti-emetic regime for 1 week then reassess. (2) Dietitian follow-up for calorie optimization. (3) Psychology referral for anticipatory grief counselling. (4) Review in 1 week.',
+  },
+  teamMessages: [
+    { id: 'm1', author: 'Dt. Anita P.', role: 'Dietetics', badge: 'Dt.', badgeColor: 'bg-sage text-white', time: '10:00 AM', content: 'Sunita ji tolerating bland diet plan well. Calorie intake improved from 800 to 1200 kcal/day this week. Recommending protein supplement shake.' },
+    { id: 'm2', author: 'Dr. Nikhil N.', role: 'Palliative Medicine', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '10:15 AM', content: 'Good progress on nausea front. Ondansetron switch working. Continue current regime and reassess in one week.' },
+    { id: 'm3', author: 'Sr. Meena R.', role: 'Palliative Nurse', badge: 'Sr.', badgeColor: 'bg-sage text-white', time: '10:30 AM', content: 'Patient expressing anxiety about upcoming scan results. Recommend psychology referral for supportive counselling.' },
+  ],
+};
+
+PATIENT_DATA['3'] = {
+  carePlan: {
+    goalsOfCare: [
+      'Aggressive pain management targeting NRS < 3',
+      'Nutritional support via nasogastric feeding if oral intake fails',
+      'Family meeting for goals-of-care discussion',
+      'Advance care directive documentation',
+    ],
+    painManagementPlan: [
+      'Fentanyl patch 50mcg/hr as background opioid',
+      'Morphine IR 10mg q3h PRN for breakthrough pain',
+      'Celecoxib 200mg BD for inflammatory component',
+      'Consider intrathecal pump if oral route fails',
+    ],
+    teamTasks: [
+      { id: 't1', text: 'Daily pain assessment with NRS + Wong-Baker', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+      { id: 't2', text: 'Nutrition assessment and NG tube consideration', assignee: 'Dt. Anita P.', role: 'Dietetics', done: false },
+      { id: 't3', text: 'Family goals-of-care meeting coordination', assignee: 'Ms. Sunita M.', role: 'Social Work', done: true },
+      { id: 't4', text: 'Review fentanyl patch absorption and dose adequacy', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false },
+      { id: 't5', text: 'Spiritual care assessment and support', assignee: 'Chaplain Ravi', role: 'Spiritual Care', done: false },
+    ],
+  },
+  sbar: {
+    situation: 'Arun Sharma, 70M with Pancreatic Ca, presenting with severe abdominal pain (NRS 8/10) and progressive weight loss. Oral intake declining over past 2 weeks.',
+    background: 'Diagnosed 5 months ago. Unresectable tumour with liver metastases. On Fentanyl patch 50mcg/hr with oral morphine PRN. Weight loss 8kg in 2 months. PPS 40%, ECOG 3. Family aware of prognosis.',
+    assessment: 'Pain poorly controlled despite transdermal fentanyl. Possible coeliac plexus involvement. Nutritional status deteriorating rapidly. Family requesting meeting to discuss goals of care.',
+    recommendation: 'Recommend: (1) Increase fentanyl to 75mcg/hr. (2) Consider coeliac plexus block referral. (3) NG tube insertion if oral intake < 500 kcal/day. (4) Family meeting this week. (5) Advance care directive discussion. (6) MDT review in 48 hours.',
+  },
+  teamMessages: [
+    { id: 'm1', author: 'Dr. Nikhil N.', role: 'Palliative Medicine', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '08:30 AM', content: 'Arun ji had a very difficult night. Pain score peaking at 8/10. Fentanyl patch needs to be stepped up. Will discuss coeliac plexus block with anaesthesia team.' },
+    { id: 'm2', author: 'Ms. Sunita M.', role: 'Social Work', badge: 'SW', badgeColor: 'bg-terra text-white', time: '09:00 AM', content: 'Family meeting scheduled for Thursday. Sons have arrived from Delhi. They want to understand prognosis and care options clearly.' },
+    { id: 'm3', author: 'Chaplain Ravi', role: 'Spiritual Care', badge: 'Ch.', badgeColor: 'bg-charcoal/60 text-white', time: '09:20 AM', content: 'Patient expressed wish for a prayer session with family. Have arranged for tomorrow morning. Also discussed advance care preferences — he prefers comfort over aggressive intervention.' },
+  ],
+};
+
+PATIENT_DATA['4'] = {
+  carePlan: {
+    goalsOfCare: [
+      'Post-operative pain management after debulking surgery',
+      'Early mobilization and physiotherapy',
+      'Psychological support for body image concerns',
+    ],
+    painManagementPlan: [
+      'Paracetamol 1g QID + Ibuprofen 400mg TID',
+      'Tramadol 100mg BD for moderate pain',
+      'Gabapentin 100mg TID for neuropathic component (titrate up)',
+    ],
+    teamTasks: [
+      { id: 't1', text: 'Post-op wound assessment and dressing', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
+      { id: 't2', text: 'Physiotherapy mobilization plan initiation', assignee: 'PT Ravi K.', role: 'Physiotherapy', done: false },
+      { id: 't3', text: 'Body image and coping counselling', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
+    ],
+  },
+  sbar: {
+    situation: 'Priya Patel, 48F with Stage III Ovarian Ca, post-operative day 5 after debulking surgery. Pain well controlled at NRS 3/10.',
+    background: 'Debulking surgery 5 days ago. Recovery progressing well. Started oral feeds on day 3. Ambulating with assistance. PPS 60%, ECOG 2.',
+    assessment: 'Surgical pain improving. Patient anxious about chemotherapy starting next week. Body image concerns noted by nursing staff.',
+    recommendation: 'Recommend: (1) Continue current analgesic regime. (2) Start physiotherapy protocol. (3) Psychology referral for pre-chemo anxiety. (4) Discharge planning for day 7 if progressing.',
+  },
+  teamMessages: [
+    { id: 'm1', author: 'Sr. Meena R.', role: 'Palliative Nurse', badge: 'Sr.', badgeColor: 'bg-sage text-white', time: '07:30 AM', content: 'Priya ji had a good night. Pain controlled, slept 7 hours. Wound healing well. She is anxious about starting chemotherapy next week.' },
+    { id: 'm2', author: 'Dr. Nikhil N.', role: 'Palliative Medicine', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '08:00 AM', content: 'Good recovery trajectory. Will discuss chemo expectations with oncology team and arrange a pre-chemo counselling session.' },
+  ],
+};
+
+PATIENT_DATA['5'] = {
+  carePlan: {
+    goalsOfCare: [
+      'Optimize pain control for oral cavity and neck region',
+      'Nutritional support via PEG tube management',
+      'Speech and swallowing rehabilitation',
+      'Caregiver training for PEG feeding',
+    ],
+    painManagementPlan: [
+      'Morphine SR 30mg q12h as background opioid',
+      'Morphine IR 10mg PRN for breakthrough pain before meals',
+      'Lidocaine viscous gargle for oral mucositis pain',
+      'Dexamethasone 2mg BD to reduce tumour-related oedema',
+    ],
+    teamTasks: [
+      { id: 't1', text: 'Monitor PEG tube site and feeding tolerance', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+      { id: 't2', text: 'Speech therapy assessment for swallowing function', assignee: 'SLP Kavita D.', role: 'Speech Pathology', done: false },
+      { id: 't3', text: 'Caregiver PEG feeding education session', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
+      { id: 't4', text: 'Oral hygiene protocol implementation', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+    ],
+  },
+  sbar: {
+    situation: 'Mahesh Verma, 65M with Head & Neck Ca, managed with PEG feeding due to dysphagia. Pain NRS 6/10 localized to oral cavity and neck.',
+    background: 'Diagnosed 6 months ago. Post-radiation mucositis ongoing. PEG tube placed 3 weeks ago. Weight stabilized since PEG insertion. PPS 50%, ECOG 2. Wife trained on PEG feeds.',
+    assessment: 'Pain predominantly from mucositis and tumour mass. PEG functioning well. Speech and swallowing assessment pending. Mood stable.',
+    recommendation: 'Recommend: (1) Continue current opioid regime. (2) Lidocaine gargle before attempted oral intake. (3) Speech therapy consult. (4) Oral hygiene protocol. (5) Review in 1 week.',
+  },
+  teamMessages: [
+    { id: 'm1', author: 'Dr. Nikhil N.', role: 'Palliative Medicine', badge: 'Dr.', badgeColor: 'bg-teal text-white', time: '11:00 AM', content: 'Mahesh ji reports oral pain improving slightly with lidocaine gargle. PEG feeds being tolerated well at 1500 kcal/day. Need speech therapy input for swallowing rehab.' },
+    { id: 'm2', author: 'Sr. Meena R.', role: 'Palliative Nurse', badge: 'Sr.', badgeColor: 'bg-sage text-white', time: '11:20 AM', content: 'Wife has completed PEG feeding training. She is confident with the technique. PEG site clean, no signs of infection.' },
+  ],
+};
 
 // -- Component ----------------------------------------------------------------
 export default function MDTPage() {
   const [selectedPatient, setSelectedPatient] = useState('1');
-  const [tasks, setTasks] = useState(CARE_PLAN.teamTasks);
+  const [tasksByPatient, setTasksByPatient] = useState<Record<string, typeof CARE_PLAN_1.teamTasks>>({});
   const [messageText, setMessageText] = useState('');
-  const [messages, setMessages] = useState(TEAM_MESSAGES);
+  const [messagesByPatient, setMessagesByPatient] = useState<Record<string, typeof MESSAGES_1>>({});
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
   const patient = PATIENTS_LIST.find((p) => p.id === selectedPatient) || PATIENTS_LIST[0];
+  const patientData = PATIENT_DATA[selectedPatient] || PATIENT_DATA['1'];
+  const tasks = tasksByPatient[selectedPatient] || patientData.carePlan.teamTasks;
+  const messages = messagesByPatient[selectedPatient] || patientData.teamMessages;
+  const sbar = patientData.sbar;
+  const carePlan = patientData.carePlan;
   const completedTasks = tasks.filter((t) => t.done).length;
 
   function toggleTask(id: string) {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
+    const currentTasks = tasksByPatient[selectedPatient] || patientData.carePlan.teamTasks;
+    setTasksByPatient(prev => ({
+      ...prev,
+      [selectedPatient]: currentTasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+    }));
   }
 
   function sendMessage() {
     if (!messageText.trim()) return;
+    const currentMessages = messagesByPatient[selectedPatient] || patientData.teamMessages;
     const newMsg = {
-      id: `m${messages.length + 1}`,
+      id: `m${currentMessages.length + 1}`,
       author: 'Dr. Nikhil N.',
       role: 'Palliative Medicine',
       badge: 'Dr.',
@@ -136,7 +239,10 @@ export default function MDTPage() {
       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase(),
       content: messageText,
     };
-    setMessages((prev) => [...prev, newMsg]);
+    setMessagesByPatient(prev => ({
+      ...prev,
+      [selectedPatient]: [...currentMessages, newMsg],
+    }));
     setMessageText('');
   }
 
@@ -216,7 +322,7 @@ export default function MDTPage() {
           <div className="mt-4">
             <p className="text-xs font-semibold text-charcoal/60 uppercase">Goals of Care</p>
             <ul className="mt-2 space-y-1.5">
-              {CARE_PLAN.goalsOfCare.map((goal, i) => (
+              {carePlan.goalsOfCare.map((goal, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-charcoal/70">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-teal flex-shrink-0" />
                   {goal}
@@ -229,7 +335,7 @@ export default function MDTPage() {
           <div className="mt-5">
             <p className="text-xs font-semibold text-charcoal/60 uppercase">Pain Management Plan</p>
             <ul className="mt-2 space-y-1.5">
-              {CARE_PLAN.painManagementPlan.map((item, i) => (
+              {carePlan.painManagementPlan.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-charcoal/70">
                   <Pill className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-amber" />
                   {item}
@@ -292,10 +398,10 @@ export default function MDTPage() {
 
           <div className="mt-4 space-y-4">
             {[
-              { letter: 'S', title: 'Situation', content: SBAR.situation, color: 'border-l-alert-critical bg-red-50/50' },
-              { letter: 'B', title: 'Background', content: SBAR.background, color: 'border-l-amber bg-amber-50/50' },
-              { letter: 'A', title: 'Assessment', content: SBAR.assessment, color: 'border-l-teal bg-teal/5' },
-              { letter: 'R', title: 'Recommendation', content: SBAR.recommendation, color: 'border-l-alert-success bg-green-50/50' },
+              { letter: 'S', title: 'Situation', content: sbar.situation, color: 'border-l-alert-critical bg-red-50/50' },
+              { letter: 'B', title: 'Background', content: sbar.background, color: 'border-l-amber bg-amber-50/50' },
+              { letter: 'A', title: 'Assessment', content: sbar.assessment, color: 'border-l-teal bg-teal/5' },
+              { letter: 'R', title: 'Recommendation', content: sbar.recommendation, color: 'border-l-alert-success bg-green-50/50' },
             ].map((section) => (
               <div
                 key={section.letter}

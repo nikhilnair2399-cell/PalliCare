@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Users, Search, ArrowUpRight, ArrowDownRight,
   Minus, Clock, Loader2,
@@ -62,6 +63,7 @@ type SortKey = 'pain' | 'name' | 'lastLog' | 'adherence';
 type FilterStatus = 'all' | 'critical' | 'warning';
 
 export default function PatientsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('pain');
   const [filter, setFilter] = useState<FilterStatus>('all');
@@ -150,7 +152,7 @@ export default function PatientsPage() {
             {filtered.map((patient) => {
               const alertStyle = patient.alertLevel ? ALERT_STYLES[patient.alertLevel] : null;
               return (
-                <tr key={patient.id} className="cursor-pointer border-b border-sage/5 transition-colors hover:bg-cream/20">
+                <tr key={patient.id} onClick={() => router.push(`/patients/${patient.id}`)} className="cursor-pointer border-b border-sage/5 transition-colors hover:bg-cream/20">
                   <td className="px-4 py-3.5">
                     {alertStyle ? (
                       <span className="relative flex h-3 w-3">

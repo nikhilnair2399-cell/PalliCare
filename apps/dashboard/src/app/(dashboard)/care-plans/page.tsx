@@ -322,12 +322,16 @@ export default function CarePlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(MOCK_CARE_PLANS[0]?.id || null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [localPlans, setLocalPlans] = useState<any[]>([]);
+  const [mockGoalOverrides, setMockGoalOverrides] = useState<Record<string, { goal: string; status: string }[]>>({});
   const [editingGoal, setEditingGoal] = useState<{ planId: string; goalIdx: number } | null>(null);
 
   // API: fetch all care plans — we'll try a general query
   // The API is patient-scoped, so we fetch for each known patient
   // For now, we merge local created plans with mock data
-  const allPlans = [...localPlans, ...MOCK_CARE_PLANS];
+  const allPlans = [
+    ...localPlans,
+    ...MOCK_CARE_PLANS.map(p => mockGoalOverrides[p.id] ? { ...p, goals: mockGoalOverrides[p.id] } : p),
+  ];
 
   const filteredPlans = allPlans.filter(
     (plan) =>
@@ -346,15 +350,28 @@ export default function CarePlansPage() {
 
   function cycleGoalStatus(planId: string, goalIdx: number) {
     const statusOrder = ['pending', 'in_progress', 'completed'];
-    // Update in localPlans or MOCK_CARE_PLANS
-    setLocalPlans(prev => prev.map(p => {
-      if (p.id !== planId) return p;
-      const goals = [...p.goals];
-      const current = goals[goalIdx].status;
+    const isLocalPlan = localPlans.find(p => p.id === planId);
+    if (isLocalPlan) {
+      setLocalPlans(prev => prev.map(p => {
+        if (p.id !== planId) return p;
+        const goals = [...p.goals];
+        const current = goals[goalIdx].status;
+        const nextIdx = (statusOrder.indexOf(current) + 1) % statusOrder.length;
+        goals[goalIdx] = { ...goals[goalIdx], status: statusOrder[nextIdx] };
+        return { ...p, goals };
+      }));
+    } else {
+      // Mock plan — use overrides
+      const mockPlan = MOCK_CARE_PLANS.find(p => p.id === planId);
+      if (!mockPlan) return;
+      const currentGoals = mockGoalOverrides[planId] || mockPlan.goals.map(g => ({ ...g }));
+      const current = currentGoals[goalIdx].status;
       const nextIdx = (statusOrder.indexOf(current) + 1) % statusOrder.length;
-      goals[goalIdx] = { ...goals[goalIdx], status: statusOrder[nextIdx] };
-      return { ...p, goals };
-    }));
+      const updatedGoals = currentGoals.map((g, i) =>
+        i === goalIdx ? { ...g, status: statusOrder[nextIdx] } : { ...g }
+      );
+      setMockGoalOverrides(prev => ({ ...prev, [planId]: updatedGoals }));
+    }
   }
 
   // Count stats
@@ -481,15 +498,8 @@ export default function CarePlansPage() {
                   {activePlan.goals.map((goal: any, i: number) => (
                     <button
                       key={i}
-                      onClick={() => {
-                        if (localPlans.find(p => p.id === activePlan.id)) {
-                          cycleGoalStatus(activePlan.id, i);
-                        }
-                      }}
-                      className={cn(
-                        'flex w-full items-center gap-3 rounded-lg border border-sage/10 p-3 text-left transition-colors',
-                        localPlans.find(p => p.id === activePlan.id) ? 'hover:bg-cream/50 cursor-pointer' : 'cursor-default',
-                      )}
+                      onClick={() => cycleGoalStatus(activePlan.id, i)}
+                      className="flex w-full items-center gap-3 rounded-lg border border-sage/10 p-3 text-left transition-colors hover:bg-cream/50 cursor-pointer"
                     >
                       {goal.status === 'completed' ? (
                         <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-alert-success" />
@@ -549,14 +559,20 @@ export default function CarePlansPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    // Toggle status for locally created plans
+                    const statusOrder = ['draft', 'active', 'under_review', 'completed', 'archived'];
                     if (localPlans.find(p => p.id === activePlan.id)) {
-                      const statusOrder = ['draft', 'active', 'under_review', 'completed', 'archived'];
                       setLocalPlans(prev => prev.map(p => {
                         if (p.id !== activePlan.id) return p;
                         const nextIdx = (statusOrder.indexOf(p.status) + 1) % statusOrder.length;
                         return { ...p, status: statusOrder[nextIdx] };
                       }));
+                    }
+                    // For mock plans, promote to local to enable status changes
+                    const mockPlan = MOCK_CARE_PLANS.find(p => p.id === activePlan.id);
+                    if (mockPlan && !localPlans.find(p => p.id === activePlan.id)) {
+                      const currentGoals = mockGoalOverrides[mockPlan.id] || mockPlan.goals;
+                      const nextIdx = (statusOrder.indexOf(mockPlan.status) + 1) % statusOrder.length;
+                      setLocalPlans(prev => [{ ...mockPlan, goals: currentGoals, status: statusOrder[nextIdx] }, ...prev]);
                     }
                   }}
                   className="rounded-lg border border-sage/30 px-4 py-2 text-xs font-semibold text-charcoal/70 hover:bg-sage/5"

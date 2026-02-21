@@ -14,12 +14,30 @@ export default function LoginPage() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Auto-focus first OTP input
   useEffect(() => {
     if (stage === 'otp') otpRefs.current[0]?.focus();
   }, [stage]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  async function handleResendOtp() {
+    if (resendCooldown > 0) return;
+    setOtp(['', '', '', '', '', '']);
+    setError('');
+    setResendCooldown(30);
+    // Simulate resend
+    await new Promise((r) => setTimeout(r, 500));
+    otpRefs.current[0]?.focus();
+  }
 
   async function handleRequestOtp() {
     if (phone.length < 10) {
@@ -233,8 +251,12 @@ export default function LoginPage() {
                 >
                   Change number
                 </button>
-                <button className="text-charcoal/40 hover:text-charcoal/60">
-                  Resend OTP
+                <button
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0}
+                  className={cn('transition-colors', resendCooldown > 0 ? 'text-charcoal/30 cursor-not-allowed' : 'text-teal hover:underline')}
+                >
+                  {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : 'Resend OTP'}
                 </button>
               </div>
             </div>

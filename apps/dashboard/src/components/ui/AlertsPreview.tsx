@@ -3,6 +3,7 @@
 import { clsx } from 'clsx';
 import { AlertTriangle, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAlerts } from '@/lib/hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 
@@ -50,6 +51,7 @@ const alertStyles = {
 };
 
 export function AlertsPreview() {
+  const router = useRouter();
   const alertsQuery = useAlerts({ status: 'active' });
   const { data: rawData, isLoading, isFromApi } = useWithFallback(alertsQuery, MOCK_ALERTS);
 
@@ -81,6 +83,7 @@ export function AlertsPreview() {
           return (
             <div
               key={alert.id}
+              onClick={() => router.push('/alerts')}
               className={clsx('flex cursor-pointer items-start gap-3 border-l-3 px-5 py-3 transition-colors hover:bg-cream/50', style.border)}
             >
               <div className={clsx('mt-1.5 h-2 w-2 flex-shrink-0 rounded-full', style.dot)} />

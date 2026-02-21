@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Settings,
   User,
@@ -20,6 +20,7 @@ import {
   Smartphone,
   Heart,
   Loader2,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHealthCheck } from '@/lib/hooks';
@@ -75,6 +76,65 @@ export default function SettingsPage() {
   const [quietEnd, setQuietEnd] = useState('06:00');
   const [darkMode, setDarkMode] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState('20');
+  const [toast, setToast] = useState<string | null>(null);
+  const [legalModal, setLegalModal] = useState<string | null>(null);
+
+  // ── Load persisted settings from localStorage on mount ──
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('pallicare_settings');
+      if (saved) {
+        const s = JSON.parse(saved);
+        if (s.notificationMethod) setNotificationMethod(s.notificationMethod);
+        if (s.escalationTimeout) setEscalationTimeout(s.escalationTimeout);
+        if (typeof s.quietHoursEnabled === 'boolean') setQuietHoursEnabled(s.quietHoursEnabled);
+        if (s.quietStart) setQuietStart(s.quietStart);
+        if (s.quietEnd) setQuietEnd(s.quietEnd);
+        if (typeof s.darkMode === 'boolean') setDarkMode(s.darkMode);
+        if (s.itemsPerPage) setItemsPerPage(s.itemsPerPage);
+        if (Array.isArray(s.alertPreferences)) {
+          setAlertPreferences(prev => prev.map(a => {
+            const saved = s.alertPreferences.find((sa: any) => sa.id === a.id);
+            return saved ? { ...a, enabled: saved.enabled } : a;
+          }));
+        }
+      }
+    } catch { /* ignore parse errors */ }
+  }, []);
+
+  // ── Persist settings to localStorage on change ──
+  const persistSettings = useCallback(() => {
+    try {
+      localStorage.setItem('pallicare_settings', JSON.stringify({
+        notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage,
+        alertPreferences: alertPreferences.map(a => ({ id: a.id, enabled: a.enabled })),
+      }));
+      setToast('Settings saved');
+      setTimeout(() => setToast(null), 2000);
+    } catch { /* quota exceeded, etc */ }
+  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences]);
+
+  // Auto-save on any settings change (debounced via dependency array)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('pallicare_settings', JSON.stringify({
+          notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage,
+          alertPreferences: alertPreferences.map(a => ({ id: a.id, enabled: a.enabled })),
+        }));
+      } catch { /* ignore */ }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences]);
+
+  // ── Dark mode: toggle class on <html> element ──
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   function toggleAlert(id: string) {
     setAlertPreferences((prev) =>
@@ -472,7 +532,7 @@ export default function SettingsPage() {
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Version</p>
             <p className="mt-1 text-sm font-medium text-charcoal">v1.0.0-beta</p>
-            <p className="text-xs text-charcoal/50 mt-1">Sprint 17 &middot; Built 20 Feb 2026</p>
+            <p className="text-xs text-charcoal/50 mt-1">Sprint 21 &middot; Built 21 Feb 2026</p>
           </div>
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Institution</p>
@@ -491,6 +551,7 @@ export default function SettingsPage() {
           {['Privacy Policy', 'Terms of Service', 'Data Retention Policy', 'NDPS Compliance', 'DPDPA Notice', 'Contact Support'].map((link) => (
             <button
               key={link}
+              onClick={() => setLegalModal(link)}
               className="text-xs font-medium text-teal hover:text-teal-dark hover:underline transition-colors"
             >
               {link}
@@ -498,6 +559,72 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-teal px-5 py-3 text-sm font-semibold text-white shadow-lg toast-slide-in">
+          {toast}
+        </div>
+      )}
+
+      {/* Legal Document Modal */}
+      {legalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setLegalModal(null)}>
+          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-sage-light/20 px-6 py-4">
+              <h2 className="font-heading text-lg font-bold text-teal">{legalModal}</h2>
+              <button onClick={() => setLegalModal(null)} className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 text-sm text-charcoal/70 leading-relaxed space-y-3">
+              {legalModal === 'Privacy Policy' && (
+                <>
+                  <p>PalliCare collects and processes patient health data strictly for clinical care delivery, symptom monitoring, and care team coordination at AIIMS Bhopal.</p>
+                  <p>All data is stored within AIIMS Bhopal institutional infrastructure. No patient data is shared with external parties without explicit consent. Data processing complies with DPDPA 2023 requirements.</p>
+                  <p>Clinicians access only patients assigned to their care team. All data access events are logged in immutable audit trails.</p>
+                </>
+              )}
+              {legalModal === 'Terms of Service' && (
+                <>
+                  <p>PalliCare is a clinical decision-support tool intended for use by licensed healthcare professionals at AIIMS Bhopal.</p>
+                  <p>This system does not replace clinical judgment. All treatment decisions must be made by qualified clinicians. The platform provides data visualization, alerts, and communication tools to support — not replace — clinical care.</p>
+                  <p>Users are responsible for maintaining the confidentiality of their login credentials and must report any unauthorized access immediately.</p>
+                </>
+              )}
+              {legalModal === 'Data Retention Policy' && (
+                <>
+                  <p>Patient clinical data is retained for 7 years after the last clinical encounter, in accordance with AIIMS institutional policy and Medical Council of India guidelines.</p>
+                  <p>Audit logs are retained indefinitely. Communication records between care team members are retained for 3 years. Anonymized analytics data may be retained for research purposes without time limitation.</p>
+                </>
+              )}
+              {legalModal === 'NDPS Compliance' && (
+                <>
+                  <p>PalliCare tracks opioid prescriptions and maintains digital records in compliance with the Narcotic Drugs and Psychotropic Substances Act, 1985.</p>
+                  <p>All morphine equivalent daily dose (MEDD) calculations are logged. Threshold alerts are generated when MEDD exceeds 200mg/day (mandatory second signatory) or 300mg/day (institutional review required).</p>
+                  <p>Digital NDPS register entries are cross-referenced with pharmacy dispensing records.</p>
+                </>
+              )}
+              {legalModal === 'DPDPA Notice' && (
+                <>
+                  <p>In compliance with the Digital Personal Data Protection Act (DPDPA) 2023, PalliCare processes personal health data under the legitimate purpose of healthcare delivery.</p>
+                  <p>Patients have the right to: access their data, request correction, withdraw consent (where applicable), and file grievances with the institutional Data Protection Officer.</p>
+                  <p>Contact: DPO, AIIMS Bhopal — dpo@aiims-bhopal.edu.in</p>
+                </>
+              )}
+              {legalModal === 'Contact Support' && (
+                <>
+                  <p className="font-semibold text-charcoal">PalliCare Technical Support</p>
+                  <p>Email: pallicare-support@aiims-bhopal.edu.in</p>
+                  <p>Phone: +91 755-2672355 (Ext: 4521)</p>
+                  <p>Hours: Monday–Saturday, 9:00 AM – 5:00 PM IST</p>
+                  <p className="mt-2">For clinical emergencies, contact the Department of Anaesthesiology & Palliative Medicine directly.</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
