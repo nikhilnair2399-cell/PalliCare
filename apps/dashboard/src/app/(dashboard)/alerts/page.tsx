@@ -305,6 +305,54 @@ export default function AlertsPage() {
         );
       })()}
 
+      {/* Sprint 43 — 7-Day Alert Severity Trend */}
+      {(() => {
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const trendData = [
+          { day: 'Mon', critical: 2, warning: 3, info: 1 },
+          { day: 'Tue', critical: 1, warning: 4, info: 2 },
+          { day: 'Wed', critical: 3, warning: 2, info: 1 },
+          { day: 'Thu', critical: 2, warning: 3, info: 3 },
+          { day: 'Fri', critical: 1, warning: 2, info: 2 },
+          { day: 'Sat', critical: 0, warning: 1, info: 1 },
+          { day: 'Sun', critical: counts.critical, warning: counts.warning, info: counts.info },
+        ];
+        const maxTotal = Math.max(...trendData.map(d => d.critical + d.warning + d.info), 1);
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal mb-3">
+              <TrendingUp className="h-4 w-4 text-teal" />
+              Alert Volume (7 Days)
+            </h2>
+            <div className="flex items-end gap-2" style={{ height: '80px' }}>
+              {trendData.map((d, i) => {
+                const total = d.critical + d.warning + d.info;
+                const critH = total > 0 ? (d.critical / maxTotal) * 100 : 0;
+                const warnH = total > 0 ? (d.warning / maxTotal) * 100 : 0;
+                const infoH = total > 0 ? (d.info / maxTotal) * 100 : 0;
+                const isToday = i === 6;
+                return (
+                  <div key={d.day} className="flex flex-1 flex-col items-center gap-0.5">
+                    <span className="text-[9px] font-bold text-charcoal/50">{total}</span>
+                    <div className={cn('w-full flex flex-col gap-0.5 items-stretch', isToday && 'ring-1 ring-teal rounded-t')}>
+                      {critH > 0 && <div className="w-full rounded-t bg-red-400/80" style={{ height: `${critH * 0.7}px`, minHeight: '2px' }} />}
+                      {warnH > 0 && <div className="w-full bg-amber-400/80" style={{ height: `${warnH * 0.7}px`, minHeight: '2px' }} />}
+                      {infoH > 0 && <div className="w-full rounded-b bg-blue-400/80" style={{ height: `${infoH * 0.7}px`, minHeight: '2px' }} />}
+                    </div>
+                    <span className={cn('text-[9px]', isToday ? 'font-bold text-teal' : 'text-charcoal/40')}>{d.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-4">
+              <span className="flex items-center gap-1 text-[10px] text-charcoal/50"><span className="h-2 w-2 rounded-full bg-red-400" /> Critical</span>
+              <span className="flex items-center gap-1 text-[10px] text-charcoal/50"><span className="h-2 w-2 rounded-full bg-amber-400" /> Warning</span>
+              <span className="flex items-center gap-1 text-[10px] text-charcoal/50"><span className="h-2 w-2 rounded-full bg-blue-400" /> Info</span>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Batch Actions Bar */}
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-teal/30 bg-teal/5 px-4 py-3">

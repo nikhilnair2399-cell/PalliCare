@@ -425,6 +425,51 @@ export default function FunctionalStatusPage() {
         </div>
       )}
 
+      {/* Sprint 43 — Domain Change Comparison (latest vs previous) */}
+      {latestEntry && prevEntry && (
+        <div className="rounded-2xl bg-white p-5">
+          <h2 className="mb-3 text-base font-semibold text-charcoal">Week-over-Week Change</h2>
+          <div className="space-y-2.5">
+            {DOMAINS.map((d) => {
+              const curr = (latestEntry as any)[d.key] as number;
+              const prev = (prevEntry as any)[d.key] as number;
+              const diff = curr - prev;
+              return (
+                <div key={d.key} className="flex items-center gap-3">
+                  <d.icon className="h-4 w-4 text-charcoal/40 flex-shrink-0" />
+                  <span className="text-sm text-charcoal/60 w-32">{d.label}</span>
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xs text-charcoal/40 w-6 text-right">{prev}</span>
+                    <div className="flex-1 h-2 bg-cream rounded-full relative overflow-hidden">
+                      <div className={clsx('h-full rounded-full', domainBg(curr))} style={{ width: `${(curr / 5) * 100}%` }} />
+                    </div>
+                    <span className={clsx('text-xs font-bold w-6', domainText(curr))}>{curr}</span>
+                  </div>
+                  <span className={clsx(
+                    'text-xs font-bold min-w-[32px] text-right',
+                    diff > 0 ? 'text-sage' : diff < 0 ? 'text-terra' : 'text-charcoal/30',
+                  )}>
+                    {diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '—'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {(() => {
+            const improved = DOMAINS.filter(d => (latestEntry as any)[d.key] > (prevEntry as any)[d.key]).length;
+            const declined = DOMAINS.filter(d => (latestEntry as any)[d.key] < (prevEntry as any)[d.key]).length;
+            return (
+              <p className="mt-3 text-xs text-charcoal/40">
+                {improved > 0 && `${improved} domain${improved > 1 ? 's' : ''} improved`}
+                {improved > 0 && declined > 0 && ' · '}
+                {declined > 0 && `${declined} domain${declined > 1 ? 's' : ''} declined`}
+                {improved === 0 && declined === 0 && 'No change across domains'}
+              </p>
+            );
+          })()}
+        </div>
+      )}
+
       {/* PPS Trend Mini-Chart */}
       {history.length >= 2 && (
         <div className="rounded-2xl bg-white p-5">

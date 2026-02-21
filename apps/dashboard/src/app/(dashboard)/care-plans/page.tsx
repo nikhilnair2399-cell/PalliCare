@@ -16,6 +16,7 @@ import {
   X,
   Save,
   AlertTriangle,
+  Users2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -607,6 +608,50 @@ export default function CarePlansPage() {
           </div>
         </div>
       )}
+
+      {/* Sprint 43 — Intervention Workload Distribution */}
+      {(() => {
+        const allInterventions = allPlans
+          .filter((p: any) => p.status === 'active' || p.status === 'under_review')
+          .flatMap((p: any) => p.interventions || []);
+        if (allInterventions.length === 0) return null;
+        const roleMap: Record<string, number> = {};
+        allInterventions.forEach((iv: any) => {
+          const role = iv.assigned || 'Unassigned';
+          roleMap[role] = (roleMap[role] || 0) + 1;
+        });
+        const roleEntries = Object.entries(roleMap).sort((a, b) => b[1] - a[1]);
+        const maxCount = Math.max(...roleEntries.map(r => r[1]), 1);
+        const roleColors: Record<string, string> = {
+          Physician: 'bg-teal', Nurse: 'bg-sage', Patient: 'bg-amber', Psychologist: 'bg-lavender',
+          'Social Worker': 'bg-terra', Dietitian: 'bg-amber/70', Chaplain: 'bg-lavender/70', Physiotherapist: 'bg-sage/70',
+        };
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+                <Users2 className="h-4 w-4" />
+                Intervention Workload
+              </h2>
+              <span className="text-xs text-charcoal/40">{allInterventions.length} interventions across active plans</span>
+            </div>
+            <div className="space-y-2">
+              {roleEntries.map(([role, count]) => (
+                <div key={role} className="flex items-center gap-3">
+                  <span className="text-xs text-charcoal/60 w-28 truncate">{role}</span>
+                  <div className="flex-1 h-2 overflow-hidden rounded-full bg-cream">
+                    <div
+                      className={cn('h-full rounded-full transition-all', roleColors[role] || 'bg-charcoal/30')}
+                      style={{ width: `${(count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-charcoal w-6 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Header */}
       <div className="flex items-center justify-between">
