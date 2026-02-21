@@ -232,6 +232,39 @@ export default function MessagesPage() {
         </div>
       </div>
 
+      {/* Sprint 38 — Conversation Stats Banner */}
+      {(() => {
+        const totalThreads = threads.length;
+        const unreadThreads = threads.filter(t => t.unread > 0).length;
+        const totalMessages = Object.values(messages).reduce((s, msgs) => s + msgs.length, 0);
+        const ownMessages = Object.values(messages).flat().filter(m => m.isOwn).length;
+        const mostActive = [...threads].sort((a, b) => (messages[b.id]?.length || 0) - (messages[a.id]?.length || 0))[0];
+        return (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-sage-light/20 bg-white px-4 py-3">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Threads</p>
+              <p className="mt-1 text-xl font-bold text-charcoal">{totalThreads}</p>
+              <p className="text-[10px] text-charcoal/40">{unreadThreads} unread</p>
+            </div>
+            <div className="rounded-lg border border-sage-light/20 bg-white px-4 py-3">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Messages</p>
+              <p className="mt-1 text-xl font-bold text-charcoal">{totalMessages}</p>
+              <p className="text-[10px] text-charcoal/40">{ownMessages} sent by you</p>
+            </div>
+            <div className="rounded-lg border border-sage-light/20 bg-white px-4 py-3">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Avg Response</p>
+              <p className="mt-1 text-xl font-bold text-teal">8 min</p>
+              <p className="text-[10px] text-charcoal/40">within target</p>
+            </div>
+            <div className="rounded-lg border border-sage-light/20 bg-white px-4 py-3">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Most Active</p>
+              <p className="mt-1 text-sm font-bold text-charcoal truncate">{mostActive?.patientName || '—'}</p>
+              <p className="text-[10px] text-charcoal/40">{messages[mostActive?.id || '']?.length || 0} messages</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main layout */}
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Thread list */}

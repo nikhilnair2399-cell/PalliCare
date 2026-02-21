@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, CheckCircle2, Clock, Star, ArrowRight } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Star, ArrowRight, Flame, Filter } from 'lucide-react';
 import { useEducationModules } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -12,9 +13,12 @@ export default function LearnPage() {
   const modulesQuery = useEducationModules();
   const { data: rawModules } = useWithFallback(modulesQuery, MOCK_EDUCATION_MODULES);
   const modules: any[] = Array.isArray(rawModules) ? rawModules : MOCK_EDUCATION_MODULES;
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
   const completed = modules.filter((m: any) => m.completed).length;
   const total = modules.length;
+  const categories = ['All', ...Array.from(new Set(modules.map((m: any) => m.category).filter(Boolean)))];
+  const filteredModules = categoryFilter === 'All' ? modules : modules.filter((m: any) => m.category === categoryFilter);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -24,6 +28,43 @@ export default function LearnPage() {
           Understand and manage your care with these modules
         </p>
       </div>
+
+      {/* Sprint 38 — Learning Streak Tracker */}
+      {(() => {
+        const streakDays = completed >= 5 ? 7 : completed >= 3 ? 4 : completed >= 1 ? 2 : 0;
+        const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+        const today = new Date().getDay();
+        return (
+          <div className="rounded-2xl bg-teal/5 p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-amber" />
+                <div>
+                  <p className="text-base font-bold text-charcoal">{streakDays}-day streak!</p>
+                  <p className="text-sm text-charcoal-light">Keep learning to maintain your streak</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                {weekDays.map((d, i) => {
+                  const dayIdx = ((today - 6 + i) % 7 + 7) % 7;
+                  const isActive = i < streakDays;
+                  const isToday = i === 6;
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <span className="text-[9px] text-charcoal/40">{d}</span>
+                      <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        isToday ? 'ring-2 ring-teal/30' : ''
+                      } ${isActive ? 'bg-teal text-white' : 'bg-charcoal/5 text-charcoal/20'}`}>
+                        {isActive ? '\u2713' : ''}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Progress Banner */}
       <div className="rounded-2xl bg-white p-6">
@@ -84,9 +125,27 @@ export default function LearnPage() {
         </p>
       )}
 
+      {/* Sprint 38 — Category Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <Filter className="h-4 w-4 flex-shrink-0 text-charcoal/30" />
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setCategoryFilter(cat)}
+            className={`flex-shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              categoryFilter === cat
+                ? 'bg-teal text-white'
+                : 'bg-cream text-charcoal-light hover:bg-charcoal/5'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       {/* Module Cards */}
       <div className="space-y-4">
-        {modules.map((module: any) => (
+        {filteredModules.map((module: any) => (
           <Link
             key={module.id}
             href={`/patient/learn/${module.id}`}

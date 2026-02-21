@@ -181,6 +181,39 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Sprint 38 — Configuration Summary Dashboard */}
+      {(() => {
+        const activeAlerts = alertPreferences.filter(a => a.enabled).length;
+        const totalAlerts = alertPreferences.length;
+        const criticalActive = alertPreferences.filter(a => a.enabled && a.severity === 'critical').length;
+        return (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Active Alerts</p>
+              <p className="mt-1 text-2xl font-bold text-charcoal">{activeAlerts}<span className="text-sm font-normal text-charcoal/40">/{totalAlerts}</span></p>
+              <p className="text-[10px] text-charcoal/40">{criticalActive} critical enabled</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Notifications</p>
+              <p className="mt-1 text-sm font-bold text-charcoal">
+                {notificationMethod === 'push_only' ? 'Push Only' : notificationMethod === 'email_only' ? 'Email Only' : notificationMethod === 'push_email' ? 'Push + Email' : 'SMS'}
+              </p>
+              <p className="text-[10px] text-charcoal/40">Escalation: {escalationTimeout}min</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Quiet Hours</p>
+              <p className="mt-1 text-sm font-bold text-charcoal">{quietHoursEnabled ? `${quietStart}–${quietEnd}` : 'Off'}</p>
+              <p className="text-[10px] text-charcoal/40">{quietHoursEnabled ? 'Critical alerts pass through' : 'All alerts active 24/7'}</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
+              <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Thresholds</p>
+              <p className="mt-1 text-sm font-bold text-charcoal">Pain ≥{painThreshold} · MEDD ≥{meddThreshold}</p>
+              <p className="text-[10px] text-charcoal/40">Adherence &lt;{adherenceThreshold}% · PRN ≥{prnMaxPerDay}/d</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Profile Section ── */}
       <div className="rounded-xl border border-sage-light/30 bg-white p-6 shadow-sm">
         <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
