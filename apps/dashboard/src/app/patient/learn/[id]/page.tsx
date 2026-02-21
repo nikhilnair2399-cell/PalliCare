@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked, HelpCircle } from 'lucide-react';
 import { useEducationModule, useUpdateEducationProgress } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -172,6 +172,63 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               ))}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 55 — Comprehension Self-Check */}
+      {(() => {
+        const QUIZZES: Record<string, { q: string; options: string[]; correct: number }[]> = {
+          'Pain Management': [
+            { q: 'What is the WHO pain ladder first step?', options: ['Non-opioid analgesics', 'Strong opioids', 'Nerve blocks'], correct: 0 },
+            { q: 'When should you take breakthrough medication?', options: ['Only at night', 'When pain spikes above baseline', 'Every 2 hours'], correct: 1 },
+          ],
+          'Medication': [
+            { q: 'Why is it important to take medications on schedule?', options: ['Keeps stable blood levels', 'Reduces cost', 'Makes doctors happy'], correct: 0 },
+            { q: 'What should you do if you miss a dose?', options: ['Double the next dose', 'Skip it entirely', 'Take it soon and adjust schedule'], correct: 2 },
+          ],
+          'Comfort': [
+            { q: 'Which breathing pattern helps with pain?', options: ['Fast shallow breaths', 'Slow diaphragmatic breathing', 'Holding breath'], correct: 1 },
+            { q: 'What position often helps reduce pain?', options: ['Supported semi-upright', 'Flat on stomach', 'Standing straight'], correct: 0 },
+          ],
+        };
+        const questions = QUIZZES[module.category] || [
+          { q: 'What is the most important thing from this module?', options: ['Understanding my condition', 'Ignoring symptoms', 'Skipping medications'], correct: 0 },
+          { q: 'When should you contact your care team?', options: ['Never', 'When symptoms change significantly', 'Only in emergencies'], correct: 1 },
+        ];
+
+        return (
+          <div className="rounded-2xl bg-teal/5 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <HelpCircle className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Quick Self-Check</h3>
+              <span className="ml-auto text-xs text-charcoal/40">{questions.length} questions</span>
+            </div>
+            <div className="space-y-4">
+              {questions.map((quiz, qi) => (
+                <div key={qi}>
+                  <p className="text-sm font-medium text-charcoal mb-2">{qi + 1}. {quiz.q}</p>
+                  <div className="grid gap-1.5">
+                    {quiz.options.map((opt, oi) => (
+                      <div
+                        key={oi}
+                        className={`rounded-xl px-4 py-2.5 text-sm cursor-default ${
+                          oi === quiz.correct
+                            ? 'bg-sage/15 text-sage-dark font-medium ring-1 ring-sage/20'
+                            : 'bg-white text-charcoal/60'
+                        }`}
+                      >
+                        {oi === quiz.correct && <span className="mr-1.5">✓</span>}
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              Review the correct answers above. Re-read the module if any were surprising.
+            </p>
           </div>
         );
       })()}

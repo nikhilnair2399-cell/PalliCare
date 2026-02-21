@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2, Activity } from 'lucide-react';
+import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2, Activity, Share2 } from 'lucide-react';
 import { usePatientProfile, useUpdatePatientProfile } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE } from '@/lib/patient-mock-data';
@@ -363,6 +363,54 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Sprint 55 — Data Sharing Preferences */}
+      {(() => {
+        const DATA_CATEGORIES = [
+          { category: 'Pain Diary', shared: true, sharedWith: 'Care Team', entries: 127, desc: 'Pain scores, triggers, and notes' },
+          { category: 'Medication Log', shared: true, sharedWith: 'Care Team + Pharmacy', entries: 89, desc: 'Adherence, doses, and side effects' },
+          { category: 'Sleep Data', shared: true, sharedWith: 'Care Team', entries: 56, desc: 'Sleep duration, quality, and disturbances' },
+          { category: 'Mood Assessments', shared: false, sharedWith: '—', entries: 23, desc: 'PHQ-9, GAD-7, and mood logs' },
+          { category: 'Messages', shared: true, sharedWith: 'Care Team Only', entries: 41, desc: 'Chat history and attachments' },
+          { category: 'Advance Directives', shared: false, sharedWith: '—', entries: 3, desc: 'Goals of care and legal documents' },
+        ];
+        const sharedCount = DATA_CATEGORIES.filter(d => d.shared).length;
+        const totalEntries = DATA_CATEGORIES.reduce((s, d) => s + d.entries, 0);
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-teal" />
+                <h3 className="text-base font-semibold text-charcoal">Data Sharing</h3>
+              </div>
+              <span className="text-xs text-charcoal/40">{sharedCount}/{DATA_CATEGORIES.length} shared &middot; {totalEntries} entries</span>
+            </div>
+            <div className="space-y-3">
+              {DATA_CATEGORIES.map(d => (
+                <div key={d.category} className="flex items-center gap-3 rounded-xl bg-cream/40 px-4 py-3">
+                  <div className={`h-2 w-2 rounded-full flex-shrink-0 ${d.shared ? 'bg-sage' : 'bg-charcoal/20'}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-charcoal">{d.category}</span>
+                      <span className="text-[10px] text-charcoal/40">{d.entries} entries</span>
+                    </div>
+                    <p className="text-xs text-charcoal/50 mt-0.5">{d.desc}</p>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                    d.shared ? 'bg-sage/10 text-sage-dark' : 'bg-charcoal/5 text-charcoal/40'
+                  }`}>
+                    {d.shared ? d.sharedWith : 'Private'}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              Shared data helps your care team provide better, more personalized care. You can request changes to sharing preferences through your care team.
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Save Button */}
       <button
