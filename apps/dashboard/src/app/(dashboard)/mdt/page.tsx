@@ -23,6 +23,7 @@ import {
   Plus,
   Filter,
   BarChart3,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -537,6 +538,88 @@ export default function MDTPage() {
                 {topContributor[0]} leads discussions with {topContributor[1].count} messages across {topContributor[1].authors.size} team member{topContributor[1].authors.size !== 1 ? 's' : ''}.
               </p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 65 — MDT Decision Effectiveness */}
+      {(() => {
+        // Aggregate decisions across all patients
+        const DECISION_LOG = [
+          { decision: 'Morphine SR dose increase to 90mg q12h', patient: 'Ramesh Kumar', madeAt: '2026-02-18', status: 'implemented', daysToAction: 1 },
+          { decision: 'Palliative RT referral for T10 met', patient: 'Ramesh Kumar', madeAt: '2026-02-19', status: 'pending', daysToAction: null },
+          { decision: 'PHQ-9 screening for depression', patient: 'Sunita Devi', madeAt: '2026-02-18', status: 'implemented', daysToAction: 2 },
+          { decision: 'Fentanyl patch increase to 75mcg/hr', patient: 'Arun Sharma', madeAt: '2026-02-20', status: 'implemented', daysToAction: 0 },
+          { decision: 'Family goals-of-care meeting', patient: 'Arun Sharma', madeAt: '2026-02-17', status: 'implemented', daysToAction: 2 },
+          { decision: 'PEG feeding review — speech therapy', patient: 'Mahesh Verma', madeAt: '2026-02-19', status: 'pending', daysToAction: null },
+          { decision: 'Gabapentin titration to 600mg TID', patient: 'Ramesh Kumar', madeAt: '2026-02-20', status: 'blocked', daysToAction: null },
+          { decision: 'Caregiver distress assessment', patient: 'Ramesh Kumar', madeAt: '2026-02-18', status: 'implemented', daysToAction: 3 },
+          { decision: 'Physiotherapy mobilization start', patient: 'Priya Patel', madeAt: '2026-02-19', status: 'implemented', daysToAction: 1 },
+          { decision: 'Ondansetron regime continuation', patient: 'Sunita Devi', madeAt: '2026-02-20', status: 'implemented', daysToAction: 0 },
+        ];
+        const implemented = DECISION_LOG.filter(d => d.status === 'implemented');
+        const pending = DECISION_LOG.filter(d => d.status === 'pending');
+        const blocked = DECISION_LOG.filter(d => d.status === 'blocked');
+        const implementedPct = Math.round((implemented.length / DECISION_LOG.length) * 100);
+        const avgDaysToAction = implemented.filter(d => d.daysToAction !== null).length > 0
+          ? (implemented.reduce((s, d) => s + (d.daysToAction ?? 0), 0) / implemented.filter(d => d.daysToAction !== null).length).toFixed(1)
+          : '—';
+        const sameDayPct = Math.round((implemented.filter(d => d.daysToAction === 0).length / Math.max(implemented.length, 1)) * 100);
+
+        const statusColor = (s: string) => s === 'implemented' ? 'bg-alert-success/10 text-alert-success' : s === 'pending' ? 'bg-amber/10 text-amber' : 'bg-alert-critical/10 text-alert-critical';
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Zap className="h-4 w-4 text-teal" /> MDT Decision Effectiveness
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{DECISION_LOG.length} decisions tracked</span>
+            </div>
+            {/* Key metrics */}
+            <div className="grid grid-cols-4 gap-3 mb-4">
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-xl font-bold text-alert-success">{implementedPct}%</p>
+                <p className="text-[9px] text-charcoal/40">Implemented</p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-xl font-bold text-charcoal">{avgDaysToAction}<span className="text-[10px] font-normal text-charcoal/40"> d</span></p>
+                <p className="text-[9px] text-charcoal/40">Avg Time-to-Action</p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-xl font-bold text-teal">{sameDayPct}%</p>
+                <p className="text-[9px] text-charcoal/40">Same-Day Action</p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-xl font-bold text-alert-critical">{blocked.length}</p>
+                <p className="text-[9px] text-charcoal/40">Blocked</p>
+              </div>
+            </div>
+            {/* Implementation bar */}
+            <div className="flex h-3.5 overflow-hidden rounded-full mb-3">
+              <div className="bg-alert-success/60" style={{ width: `${(implemented.length / DECISION_LOG.length) * 100}%` }} title={`${implemented.length} implemented`} />
+              <div className="bg-amber/40" style={{ width: `${(pending.length / DECISION_LOG.length) * 100}%` }} title={`${pending.length} pending`} />
+              <div className="bg-alert-critical/40" style={{ width: `${(blocked.length / DECISION_LOG.length) * 100}%` }} title={`${blocked.length} blocked`} />
+            </div>
+            {/* Recent decisions */}
+            <div className="space-y-1.5">
+              {DECISION_LOG.slice(0, 5).map((d, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className={cn('rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase', statusColor(d.status))}>{d.status}</span>
+                  <span className="text-xs text-charcoal/70 flex-1 truncate">{d.decision}</span>
+                  <span className="text-[10px] text-charcoal/40 flex-shrink-0">{d.patient}</span>
+                  {d.daysToAction !== null && (
+                    <span className="text-[9px] font-bold text-charcoal/50">{d.daysToAction}d</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-[10px] text-charcoal/40 border-t border-sage/10 pt-2">
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-alert-success/60" /> Implemented</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-amber/40" /> Pending</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-alert-critical/40" /> Blocked</span>
+              <span className="text-charcoal/30 ml-auto">Last 14 days</span>
+            </div>
           </div>
         );
       })()}

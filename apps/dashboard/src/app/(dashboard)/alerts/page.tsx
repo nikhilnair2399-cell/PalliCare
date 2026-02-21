@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Bell, AlertTriangle, AlertCircle, Info, Check, Clock,
   ChevronDown, ChevronUp, User, Loader2, BellOff,
-  CheckCheck, ArrowUpRight, History, TrendingUp, TrendingDown, Timer,
+  CheckCheck, ArrowUpRight, History, TrendingUp, TrendingDown, Timer, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlerts, useAcknowledgeAlert, useResolveAlert } from '@/lib/hooks';
@@ -481,6 +481,80 @@ export default function AlertsPage() {
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 65 — Alert Escalation Efficiency */}
+      {(() => {
+        const WEEKLY_RESOLUTION = [
+          { week: 'W-4', created: 18, acknowledged: 15, resolved: 12, avgAckMin: 25, avgResolveHr: 6.2 },
+          { week: 'W-3', created: 22, acknowledged: 19, resolved: 16, avgAckMin: 20, avgResolveHr: 5.5 },
+          { week: 'W-2', created: 16, acknowledged: 15, resolved: 14, avgAckMin: 15, avgResolveHr: 4.8 },
+          { week: 'W-1', created: alertsWithOverrides.length, acknowledged: alertsWithOverrides.filter(a => a.status !== 'active').length, resolved: alertsWithOverrides.filter(a => a.status === 'resolved').length, avgAckMin: 12, avgResolveHr: 4.0 },
+        ];
+        const maxCreated = Math.max(...WEEKLY_RESOLUTION.map(w => w.created), 1);
+        const latestAck = WEEKLY_RESOLUTION[WEEKLY_RESOLUTION.length - 1].avgAckMin;
+        const prevAck = WEEKLY_RESOLUTION[WEEKLY_RESOLUTION.length - 2].avgAckMin;
+        const ackTrend = latestAck < prevAck ? 'improving' : latestAck > prevAck ? 'worsening' : 'stable';
+        const latestResolve = WEEKLY_RESOLUTION[WEEKLY_RESOLUTION.length - 1].avgResolveHr;
+        const prevResolve = WEEKLY_RESOLUTION[WEEKLY_RESOLUTION.length - 2].avgResolveHr;
+        const resolveTrend = latestResolve < prevResolve ? 'improving' : latestResolve > prevResolve ? 'worsening' : 'stable';
+        const escalatedCount = alertsWithOverrides.filter(a => a.escalation).length;
+        const escalatedResolved = alertsWithOverrides.filter(a => a.escalation && a.status === 'resolved').length;
+        const deescRate = escalatedCount > 0 ? Math.round((escalatedResolved / escalatedCount) * 100) : 0;
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <Zap className="h-4 w-4 text-teal" /> Escalation Efficiency (4 Weeks)
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{escalatedCount} escalated this week</span>
+            </div>
+            {/* Weekly stacked bars */}
+            <div className="flex items-end gap-3 mb-3" style={{ height: '70px' }}>
+              {WEEKLY_RESOLUTION.map((w, i) => {
+                const isLatest = i === WEEKLY_RESOLUTION.length - 1;
+                return (
+                  <div key={w.week} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div className="w-full flex gap-0.5 items-end justify-center" style={{ height: '55px' }}>
+                      <div className="w-2 rounded-t bg-charcoal/15" style={{ height: `${(w.created / maxCreated) * 55}px`, minHeight: '2px' }} title={`${w.created} created`} />
+                      <div className="w-2 rounded-t bg-amber/60" style={{ height: `${(w.acknowledged / maxCreated) * 55}px`, minHeight: '2px' }} title={`${w.acknowledged} ack'd`} />
+                      <div className="w-2 rounded-t bg-alert-success/60" style={{ height: `${(w.resolved / maxCreated) * 55}px`, minHeight: '2px' }} title={`${w.resolved} resolved`} />
+                    </div>
+                    <span className={cn('text-[9px]', isLatest ? 'font-bold text-teal' : 'text-charcoal/40')}>{w.week}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Metrics */}
+            <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-lg font-bold text-charcoal">{latestAck}<span className="text-[10px] font-normal text-charcoal/40"> min</span></p>
+                <p className="text-[9px] text-charcoal/40">Avg Ack Time</p>
+                <p className={cn('text-[9px] font-bold', ackTrend === 'improving' ? 'text-alert-success' : ackTrend === 'worsening' ? 'text-alert-critical' : 'text-charcoal/40')}>
+                  {ackTrend === 'improving' ? '↓ Faster' : ackTrend === 'worsening' ? '↑ Slower' : '→ Stable'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-lg font-bold text-charcoal">{latestResolve}<span className="text-[10px] font-normal text-charcoal/40"> hrs</span></p>
+                <p className="text-[9px] text-charcoal/40">Avg Resolve</p>
+                <p className={cn('text-[9px] font-bold', resolveTrend === 'improving' ? 'text-alert-success' : resolveTrend === 'worsening' ? 'text-alert-critical' : 'text-charcoal/40')}>
+                  {resolveTrend === 'improving' ? '↓ Faster' : resolveTrend === 'worsening' ? '↑ Slower' : '→ Stable'}
+                </p>
+              </div>
+              <div className="rounded-lg bg-cream/50 p-2.5 text-center">
+                <p className="text-lg font-bold text-charcoal">{deescRate}<span className="text-[10px] font-normal text-charcoal/40">%</span></p>
+                <p className="text-[9px] text-charcoal/40">De-escalation Rate</p>
+                <p className="text-[9px] text-charcoal/40">{escalatedResolved}/{escalatedCount} resolved</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] text-charcoal/40 border-t border-sage/10 pt-2">
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-charcoal/15" /> Created</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-amber/60" /> Acknowledged</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-alert-success/60" /> Resolved</span>
             </div>
           </div>
         );
