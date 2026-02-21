@@ -5,7 +5,7 @@ import {
   BarChart3, Users, UserPlus, UserMinus, Heart, Clock, Activity,
   Pill, TrendingUp, Download, Database, FileText, Shield, Star,
   CheckCircle, AlertTriangle, Loader2, X, CheckCircle2,
-  Brain, ScrollText, Utensils,
+  Brain, ScrollText, Utensils, Lightbulb,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, usePainDistribution, useQualityMetrics } from '@/lib/hooks';
@@ -195,6 +195,30 @@ export default function AnalyticsPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Key Insights */}
+      <div className="rounded-xl border border-teal/20 bg-teal/5 p-5">
+        <h2 className="flex items-center gap-2 font-heading text-base font-bold text-teal mb-3">
+          <Lightbulb className="h-4 w-4" /> Key Insights
+        </h2>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            sevCount > 0 && `${sevCount} patient${sevCount > 1 ? 's' : ''} with severe pain (NRS ≥ 7) — review breakthrough protocols`,
+            MOCK_SYMPTOM_BURDEN.filter(s => s.trend === 'worsening').length > 0 &&
+              `${MOCK_SYMPTOM_BURDEN.filter(s => s.trend === 'worsening').map(s => s.symptom).join(', ')} trending worse across census`,
+            MOCK_SCREENING_RATES.gad7.rate < 80 && `GAD-7 screening at ${MOCK_SCREENING_RATES.gad7.rate}% — below 80% target`,
+            MOCK_GOALS_DOCS.advanceDirective.rate < 70 && `Advance directives only ${MOCK_GOALS_DOCS.advanceDirective.rate}% complete — 14 patients missing`,
+            MOCK_SCREENING_RATES.caregiverDistress.highDistress > 5 &&
+              `${MOCK_SCREENING_RATES.caregiverDistress.highDistress} caregivers with high distress — consider support referrals`,
+            MOCK_PPS_DISTRIBUTION[0].count > 0 && `${MOCK_PPS_DISTRIBUTION[0].count} patients bed-bound (PPS 10-20%) — escalate comfort measures`,
+          ].filter(Boolean).map((insight, i) => (
+            <div key={i} className="flex items-start gap-2 rounded-lg bg-white p-3">
+              <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-teal" />
+              <p className="text-sm text-charcoal/70">{insight}</p>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -27,11 +27,11 @@ import { cn } from '@/lib/utils';
 
 // -- Mock data ----------------------------------------------------------------
 const PATIENTS_LIST = [
-  { id: '1', name: 'Ramesh Kumar', age: 58, diagnosis: 'Lung Ca (Stage IIIB)' },
-  { id: '2', name: 'Sunita Devi', age: 55, diagnosis: 'Breast Ca (Stage IV)' },
-  { id: '3', name: 'Arun Sharma', age: 70, diagnosis: 'Pancreatic Ca' },
-  { id: '4', name: 'Priya Patel', age: 48, diagnosis: 'Ovarian Ca (Stage III)' },
-  { id: '5', name: 'Mahesh Verma', age: 65, diagnosis: 'Head & Neck Ca' },
+  { id: '1', name: 'Ramesh Kumar', age: 58, diagnosis: 'Lung Ca (Stage IIIB)', pps: 50, nrs: 8, medd: 220, codeStatus: 'DNR' },
+  { id: '2', name: 'Sunita Devi', age: 55, diagnosis: 'Breast Ca (Stage IV)', pps: 60, nrs: 4, medd: 45, codeStatus: 'Full Code' },
+  { id: '3', name: 'Arun Sharma', age: 70, diagnosis: 'Pancreatic Ca', pps: 40, nrs: 8, medd: 310, codeStatus: 'DNR/DNI' },
+  { id: '4', name: 'Priya Patel', age: 48, diagnosis: 'Ovarian Ca (Stage III)', pps: 60, nrs: 3, medd: 0, codeStatus: 'Full Code' },
+  { id: '5', name: 'Mahesh Verma', age: 65, diagnosis: 'Head & Neck Ca', pps: 50, nrs: 6, medd: 120, codeStatus: 'DNR' },
 ];
 
 const PATIENT_DATA: Record<string, { carePlan: typeof CARE_PLAN_1; sbar: typeof SBAR_1; teamMessages: typeof MESSAGES_1 }> = {};
@@ -388,6 +388,32 @@ export default function MDTPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Patient Quick Vitals Strip */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-sage-light/30 bg-white p-3 text-center">
+          <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Pain NRS</p>
+          <p className={cn('text-2xl font-bold', patient.nrs >= 7 ? 'text-alert-critical' : patient.nrs >= 4 ? 'text-amber' : 'text-alert-success')}>
+            {patient.nrs}/10
+          </p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-3 text-center">
+          <p className="text-[10px] font-semibold text-charcoal/50 uppercase">PPS</p>
+          <p className={cn('text-2xl font-bold', patient.pps <= 30 ? 'text-alert-critical' : patient.pps <= 50 ? 'text-amber' : 'text-sage')}>
+            {patient.pps}%
+          </p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-3 text-center">
+          <p className="text-[10px] font-semibold text-charcoal/50 uppercase">MEDD</p>
+          <p className={cn('text-2xl font-bold', patient.medd >= 200 ? 'text-alert-critical' : patient.medd >= 90 ? 'text-amber' : 'text-charcoal')}>
+            {patient.medd}<span className="text-xs font-normal text-charcoal/40 ml-0.5">mg</span>
+          </p>
+        </div>
+        <div className="rounded-xl border border-sage-light/30 bg-white p-3 text-center">
+          <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Code Status</p>
+          <p className="text-sm font-bold text-charcoal mt-1">{patient.codeStatus}</p>
+        </div>
       </div>
 
       {/* Main grid: Care Plan + SBAR */}

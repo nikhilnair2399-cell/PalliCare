@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   Bell, AlertTriangle, AlertCircle, Info, Check, Clock,
   ChevronDown, ChevronUp, User, Loader2, BellOff,
-  CheckCheck, ArrowUpRight, History,
+  CheckCheck, ArrowUpRight, History, TrendingUp, TrendingDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlerts, useAcknowledgeAlert, useResolveAlert } from '@/lib/hooks';
@@ -268,6 +268,42 @@ export default function AlertsPage() {
           </button>
         ))}
       </div>
+
+      {/* Daily Digest */}
+      {(() => {
+        const resolved = alertsWithOverrides.filter(a => a.status === 'resolved').length;
+        const acknowledged = alertsWithOverrides.filter(a => a.status === 'acknowledged').length;
+        const total = alertsWithOverrides.length;
+        const resolutionRate = total > 0 ? Math.round(((resolved + acknowledged) / total) * 100) : 0;
+        const avgResponseTime = counts.critical > 0 ? '12 min' : '—';
+        return (
+          <div className="grid grid-cols-3 gap-4 rounded-xl bg-teal/5 border border-teal/10 p-4">
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Resolution Rate</p>
+              <p className="text-xl font-bold text-teal">{resolutionRate}%</p>
+              <p className="text-[10px] text-charcoal/40">{resolved + acknowledged}/{total} addressed</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Avg Response</p>
+              <p className="text-xl font-bold text-charcoal">{avgResponseTime}</p>
+              <p className="text-[10px] text-charcoal/40">for critical alerts</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Needs Attention</p>
+              <p className={cn('text-xl font-bold', counts.critical > 0 ? 'text-red-600' : 'text-alert-success')}>
+                {counts.critical + counts.warning}
+              </p>
+              <p className="text-[10px] text-charcoal/40">
+                {counts.critical > 0 ? (
+                  <span className="flex items-center justify-center gap-0.5 text-red-500"><TrendingUp className="h-3 w-3" /> critical alerts active</span>
+                ) : (
+                  <span className="flex items-center justify-center gap-0.5 text-alert-success"><TrendingDown className="h-3 w-3" /> all under control</span>
+                )}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Batch Actions Bar */}
       {selectedIds.size > 0 && (
