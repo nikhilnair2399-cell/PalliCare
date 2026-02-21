@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   CalendarDays,
   BarChart3,
+  Compass,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -398,6 +399,71 @@ export default function MyWishesPage() {
                 ? 'All key topics have been discussed with your family. Review again if circumstances change.'
                 : 'Having open conversations about your wishes helps your family feel prepared and supported.'}
             </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 61 — Decision Confidence Tracker */}
+      {(() => {
+        const decisions = [
+          { label: 'Goals of care', value: wishes.goalsOfCare, decidedValues: ['comfort', 'life_prolonging'], confidence: wishes.goalsOfCare !== 'undecided' ? 90 : 10 },
+          { label: 'Code status', value: wishes.codeStatus, decidedValues: ['full_code', 'dnr', 'dni', 'dnr_dni'], confidence: wishes.codeStatus !== 'undecided' ? 85 : 10 },
+          { label: 'Hospitalization', value: wishes.hospitalPref, decidedValues: ['yes', 'comfort_only', 'no'], confidence: wishes.hospitalPref !== 'undecided' ? 80 : 15 },
+          { label: 'ICU treatment', value: wishes.icuPref, decidedValues: ['yes', 'no'], confidence: wishes.icuPref !== 'undecided' ? 85 : 10 },
+          { label: 'Ventilator', value: wishes.ventilatorPref, decidedValues: ['yes', 'no'], confidence: wishes.ventilatorPref !== 'undecided' ? 85 : 10 },
+          { label: 'Feeding tube', value: wishes.feedingTubePref, decidedValues: ['yes', 'no'], confidence: wishes.feedingTubePref !== 'undecided' ? 75 : 20 },
+          { label: 'Preferred place', value: wishes.preferredPlace, decidedValues: ['home', 'hospital', 'hospice'], confidence: wishes.preferredPlace !== 'undecided' ? 95 : 10 },
+        ];
+        const decided = decisions.filter((d) => d.decidedValues.includes(d.value));
+        const undecided = decisions.filter((d) => !d.decidedValues.includes(d.value));
+        const avgConfidence = decisions.length > 0 ? Math.round(decisions.reduce((s, d) => s + d.confidence, 0) / decisions.length) : 0;
+        const readinessLabel = avgConfidence >= 80 ? 'Well Prepared' : avgConfidence >= 50 ? 'Mostly Prepared' : 'Needs Discussion';
+        const readinessColor = avgConfidence >= 80 ? 'text-sage-dark' : avgConfidence >= 50 ? 'text-amber' : 'text-terra';
+        const readinessBg = avgConfidence >= 80 ? 'bg-sage/10' : avgConfidence >= 50 ? 'bg-amber/10' : 'bg-terra/10';
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Compass className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Decision Readiness</h3>
+              <span className={clsx('ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold', readinessBg, readinessColor)}>
+                {readinessLabel}
+              </span>
+            </div>
+            {/* Confidence meter */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-charcoal/50">Overall confidence</span>
+                <span className={clsx('text-sm font-bold', readinessColor)}>{avgConfidence}%</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-cream">
+                <div className={clsx('h-full rounded-full', avgConfidence >= 80 ? 'bg-sage' : avgConfidence >= 50 ? 'bg-amber' : 'bg-terra')} style={{ width: `${avgConfidence}%` }} />
+              </div>
+            </div>
+            {/* Per-decision bars */}
+            <div className="space-y-2">
+              {decisions.map((d) => {
+                const isDecided = d.decidedValues.includes(d.value);
+                return (
+                  <div key={d.label} className="flex items-center gap-2">
+                    <span className={clsx('h-2 w-2 rounded-full flex-shrink-0', isDecided ? 'bg-sage' : 'bg-charcoal/15')} />
+                    <span className="w-24 text-xs text-charcoal truncate">{d.label}</span>
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream">
+                      <div
+                        className={clsx('h-full rounded-full', isDecided ? 'bg-sage/60' : 'bg-terra/40')}
+                        style={{ width: `${d.confidence}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-[10px] font-bold text-charcoal/40">{d.confidence}%</span>
+                  </div>
+                );
+              })}
+            </div>
+            {undecided.length > 0 && (
+              <p className="mt-3 text-xs text-charcoal/40">
+                {undecided.length} decision{undecided.length > 1 ? 's' : ''} still undecided: {undecided.map((d) => d.label).join(', ')}. Discuss with your care team.
+              </p>
+            )}
           </div>
         );
       })()}

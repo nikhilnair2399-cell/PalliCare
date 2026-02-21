@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb, Activity, Layers } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb, Activity, Layers, Grid3x3 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -483,6 +483,93 @@ export default function SleepPage() {
                 : avgRem < 1.0
                 ? 'REM sleep appears low. Anxiety management and consistent bedtimes can improve dream sleep.'
                 : 'Your sleep stages look balanced. Keep maintaining good sleep habits!'}
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 61 — Disturbance Frequency Heatmap */}
+      {history.length >= 7 && (() => {
+        const distTypes = ['Pain', 'Nausea', 'Anxiety', 'Bathroom', 'Breathing'];
+        const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const grid: Record<string, Record<string, number>> = {};
+        distTypes.forEach((dt) => {
+          grid[dt] = {};
+          dayNames.forEach((dn) => { grid[dt][dn] = 0; });
+        });
+        history.forEach((h) => {
+          const dayIdx = new Date(h.date).getDay();
+          const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dayIdx];
+          if (dayNames.includes(dayName)) {
+            h.disturbances.forEach((d) => {
+              if (grid[d]) grid[d][dayName] = (grid[d][dayName] || 0) + 1;
+            });
+          }
+        });
+        const maxCount = Math.max(1, ...distTypes.flatMap((dt) => dayNames.map((dn) => grid[dt][dn])));
+        const totalDist = history.reduce((s, h) => s + h.disturbances.length, 0);
+        const distFreeNights = history.filter((h) => h.disturbances.length === 0).length;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Grid3x3 className="h-4 w-4 text-terra" />
+              <h2 className="text-base font-semibold text-charcoal">Disturbance Heatmap</h2>
+              <span className="ml-auto text-[10px] text-charcoal/40">{distFreeNights}/{history.length} undisturbed</span>
+            </div>
+            {/* Heatmap grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-[320px]">
+                {/* Day headers */}
+                <div className="grid gap-1 mb-1" style={{ gridTemplateColumns: '80px repeat(7, 1fr)' }}>
+                  <div />
+                  {dayNames.map((dn) => (
+                    <div key={dn} className="text-center text-[9px] font-semibold text-charcoal/40">{dn}</div>
+                  ))}
+                </div>
+                {/* Rows */}
+                {distTypes.map((dt) => (
+                  <div key={dt} className="grid gap-1 mb-1" style={{ gridTemplateColumns: '80px repeat(7, 1fr)' }}>
+                    <span className="text-[10px] font-medium text-charcoal truncate self-center">{dt}</span>
+                    {dayNames.map((dn) => {
+                      const count = grid[dt][dn];
+                      const intensity = maxCount > 0 ? count / maxCount : 0;
+                      const bg = count === 0
+                        ? 'bg-cream/50'
+                        : intensity > 0.6
+                        ? 'bg-terra/70'
+                        : intensity > 0.3
+                        ? 'bg-terra/40'
+                        : 'bg-terra/20';
+                      return (
+                        <div
+                          key={dn}
+                          className={clsx('flex items-center justify-center rounded-md p-1.5', bg)}
+                          title={`${dt} on ${dn}: ${count}`}
+                        >
+                          <span className={clsx('text-[9px] font-bold', count > 0 ? 'text-charcoal/70' : 'text-charcoal/15')}>
+                            {count}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="flex gap-3 mt-3 text-[10px] text-charcoal/40">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-cream/50" /> None</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-terra/20" /> Low</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-terra/40" /> Moderate</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-terra/70" /> High</span>
+            </div>
+            <p className="mt-2 text-xs text-charcoal/40">
+              {totalDist > history.length
+                ? 'Multiple disturbances per night are common. Discuss a bedtime comfort plan with your care team.'
+                : distFreeNights > history.length / 2
+                ? 'Most nights are undisturbed — great progress on sleep hygiene!'
+                : 'Some patterns may emerge over time. Keep logging to identify your triggers.'}
             </p>
           </div>
         );

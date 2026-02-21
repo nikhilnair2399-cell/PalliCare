@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb, Gauge, BarChart3 } from 'lucide-react';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb, Gauge, BarChart3, Flame } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -372,6 +372,84 @@ export default function PatientHomePage() {
                 : trendDir === 'declining'
                 ? 'Your scores dipped recently. Focus on medication adherence and logging your symptoms.'
                 : 'Your wellness has been steady. Consistent effort is paying off.'}
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 61 — Symptom Logging Streak */}
+      {(() => {
+        const LOG_HISTORY = Array.from({ length: 21 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (20 - i));
+          const logged = Math.random() > 0.2;
+          return { date: d.toISOString().split('T')[0], day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()], logged };
+        });
+        let currentStreak = 0;
+        for (let i = LOG_HISTORY.length - 1; i >= 0; i--) {
+          if (LOG_HISTORY[i].logged) currentStreak++;
+          else break;
+        }
+        let bestStreak = 0;
+        let tempStreak = 0;
+        LOG_HISTORY.forEach((d) => {
+          if (d.logged) { tempStreak++; bestStreak = Math.max(bestStreak, tempStreak); }
+          else tempStreak = 0;
+        });
+        const loggedDays = LOG_HISTORY.filter((d) => d.logged).length;
+        const consistency = Math.round((loggedDays / LOG_HISTORY.length) * 100);
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Flame className="h-5 w-5 text-amber" />
+              <h2 className="font-heading text-xl font-bold text-charcoal">Logging Streak</h2>
+              <span className={`ml-auto rounded-full px-3 py-1 text-xs font-bold ${
+                currentStreak >= 7 ? 'bg-sage/10 text-sage-dark' : currentStreak >= 3 ? 'bg-amber/10 text-amber' : 'bg-cream text-charcoal/40'
+              }`}>
+                {currentStreak} day{currentStreak !== 1 ? 's' : ''}
+              </span>
+            </div>
+            {/* 21-day calendar grid */}
+            <div className="grid grid-cols-7 gap-1.5 mb-4">
+              {['M','T','W','T','F','S','S'].map((d, i) => (
+                <div key={i} className="text-center text-[9px] font-semibold text-charcoal/40">{d}</div>
+              ))}
+              {LOG_HISTORY.map((d, i) => {
+                const isToday = i === LOG_HISTORY.length - 1;
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center justify-center rounded-lg p-1.5 text-[10px] font-bold ${
+                      d.logged ? 'bg-teal/20 text-teal' : 'bg-charcoal/5 text-charcoal/20'
+                    } ${isToday ? 'ring-2 ring-teal' : ''}`}
+                  >
+                    {new Date(d.date).getDate()}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="text-lg font-bold text-amber">{currentStreak}</p>
+                <p className="text-[10px] text-charcoal/40">current streak</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="text-lg font-bold text-sage-dark">{bestStreak}</p>
+                <p className="text-[10px] text-charcoal/40">best streak</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className={`text-lg font-bold ${consistency >= 80 ? 'text-sage-dark' : consistency >= 50 ? 'text-amber' : 'text-terra'}`}>{consistency}%</p>
+                <p className="text-[10px] text-charcoal/40">consistency</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {currentStreak >= 7
+                ? 'Amazing streak! Regular logging helps your care team fine-tune your treatment.'
+                : currentStreak >= 3
+                ? 'Good going! Keep logging daily to build your streak.'
+                : 'Log your symptoms each day — even a quick check-in helps your care team help you.'}
             </p>
           </div>
         );
