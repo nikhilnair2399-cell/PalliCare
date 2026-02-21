@@ -16,6 +16,11 @@ const MED_INFO: Record<string, { purpose: string; sideEffects: string; tips: str
   'Ondansetron': { purpose: 'Prevents and treats nausea and vomiting', sideEffects: 'Headache, constipation, fatigue', tips: 'Take 30 minutes before meals if nausea occurs with eating.' },
   'Lactulose': { purpose: 'Softens stools and prevents constipation from opioids', sideEffects: 'Bloating, gas, stomach cramps', tips: 'Mix with water or juice. Increase fluid intake throughout the day.' },
   'Paracetamol': { purpose: 'Reduces mild pain and fever', sideEffects: 'Generally well-tolerated at prescribed doses', tips: 'Do not exceed 4g per day. Avoid alcohol while taking this medication.' },
+  'Dexamethasone': { purpose: 'Reduces inflammation, swelling, and can improve appetite', sideEffects: 'Increased blood sugar, stomach irritation, mood changes, insomnia', tips: 'Take in the morning with food. Do not stop suddenly — your doctor will taper the dose.' },
+  'Amitriptyline': { purpose: 'Helps with nerve pain, improves sleep quality', sideEffects: 'Dry mouth, drowsiness, dizziness, constipation', tips: 'Take at bedtime. Effects on pain may take 1–2 weeks to build up.' },
+  'Pantoprazole': { purpose: 'Protects stomach lining and reduces acid — prevents ulcers from other medications', sideEffects: 'Headache, nausea, diarrhoea (rare)', tips: 'Take 30 minutes before breakfast on an empty stomach.' },
+  'Metoclopramide': { purpose: 'Speeds up stomach emptying — reduces nausea and feeling of fullness', sideEffects: 'Drowsiness, restlessness, fatigue', tips: 'Take 30 minutes before meals. Do not use for more than 12 weeks without review.' },
+  'Lorazepam': { purpose: 'Relieves anxiety and helps with breathlessness-related distress', sideEffects: 'Drowsiness, dizziness, unsteadiness', tips: 'Use only when anxious or distressed. Do not take with alcohol. Avoid driving.' },
 };
 
 // ── Motivational Messages ────────────────────────────────────────────
@@ -290,6 +295,14 @@ export default function MedicationsPage() {
           { pair: ['Morphine SR', 'Ondansetron'], severity: 'info', note: 'Ondansetron helps manage opioid-induced nausea — take as prescribed' },
           { pair: ['Morphine SR', 'Lactulose'], severity: 'info', note: 'Lactulose prevents opioid constipation — do not skip this medication' },
           { pair: ['Gabapentin', 'Paracetamol'], severity: 'info', note: 'Safe combination — no significant interaction' },
+          { pair: ['Morphine SR', 'Lorazepam'], severity: 'caution', note: 'Both depress breathing — use lowest effective doses and report any drowsiness' },
+          { pair: ['Morphine SR', 'Amitriptyline'], severity: 'caution', note: 'Increased sedation risk — report excessive drowsiness to your care team' },
+          { pair: ['Gabapentin', 'Amitriptyline'], severity: 'caution', note: 'Both cause drowsiness — be cautious with balance and avoid driving' },
+          { pair: ['Dexamethasone', 'Pantoprazole'], severity: 'info', note: 'Pantoprazole protects your stomach from steroid-related irritation' },
+          { pair: ['Metoclopramide', 'Morphine SR'], severity: 'info', note: 'Metoclopramide helps counteract opioid-related stomach slowing' },
+          { pair: ['Lorazepam', 'Amitriptyline'], severity: 'caution', note: 'Combined sedation — avoid taking both at the same time if possible' },
+          { pair: ['Dexamethasone', 'Paracetamol'], severity: 'info', note: 'Safe combination — monitor for stomach discomfort' },
+          { pair: ['Ondansetron', 'Metoclopramide'], severity: 'info', note: 'Both treat nausea via different pathways — effective combination' },
         ];
 
         const medNames = meds.map((m: any) => m.name);

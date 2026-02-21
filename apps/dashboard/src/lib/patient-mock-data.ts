@@ -62,6 +62,79 @@ export const MOCK_MEDICATIONS_TODAY = [
       { time: '20:00', label: 'Night', status: 'pending', taken_at: null },
     ],
   },
+  {
+    id: 'med-5',
+    name: 'Morphine IR',
+    dose: '15mg',
+    route: 'Oral',
+    category: 'opioid',
+    is_prn: true,
+    schedule: [],
+    last_taken: '2024-02-21T14:45:00Z',
+  },
+  {
+    id: 'med-6',
+    name: 'Dexamethasone',
+    dose: '4mg',
+    route: 'Oral',
+    category: 'adjuvant',
+    schedule: [
+      { time: '08:00', label: 'Morning', status: 'taken', taken_at: '2024-02-21T08:05:00Z' },
+    ],
+  },
+  {
+    id: 'med-7',
+    name: 'Lactulose',
+    dose: '15mL',
+    route: 'Oral',
+    category: 'supportive',
+    schedule: [
+      { time: '08:00', label: 'Morning', status: 'taken', taken_at: '2024-02-21T08:25:00Z' },
+      { time: '20:00', label: 'Night', status: 'pending', taken_at: null },
+    ],
+  },
+  {
+    id: 'med-8',
+    name: 'Amitriptyline',
+    dose: '25mg',
+    route: 'Oral',
+    category: 'adjuvant',
+    schedule: [
+      { time: '21:00', label: 'Night', status: 'pending', taken_at: null },
+    ],
+  },
+  {
+    id: 'med-9',
+    name: 'Pantoprazole',
+    dose: '40mg',
+    route: 'Oral',
+    category: 'supportive',
+    schedule: [
+      { time: '07:00', label: 'Morning', status: 'taken', taken_at: '2024-02-21T07:00:00Z' },
+    ],
+  },
+  {
+    id: 'med-10',
+    name: 'Metoclopramide',
+    dose: '10mg',
+    route: 'Oral',
+    category: 'supportive',
+    schedule: [
+      { time: '07:30', label: 'Morning', status: 'taken', taken_at: '2024-02-21T07:35:00Z' },
+      { time: '13:30', label: 'Afternoon', status: 'skipped', taken_at: null },
+      { time: '19:30', label: 'Evening', status: 'pending', taken_at: null },
+    ],
+  },
+  {
+    id: 'med-11',
+    name: 'Lorazepam',
+    dose: '0.5mg',
+    route: 'Oral',
+    category: 'supportive',
+    is_prn: true,
+    schedule: [],
+    last_taken: '2024-02-20T22:15:00Z',
+  },
 ];
 
 export const MOCK_SYMPTOM_SUMMARY = {

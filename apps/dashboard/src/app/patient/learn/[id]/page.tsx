@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked, HelpCircle, GraduationCap } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, CheckCircle2, Lightbulb, BookMarked, HelpCircle, GraduationCap, FileText } from 'lucide-react';
 import { useEducationModule, useUpdateEducationProgress } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_EDUCATION_MODULES } from '@/lib/patient-mock-data';
@@ -208,6 +208,57 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
                 <p className="mt-2 text-[10px] text-charcoal/40">{accessScore}/4 features present</p>
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 62 — Key Medical Vocabulary */}
+      {(() => {
+        const GLOSSARY: Record<string, string> = {
+          'analgesic': 'Medication that reduces pain without causing unconsciousness',
+          'palliative': 'Care focused on comfort and quality of life, not curing disease',
+          'opioid': 'Strong pain medication acting on the brain\'s pain receptors',
+          'breakthrough pain': 'Sudden pain flare that occurs despite regular medication',
+          'neuropathic': 'Pain from nerve damage — often burning or tingling',
+          'adjuvant': 'Medication used alongside primary treatment to boost its effect',
+          'titration': 'Gradually adjusting a dose to find the right amount',
+          'dyspnea': 'Difficulty breathing or shortness of breath',
+          'antiemetic': 'Medication to prevent or treat nausea and vomiting',
+          'prognosis': 'The likely course and outcome of a condition',
+          'hospice': 'Specialised end-of-life comfort care',
+          'nsaid': 'Non-steroidal anti-inflammatory drug for mild–moderate pain',
+          'who pain ladder': 'Step-by-step approach to pain management by WHO',
+          'advance directive': 'Legal document stating your care wishes',
+          'morphine': 'A strong opioid used for severe pain',
+          'sedation': 'Using medication to reduce awareness for comfort',
+        };
+        const sections = module.sections || module.content || [];
+        const blob = (sections.map((s: any) => s.body || s.content || s.text || '').join(' ') + ' ' + (module.description || '') + ' ' + (module.title || '') + ' ' + (module.category || '')).toLowerCase();
+        const matched = Object.entries(GLOSSARY).filter(([term]) => blob.includes(term)).slice(0, 6);
+        const terms = matched.length >= 2 ? matched : Object.entries(GLOSSARY).slice(0, 4);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Key Medical Terms</h3>
+              {matched.length >= 2 && (
+                <span className="ml-auto text-xs text-charcoal/40">{matched.length} in this module</span>
+              )}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {terms.map(([term, def]) => (
+                <div key={term} className="rounded-xl bg-cream/50 p-3">
+                  <p className="text-sm font-semibold text-teal capitalize">{term}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-charcoal/60">{def}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {matched.length >= 2
+                ? 'Terms detected in this module. Understanding these helps you follow your care plan.'
+                : 'Common palliative care terms. Ask your care team if any are unclear.'}
+            </p>
           </div>
         );
       })()}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown, BarChart3, CalendarDays } from 'lucide-react';
+import { Send, MessageCircle, Zap, AlertTriangle, X, CheckCheck, Clock, TrendingDown, BarChart3, CalendarDays, HeartPulse } from 'lucide-react';
 import { usePatientMessages, useSendPatientMessage } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MESSAGES } from '@/lib/patient-mock-data';
@@ -256,6 +256,80 @@ export default function MessagesPage() {
                 <span className="h-2 w-2 rounded-full bg-teal/25" /> You ({totalYou})
               </span>
               <span className="ml-auto text-charcoal/40">{activeDays} active days</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 62 — Communication Sentiment Summary */}
+      {messages.length >= 5 && (() => {
+        const POSITIVE = ['thank', 'better', 'good', 'great', 'happy', 'comfortable', 'improved', 'relief', 'appreciate', 'wonderful'];
+        const CONCERN = ['pain', 'worse', 'worried', 'scared', 'anxious', 'nausea', 'cannot', 'difficult', 'urgent', 'help'];
+        const NEUTRAL = ['okay', 'question', 'appointment', 'schedule', 'information', 'understand', 'noted', 'will do'];
+
+        let pos = 0; let con = 0; let neu = 0;
+        const recentMsgs = messages.slice(-20);
+        recentMsgs.forEach((m: any) => {
+          const text = ((m.content || m.message) as string || '').toLowerCase();
+          const pHits = POSITIVE.filter((w) => text.includes(w)).length;
+          const cHits = CONCERN.filter((w) => text.includes(w)).length;
+          const nHits = NEUTRAL.filter((w) => text.includes(w)).length;
+          if (pHits >= cHits && pHits >= nHits) pos++;
+          else if (cHits > pHits && cHits >= nHits) con++;
+          else neu++;
+        });
+        const total = pos + con + neu;
+        const posPct = Math.round((pos / total) * 100);
+        const conPct = Math.round((con / total) * 100);
+        const neuPct = 100 - posPct - conPct;
+        const dominant = posPct >= conPct && posPct >= neuPct ? 'Positive' : conPct > posPct && conPct >= neuPct ? 'Concern-focused' : 'Informational';
+        const dominantColor = dominant === 'Positive' ? 'text-sage-dark' : dominant === 'Concern-focused' ? 'text-amber' : 'text-teal';
+
+        const teamMsgs = recentMsgs.filter((m: any) => m.sender !== 'patient' && !m.is_patient);
+        let teamPos = 0;
+        teamMsgs.forEach((m: any) => {
+          const text = ((m.content || m.message) as string || '').toLowerCase();
+          if (POSITIVE.some((w) => text.includes(w)) || text.includes('reassur') || text.includes('support')) teamPos++;
+        });
+        const teamSupportPct = teamMsgs.length > 0 ? Math.round((teamPos / teamMsgs.length) * 100) : 0;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <HeartPulse className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Conversation Tone</h3>
+              <span className="ml-auto text-xs text-charcoal/40">Last {recentMsgs.length} messages</span>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`text-sm font-bold ${dominantColor}`}>{dominant}</span>
+              <span className="text-xs text-charcoal/40">overall tone</span>
+            </div>
+            {/* Stacked bar */}
+            <div className="flex h-4 overflow-hidden rounded-full mb-2">
+              {posPct > 0 && <div className="bg-sage" style={{ width: `${posPct}%` }} />}
+              {neuPct > 0 && <div className="bg-teal/30" style={{ width: `${neuPct}%` }} />}
+              {conPct > 0 && <div className="bg-amber" style={{ width: `${conPct}%` }} />}
+            </div>
+            <div className="flex items-center gap-4 text-xs text-charcoal/50">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sage" /> Positive {posPct}%</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-teal/30" /> Neutral {neuPct}%</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber" /> Concern {conPct}%</span>
+            </div>
+            <div className="mt-3 rounded-xl bg-cream/50 p-3 flex items-center gap-3">
+              <div className="text-center flex-1">
+                <p className="font-heading text-xl font-bold text-sage-dark">{teamSupportPct}%</p>
+                <p className="text-[10px] text-charcoal/40">Team supportive tone</p>
+              </div>
+              <div className="w-px h-8 bg-charcoal/10" />
+              <div className="text-center flex-1">
+                <p className="font-heading text-xl font-bold text-charcoal">{pos}</p>
+                <p className="text-[10px] text-charcoal/40">Positive exchanges</p>
+              </div>
+              <div className="w-px h-8 bg-charcoal/10" />
+              <div className="text-center flex-1">
+                <p className="font-heading text-xl font-bold text-amber">{con}</p>
+                <p className="text-[10px] text-charcoal/40">Concern messages</p>
+              </div>
             </div>
           </div>
         );

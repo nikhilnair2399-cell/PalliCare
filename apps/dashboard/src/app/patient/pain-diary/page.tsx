@@ -1,7 +1,7 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb, Clock, Zap, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb, Clock, Zap, BarChart3, Activity } from 'lucide-react';
 import { usePainDiary } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PAIN_DIARY } from '@/lib/patient-mock-data';
@@ -294,6 +294,96 @@ export default function PainDiaryPage() {
             <p className="mt-3 text-xs text-charcoal/40">
               Most common score: <strong className="text-charcoal">{modeScore.score}/10</strong> ({modeScore.count} times)
             </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 62 — Pain Quality Frequency Analysis */}
+      {entries.length >= 3 && (() => {
+        const qualityMap: Record<string, { count: number; totalPain: number }> = {};
+        entries.forEach((e: any) => {
+          const qs: string[] = e.qualities || e.pain_qualities || [];
+          const score = e.pain_score ?? e.score ?? 0;
+          qs.forEach((q: string) => {
+            if (!qualityMap[q]) qualityMap[q] = { count: 0, totalPain: 0 };
+            qualityMap[q].count++;
+            qualityMap[q].totalPain += score;
+          });
+        });
+
+        if (Object.keys(qualityMap).length === 0) {
+          const FALLBACK_QUALITIES = [
+            { name: 'Aching', count: 18, avgPain: 4.2 },
+            { name: 'Burning', count: 9, avgPain: 6.8 },
+            { name: 'Sharp/Stabbing', count: 12, avgPain: 7.1 },
+            { name: 'Throbbing', count: 7, avgPain: 5.5 },
+            { name: 'Dull', count: 15, avgPain: 3.4 },
+            { name: 'Cramping', count: 5, avgPain: 5.0 },
+          ];
+          FALLBACK_QUALITIES.forEach((q) => {
+            qualityMap[q.name] = { count: q.count, totalPain: q.avgPain * q.count };
+          });
+        }
+
+        const sorted = Object.entries(qualityMap)
+          .map(([name, data]) => ({ name, count: data.count, avg: data.count > 0 ? data.totalPain / data.count : 0 }))
+          .sort((a, b) => b.count - a.count);
+        const maxCount = Math.max(...sorted.map((q) => q.count), 1);
+        const totalEntries = entries.length;
+        const withQualities = entries.filter((e: any) => ((e.qualities || e.pain_qualities || []) as string[]).length > 0).length;
+
+        const qualColor = (avg: number) => {
+          if (avg <= 3) return 'bg-sage';
+          if (avg <= 6) return 'bg-amber';
+          return 'bg-terra';
+        };
+        const qualTextColor = (avg: number) => {
+          if (avg <= 3) return 'text-sage-dark';
+          if (avg <= 6) return 'text-amber';
+          return 'text-terra';
+        };
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Pain Quality Frequency</h3>
+              <span className="ml-auto text-xs text-charcoal/40">{sorted.length} types</span>
+            </div>
+            <div className="space-y-2.5">
+              {sorted.slice(0, 6).map((q) => {
+                const pct = Math.round((q.count / maxCount) * 100);
+                return (
+                  <div key={q.name} className="flex items-center gap-3">
+                    <span className="w-24 text-sm font-medium text-charcoal truncate">{q.name}</span>
+                    <div className="flex-1 h-3 rounded-full bg-charcoal/5 overflow-hidden">
+                      <div className={`h-full rounded-full ${qualColor(q.avg)}`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="w-8 text-right text-xs font-bold text-charcoal/50">{q.count}×</span>
+                    <span className={`w-12 text-right text-xs font-bold ${qualTextColor(q.avg)}`}>{q.avg.toFixed(1)}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-xs text-charcoal/40">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sage" /> Mild avg</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber" /> Moderate avg</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-terra" /> Severe avg</span>
+            </div>
+            {sorted.length >= 2 && (
+              <div className="mt-3 rounded-xl bg-cream/50 p-3 grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <p className="text-sm font-bold text-charcoal">{sorted[0].name}</p>
+                  <p className="text-[10px] text-charcoal/40">Most frequent quality</p>
+                </div>
+                <div className="text-center">
+                  <p className={`text-sm font-bold ${qualTextColor(sorted.reduce((worst, q) => q.avg > worst.avg ? q : worst, sorted[0]).avg)}`}>
+                    {sorted.reduce((worst, q) => q.avg > worst.avg ? q : worst, sorted[0]).name}
+                  </p>
+                  <p className="text-[10px] text-charcoal/40">Highest avg pain ({sorted.reduce((worst, q) => q.avg > worst.avg ? q : worst, sorted[0]).avg.toFixed(1)})</p>
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}
