@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award, Calendar, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award, Calendar, Zap, HeartPulse } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -456,6 +456,98 @@ export default function BreathePage() {
                 Amazing! {currentStreak}-day streak. Keep breathing mindfully!
               </p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 63 — Breathing Impact on Pain */}
+      {!isRunning && !sessionComplete && (() => {
+        const PAIN_BEFORE_AFTER = [
+          { date: '2026-02-21', technique: '4-7-8 Breathing', painBefore: 6, painAfter: 4, duration: 5 },
+          { date: '2026-02-20', technique: 'Box Breathing', painBefore: 5, painAfter: 3, duration: 4 },
+          { date: '2026-02-19', technique: 'Deep Belly Breathing', painBefore: 7, painAfter: 5, duration: 3 },
+          { date: '2026-02-18', technique: '4-7-8 Breathing', painBefore: 4, painAfter: 2, duration: 6 },
+          { date: '2026-02-17', technique: 'Triangle Breathing', painBefore: 6, painAfter: 5, duration: 2 },
+          { date: '2026-02-16', technique: 'Box Breathing', painBefore: 5, painAfter: 4, duration: 3 },
+          { date: '2026-02-15', technique: '4-7-8 Breathing', painBefore: 8, painAfter: 5, duration: 7 },
+          { date: '2026-02-14', technique: 'Deep Belly Breathing', painBefore: 5, painAfter: 4, duration: 4 },
+        ];
+
+        const avgReduction = PAIN_BEFORE_AFTER.reduce((s, p) => s + (p.painBefore - p.painAfter), 0) / PAIN_BEFORE_AFTER.length;
+        const helpedPct = Math.round((PAIN_BEFORE_AFTER.filter((p) => p.painAfter < p.painBefore).length / PAIN_BEFORE_AFTER.length) * 100);
+
+        const techEffect: Record<string, { total: number; count: number }> = {};
+        PAIN_BEFORE_AFTER.forEach((p) => {
+          if (!techEffect[p.technique]) techEffect[p.technique] = { total: 0, count: 0 };
+          techEffect[p.technique].total += (p.painBefore - p.painAfter);
+          techEffect[p.technique].count++;
+        });
+        const techRanked = Object.entries(techEffect)
+          .map(([name, data]) => ({ name, avgDrop: data.total / data.count }))
+          .sort((a, b) => b.avgDrop - a.avgDrop);
+
+        const maxDrop = Math.max(...techRanked.map((t) => t.avgDrop), 1);
+
+        const longerSessions = PAIN_BEFORE_AFTER.filter((p) => p.duration >= 5);
+        const shorterSessions = PAIN_BEFORE_AFTER.filter((p) => p.duration < 5);
+        const longerAvgDrop = longerSessions.length > 0 ? longerSessions.reduce((s, p) => s + (p.painBefore - p.painAfter), 0) / longerSessions.length : 0;
+        const shorterAvgDrop = shorterSessions.length > 0 ? shorterSessions.reduce((s, p) => s + (p.painBefore - p.painAfter), 0) / shorterSessions.length : 0;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <HeartPulse className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Breathing & Pain Impact</h3>
+              <span className="ml-auto text-xs text-charcoal/40">{PAIN_BEFORE_AFTER.length} sessions</span>
+            </div>
+
+            {/* Summary stats */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-xl bg-sage/10 p-3 text-center">
+                <p className="text-xl font-bold text-sage-dark">-{avgReduction.toFixed(1)}</p>
+                <p className="text-[10px] text-charcoal/40">Avg pain drop</p>
+              </div>
+              <div className="rounded-xl bg-teal/10 p-3 text-center">
+                <p className="text-xl font-bold text-teal">{helpedPct}%</p>
+                <p className="text-[10px] text-charcoal/40">Sessions helped</p>
+              </div>
+              <div className="rounded-xl bg-cream p-3 text-center">
+                <p className="text-xl font-bold text-charcoal">{techRanked[0]?.name.split(' ')[0]}</p>
+                <p className="text-[10px] text-charcoal/40">Best technique</p>
+              </div>
+            </div>
+
+            {/* Technique effectiveness */}
+            <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">Pain Reduction by Technique</p>
+            <div className="space-y-2 mb-4">
+              {techRanked.map((t) => (
+                <div key={t.name} className="flex items-center gap-3">
+                  <span className="w-28 text-xs font-medium text-charcoal truncate">{t.name}</span>
+                  <div className="flex-1 h-2.5 rounded-full bg-charcoal/5 overflow-hidden">
+                    <div className="h-full rounded-full bg-sage/70" style={{ width: `${(t.avgDrop / maxDrop) * 100}%` }} />
+                  </div>
+                  <span className="w-10 text-right text-xs font-bold text-sage-dark">-{t.avgDrop.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Duration insight */}
+            <div className="rounded-xl bg-cream/50 p-3 flex items-center gap-4">
+              <div className="flex-1 text-center">
+                <p className="text-sm font-bold text-charcoal">5+ min</p>
+                <p className="text-[10px] text-charcoal/40">Avg drop: <span className="font-bold text-sage-dark">-{longerAvgDrop.toFixed(1)}</span></p>
+              </div>
+              <div className="w-px h-8 bg-charcoal/10" />
+              <div className="flex-1 text-center">
+                <p className="text-sm font-bold text-charcoal">&lt;5 min</p>
+                <p className="text-[10px] text-charcoal/40">Avg drop: <span className="font-bold text-amber">-{shorterAvgDrop.toFixed(1)}</span></p>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-charcoal/40">
+              {longerAvgDrop > shorterAvgDrop
+                ? 'Longer sessions give greater pain relief. Aim for 5+ minutes when possible.'
+                : 'Even short sessions help. Every breath counts towards comfort.'}
+            </p>
           </div>
         );
       })()}

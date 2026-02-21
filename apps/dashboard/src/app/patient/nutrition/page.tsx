@@ -15,6 +15,7 @@ import {
   Utensils,
   Coffee,
   Lightbulb,
+  Timer,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -376,6 +377,105 @@ export default function NutritionPage() {
                 </div>
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 63 — Meal Quality & Intake Pattern */}
+      {history.length >= 7 && (() => {
+        const intakeCounts: Record<string, number> = { normal: 0, reduced: 0, minimal: 0, nil: 0 };
+        history.forEach((h) => { intakeCounts[h.oral_intake] = (intakeCounts[h.oral_intake] || 0) + 1; });
+        const total = history.length;
+        const intakeColors: Record<string, string> = { normal: 'bg-sage', reduced: 'bg-amber', minimal: 'bg-terra', nil: 'bg-alert-critical' };
+        const intakeTextColors: Record<string, string> = { normal: 'text-sage-dark', reduced: 'text-amber', minimal: 'text-terra', nil: 'text-alert-critical' };
+        const intakeLabels: Record<string, string> = { normal: 'Normal', reduced: 'Reduced', minimal: 'Minimal', nil: 'Nothing' };
+
+        const mealsByDay: { day: string; meals: number; fluids: number; appetite: number }[] = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayTotals: Record<string, { meals: number; fluids: number; appetite: number; count: number }> = {};
+        dayNames.forEach((d) => { dayTotals[d] = { meals: 0, fluids: 0, appetite: 0, count: 0 }; });
+        history.forEach((h) => {
+          const d = dayNames[new Date(h.date).getDay()];
+          dayTotals[d].meals += h.meals_eaten;
+          dayTotals[d].fluids += h.fluid_intake;
+          dayTotals[d].appetite += h.appetite;
+          dayTotals[d].count++;
+        });
+        const dayAvgs = dayNames.map((d) => ({
+          day: d,
+          meals: dayTotals[d].count > 0 ? dayTotals[d].meals / dayTotals[d].count : 0,
+          appetite: dayTotals[d].count > 0 ? dayTotals[d].appetite / dayTotals[d].count : 0,
+        }));
+        const bestDay = dayAvgs.reduce((best, d) => d.appetite > best.appetite ? d : best, dayAvgs[0]);
+        const worstDay = dayAvgs.reduce((worst, d) => d.appetite < worst.appetite && dayTotals[d.day].count > 0 ? d : worst, dayAvgs[0]);
+
+        const nauseaDays = history.filter((h) => h.nausea_affected).length;
+        const mouthDays = history.filter((h) => h.mouth_problems).length;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Timer className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Intake Quality Pattern</h3>
+              <span className="ml-auto text-xs text-charcoal/40">{total} days</span>
+            </div>
+
+            {/* Intake distribution stacked bar */}
+            <div className="flex h-5 overflow-hidden rounded-full mb-2">
+              {['normal', 'reduced', 'minimal', 'nil'].map((level) => {
+                const pct = total > 0 ? (intakeCounts[level] / total) * 100 : 0;
+                return pct > 0 ? <div key={level} className={intakeColors[level]} style={{ width: `${pct}%` }} /> : null;
+              })}
+            </div>
+            <div className="flex flex-wrap gap-3 mb-4 text-xs text-charcoal/50">
+              {['normal', 'reduced', 'minimal', 'nil'].filter((l) => intakeCounts[l] > 0).map((level) => (
+                <span key={level} className="flex items-center gap-1">
+                  <span className={clsx('h-2 w-2 rounded-full', intakeColors[level])} />
+                  {intakeLabels[level]} {Math.round((intakeCounts[level] / total) * 100)}%
+                </span>
+              ))}
+            </div>
+
+            {/* Day-of-week appetite bars */}
+            <p className="text-[10px] font-semibold text-charcoal/40 uppercase mb-2">Appetite by Day of Week</p>
+            <div className="flex items-end gap-1.5 mb-1" style={{ height: '60px' }}>
+              {dayAvgs.map((d) => {
+                const pct = (d.appetite / 10) * 100;
+                return (
+                  <div key={d.day} className="flex-1 flex flex-col items-center gap-0.5">
+                    <span className="text-[9px] font-bold text-charcoal/50">{d.appetite.toFixed(1)}</span>
+                    <div
+                      className={clsx('w-full rounded-t', d.appetite >= 6 ? 'bg-sage/60' : d.appetite >= 4 ? 'bg-amber/50' : 'bg-terra/40')}
+                      style={{ height: `${Math.max(pct, 6)}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mb-4">
+              {dayAvgs.map((d) => (
+                <span key={d.day} className="flex-1 text-center text-[9px] text-charcoal/40">{d.day}</span>
+              ))}
+            </div>
+
+            {/* Barriers & best/worst day */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-sage/10 p-3 text-center">
+                <p className={clsx('text-sm font-bold', intakeTextColors.normal)}>{bestDay.day}</p>
+                <p className="text-[10px] text-charcoal/40">Best appetite day ({bestDay.appetite.toFixed(1)})</p>
+              </div>
+              <div className="rounded-xl bg-terra/10 p-3 text-center">
+                <p className={clsx('text-sm font-bold text-terra')}>{worstDay.day}</p>
+                <p className="text-[10px] text-charcoal/40">Lowest appetite ({worstDay.appetite.toFixed(1)})</p>
+              </div>
+            </div>
+
+            {(nauseaDays > 0 || mouthDays > 0) && (
+              <div className="mt-3 flex gap-3 text-xs text-charcoal/50">
+                {nauseaDays > 0 && <span>🤢 Nausea affected {nauseaDays}/{total} days</span>}
+                {mouthDays > 0 && <span>😣 Mouth issues {mouthDays}/{total} days</span>}
+              </div>
+            )}
           </div>
         );
       })()}

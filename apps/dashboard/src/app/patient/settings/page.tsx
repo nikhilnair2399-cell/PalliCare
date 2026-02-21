@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2, Activity, Share2 } from 'lucide-react';
+import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone, CheckCircle2, Activity, Share2, Smartphone } from 'lucide-react';
 import { usePatientProfile, useUpdatePatientProfile } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE } from '@/lib/patient-mock-data';
@@ -408,6 +408,76 @@ export default function SettingsPage() {
             <p className="mt-3 text-xs text-charcoal/40">
               Shared data helps your care team provide better, more personalized care. You can request changes to sharing preferences through your care team.
             </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 63 — Device & Session Security */}
+      {(() => {
+        const SESSIONS = [
+          { device: 'This Device', browser: 'Chrome · Android', ip: '192.168.1.xx', lastActive: 'Now', current: true },
+          { device: 'iPad', browser: 'Safari · iPadOS', ip: '192.168.1.xx', lastActive: '2h ago', current: false },
+        ];
+        const SECURITY_LOG = [
+          { event: 'Password changed', time: '15 days ago', icon: '🔐' },
+          { event: 'New device login (iPad)', time: '3 days ago', icon: '📱' },
+          { event: 'Data export requested', time: '22 days ago', icon: '📦' },
+        ];
+        const lastBackup = '2 hours ago';
+        const storageMb = 12.4;
+        const storageLimitMb = 50;
+        const storagePct = Math.round((storageMb / storageLimitMb) * 100);
+        const syncStatus = 'Synced';
+
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Smartphone className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Device & Security</h3>
+            </div>
+
+            {/* Active Sessions */}
+            <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Active Sessions</p>
+            <div className="space-y-2 mb-4">
+              {SESSIONS.map((s, i) => (
+                <div key={i} className={`flex items-center justify-between rounded-xl px-4 py-3 ${s.current ? 'bg-teal/5 ring-1 ring-teal/15' : 'bg-cream/50'}`}>
+                  <div>
+                    <p className="text-sm font-medium text-charcoal">{s.device} {s.current && <span className="text-[10px] text-teal font-bold ml-1">CURRENT</span>}</p>
+                    <p className="text-xs text-charcoal/40">{s.browser} · {s.ip}</p>
+                  </div>
+                  <span className={`text-xs font-bold ${s.current ? 'text-sage-dark' : 'text-charcoal/40'}`}>{s.lastActive}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Storage & Sync */}
+            <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Storage & Sync</p>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-xl bg-cream/50 p-3">
+                <p className="text-sm font-bold text-charcoal">{storageMb} MB</p>
+                <div className="mt-1 h-1.5 rounded-full bg-charcoal/5 overflow-hidden">
+                  <div className={`h-full rounded-full ${storagePct > 80 ? 'bg-terra' : 'bg-teal'}`} style={{ width: `${storagePct}%` }} />
+                </div>
+                <p className="text-[10px] text-charcoal/40 mt-1">of {storageLimitMb} MB used</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-3">
+                <p className="text-sm font-bold text-sage-dark">{syncStatus}</p>
+                <p className="text-[10px] text-charcoal/40 mt-1">Last backup: {lastBackup}</p>
+                <p className="text-[10px] text-charcoal/40">Auto-sync enabled</p>
+              </div>
+            </div>
+
+            {/* Security Log */}
+            <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Recent Security Events</p>
+            <div className="space-y-1.5">
+              {SECURITY_LOG.map((ev, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm">
+                  <span className="text-base">{ev.icon}</span>
+                  <span className="flex-1 text-charcoal/70">{ev.event}</span>
+                  <span className="text-xs text-charcoal/40">{ev.time}</span>
+                </div>
+              ))}
+            </div>
           </div>
         );
       })()}
