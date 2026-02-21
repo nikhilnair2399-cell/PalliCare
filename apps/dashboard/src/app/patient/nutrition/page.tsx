@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Utensils,
   Coffee,
+  Lightbulb,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -290,6 +291,29 @@ export default function NutritionPage() {
             Nutrition Risk: {mustRisk.level}
           </p>
           <p className="mt-1 text-sm text-charcoal-light">{mustRisk.advice}</p>
+        </div>
+      </div>
+
+      {/* Personalized Nutrition Tips */}
+      <div className="rounded-2xl bg-teal/5 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="h-5 w-5 text-teal" />
+          <h2 className="text-base font-semibold text-charcoal">Nutrition Tips for You</h2>
+        </div>
+        <div className="space-y-2">
+          {[
+            avgAppetite < 5 && 'Small, frequent meals (6-8 times) work better than 3 large meals when appetite is low.',
+            avgFluids < 5 && 'Try flavoured water, buttermilk, or coconut water to increase fluid intake.',
+            history.filter(h => h.nausea_affected).length > history.length * 0.3 && 'Nausea is common — eat bland, dry foods. Ginger tea or cold foods may help.',
+            history.filter(h => h.mouth_problems).length > 2 && 'For mouth sores, try soft foods at room temperature. Avoid spicy or acidic foods.',
+            weightChange < -2 && 'Weight loss noticed. Adding ghee, curd, or protein supplements can help maintain weight.',
+            avgAppetite >= 5 && 'Your appetite is holding up well! Keep eating nutrient-rich foods.',
+          ].filter(Boolean).slice(0, 3).map((tip, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-teal flex-shrink-0" />
+              <p className="text-sm text-charcoal/70">{tip}</p>
+            </div>
+          ))}
         </div>
       </div>
 

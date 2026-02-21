@@ -15,6 +15,8 @@ import {
   Hand,
   Utensils,
   Brain,
+  Lightbulb,
+  Heart,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -419,6 +421,33 @@ export default function FunctionalStatusPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Encouragement & Tips */}
+      {latestEntry && (
+        <div className="rounded-2xl bg-teal/5 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb className="h-5 w-5 text-teal" />
+            <h2 className="text-base font-semibold text-charcoal">Tips for You</h2>
+          </div>
+          <div className="space-y-2">
+            {[
+              ppsTrend === 'improving' && 'Your function is improving — keep up the great work!',
+              ppsTrend === 'stable' && 'Maintaining stability is a positive sign. Consistency matters.',
+              (latestEntry as any).mobility <= 2 && 'Gentle bed exercises can help maintain muscle strength. Ask your physiotherapist.',
+              (latestEntry as any).selfCare <= 2 && 'It is okay to accept help. Focus your energy on things that bring you joy.',
+              (latestEntry as any).eating <= 2 && 'Small sips and soft foods can help. Your dietitian can suggest options.',
+              (latestEntry as any).awareness <= 3 && 'Drowsiness can be a medication effect. Mention this to your care team.',
+              (latestEntry as any).activity <= 2 && 'Even light activities like listening to music or talking with family are meaningful.',
+              currentPPS >= 60 && 'Your functional level allows for light activities. Gentle walks can boost mood.',
+            ].filter(Boolean).slice(0, 3).map((tip, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <Heart className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-teal" />
+                <p className="text-sm text-charcoal/70">{tip}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}

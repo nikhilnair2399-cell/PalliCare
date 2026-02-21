@@ -12,7 +12,14 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Smile,
+  Meh,
+  Frown,
+  Wind,
+  Heart,
+  Sparkles,
 } from 'lucide-react';
+import Link from 'next/link';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -87,6 +94,7 @@ export default function MoodCheckPage() {
   const [results, setResults] = useState<ScreeningResult[]>([]);
   const [showSafetyAlert, setShowSafetyAlert] = useState(false);
   const [history] = useState(MOCK_HISTORY);
+  const [quickMood, setQuickMood] = useState<string | null>(null);
 
   const items = activeScreen === 'phq9' ? PHQ9_ITEMS : GAD7_ITEMS;
   const scores = activeScreen === 'phq9' ? phq9Scores : gad7Scores;
@@ -152,6 +160,60 @@ export default function MoodCheckPage() {
           </p>
         </div>
 
+        {/* Quick Daily Mood Check */}
+        <div className="rounded-2xl bg-white p-6">
+          <h2 className="text-base font-semibold text-charcoal">How are you feeling right now?</h2>
+          <p className="mt-1 text-sm text-charcoal-light">A quick check-in — no quiz needed</p>
+          <div className="mt-4 flex gap-3">
+            {([
+              { key: 'good', icon: Smile, label: 'Good', color: 'bg-sage/10 text-sage-dark border-sage/30' },
+              { key: 'okay', icon: Meh, label: 'Okay', color: 'bg-amber/10 text-amber border-amber/30' },
+              { key: 'low', icon: Frown, label: 'Low', color: 'bg-terra/10 text-terra border-terra/30' },
+            ] as const).map((m) => (
+              <button
+                key={m.key}
+                onClick={() => setQuickMood(m.key)}
+                className={`flex flex-1 flex-col items-center gap-2 rounded-2xl border p-4 transition-all ${
+                  quickMood === m.key ? m.color : 'border-charcoal/5 bg-cream/50 text-charcoal-light'
+                }`}
+              >
+                <m.icon className="h-7 w-7" />
+                <span className="text-sm font-medium">{m.label}</span>
+              </button>
+            ))}
+          </div>
+          {quickMood && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-cream/50 p-3">
+              <CheckCircle2 className="h-4 w-4 text-sage" />
+              <p className="text-sm text-charcoal/70">
+                {quickMood === 'good' ? 'Glad to hear! Keep doing what helps you feel well.' :
+                 quickMood === 'okay' ? 'That is okay. Small moments of peace add up.' :
+                 'Your care team is here for you. Consider the full screening below, or try breathing exercises.'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Wellbeing Resources */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/patient/breathe" className="flex items-center gap-3 rounded-2xl bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <Wind className="h-6 w-6 text-sage" />
+            <div>
+              <p className="text-sm font-semibold text-charcoal">Breathe</p>
+              <p className="text-xs text-charcoal-light">Guided exercises</p>
+            </div>
+          </Link>
+          <Link href="/patient/journey" className="flex items-center gap-3 rounded-2xl bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <Heart className="h-6 w-6 text-terra" />
+            <div>
+              <p className="text-sm font-semibold text-charcoal">Journey</p>
+              <p className="text-xs text-charcoal-light">Gratitude & goals</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Full Screening Options */}
+        <h2 className="text-base font-semibold text-charcoal">Full Screening</h2>
         <div className="space-y-3">
           {([
             { type: 'phq9' as ScreenType, title: 'Depression Screen (PHQ-9)', desc: '9 questions · ~2 minutes', badge: 'PHQ-9' },
