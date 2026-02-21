@@ -317,6 +317,63 @@ export default function NutritionPage() {
         </div>
       </div>
 
+      {/* Sprint 39 — Hydration Tracker Visual */}
+      {(() => {
+        const todayEntry = history[history.length - 1];
+        const glasses = todayEntry?.fluid_intake ?? 0;
+        const target = 8;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Droplets className="h-5 w-5 text-teal" />
+                <h2 className="text-base font-semibold text-charcoal">Today&apos;s Hydration</h2>
+              </div>
+              <span className="text-sm text-charcoal-light">{glasses}/{target} glasses</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: target }, (_, i) => (
+                <div key={i} className={clsx(
+                  'flex h-10 w-10 items-center justify-center rounded-xl text-sm transition-all',
+                  i < glasses ? 'bg-teal/15 text-teal' : 'bg-cream text-charcoal/15',
+                )}>
+                  <Droplets className="h-5 w-5" />
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-charcoal/40">
+              {glasses >= target ? 'Well hydrated today!' : glasses >= target / 2 ? 'Halfway there — keep drinking!' : 'Try to drink more fluids today.'}
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 39 — Estimated Calorie Card */}
+      {(() => {
+        const todayEntry = history[history.length - 1];
+        const meals = todayEntry?.meals_eaten ?? 0;
+        const intake = todayEntry?.oral_intake ?? 'normal';
+        const calMultiplier = intake === 'normal' ? 500 : intake === 'reduced' ? 350 : intake === 'minimal' ? 150 : 0;
+        const estCal = meals * calMultiplier;
+        const target = 1500;
+        const pct = Math.min(100, Math.round((estCal / target) * 100));
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Utensils className="h-5 w-5 text-amber" />
+                <h2 className="text-base font-semibold text-charcoal">Est. Calorie Intake</h2>
+              </div>
+              <span className={clsx('text-sm font-bold', pct >= 80 ? 'text-sage' : pct >= 50 ? 'text-amber' : 'text-terra')}>~{estCal} kcal</span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-cream">
+              <div className={clsx('h-full rounded-full transition-all', pct >= 80 ? 'bg-sage' : pct >= 50 ? 'bg-amber' : 'bg-terra')} style={{ width: `${pct}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-charcoal/40">Target: ~{target} kcal/day · Based on {meals} meals ({intake} intake)</p>
+          </div>
+        );
+      })()}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         {[

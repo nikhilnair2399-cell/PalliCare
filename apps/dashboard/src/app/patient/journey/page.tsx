@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp } from 'lucide-react';
+import { Sparkles, Target, Heart, Sun, Trophy, Plus, Flame, TrendingUp, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { useGoals, useCreateGoal, useGratitude, useSaveGratitude, useIntentions, useSaveIntention, useMilestones } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_GOALS, MOCK_GRATITUDE_ENTRIES, MOCK_MILESTONES } from '@/lib/patient-mock-data';
@@ -93,6 +93,54 @@ export default function JourneyPage() {
             : 'Start by setting a small, meaningful goal. Every journey begins with one step.'}
         </p>
       </div>
+
+      {/* Sprint 39 — Weekly Reflection Prompt */}
+      {(() => {
+        const prompts = [
+          'What small moment brought you comfort this week?',
+          'What are you most grateful for today?',
+          'What gave you strength this week?',
+          'Who made you smile recently?',
+          'What is one thing you want to let go of?',
+          'What would you like your care team to know?',
+          'What brings you peace right now?',
+        ];
+        const dayOfWeek = new Date().getDay();
+        return (
+          <div className="rounded-2xl bg-lavender/10 p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarDays className="h-4 w-4 text-lavender" />
+              <span className="text-xs font-bold text-lavender uppercase">Weekly Reflection</span>
+            </div>
+            <p className="text-base font-medium text-charcoal italic">&ldquo;{prompts[dayOfWeek]}&rdquo;</p>
+            <p className="mt-2 text-xs text-charcoal/40">Tap Gratitude tab to write your reflection</p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 39 — Goal Completion Rate */}
+      {(() => {
+        const goals = journey.goals || [];
+        const total = goals.length;
+        const done = goals.filter((g: any) => g.completed).length;
+        const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+        if (total === 0) return null;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-sage" />
+                <h3 className="text-sm font-bold text-charcoal">Goal Progress</h3>
+              </div>
+              <span className="text-sm font-bold text-sage">{rate}%</span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-cream">
+              <div className="h-full rounded-full bg-sage transition-all" style={{ width: `${rate}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-charcoal/40">{done} of {total} goals completed</p>
+          </div>
+        );
+      })()}
 
       {/* Tabs */}
       <div className="rounded-2xl bg-white p-6">

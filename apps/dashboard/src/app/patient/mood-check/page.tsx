@@ -264,6 +264,46 @@ export default function MoodCheckPage() {
           </div>
         )}
 
+        {/* Sprint 39 — Screening Score Trend */}
+        {history.length >= 2 && (() => {
+          const phq9History = history.filter(h => h.type === 'phq9');
+          const gad7History = history.filter(h => h.type === 'gad7');
+          const maxScore = 27;
+          return (
+            <div className="rounded-2xl bg-white p-5">
+              <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-bold text-teal">
+                <TrendingDown className="h-5 w-5" /> Score Trend
+              </h2>
+              <div className="space-y-4">
+                {[
+                  { label: 'PHQ-9 (Depression)', data: phq9History, max: 27, color: 'bg-lavender' },
+                  { label: 'GAD-7 (Anxiety)', data: gad7History, max: 21, color: 'bg-amber' },
+                ].filter(s => s.data.length > 0).map(series => (
+                  <div key={series.label}>
+                    <p className="text-xs font-semibold text-charcoal/50 mb-2">{series.label}</p>
+                    <div className="flex items-end gap-3">
+                      {series.data.map((h, i) => {
+                        const pct = (h.total / series.max) * 100;
+                        const sev = getSeverity(h.type, h.total);
+                        return (
+                          <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                            <span className={`text-xs font-bold ${sev.cls}`}>{h.total}</span>
+                            <div className="w-full rounded-t overflow-hidden bg-cream" style={{ height: '48px' }}>
+                              <div className={`w-full rounded-t ${series.color} opacity-70`} style={{ height: `${pct}%`, marginTop: `${100 - pct}%` }} />
+                            </div>
+                            <span className="text-[9px] text-charcoal/40">{h.date.slice(5)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] text-charcoal/40">Lower scores = better. Complete regular screenings to see your trend.</p>
+            </div>
+          );
+        })()}
+
         <div className="flex items-start gap-3 rounded-2xl bg-teal/5 p-5">
           <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal" />
           <p className="text-sm leading-relaxed text-charcoal-light">
