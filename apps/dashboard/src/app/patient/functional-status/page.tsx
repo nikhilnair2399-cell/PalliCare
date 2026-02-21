@@ -17,6 +17,7 @@ import {
   Brain,
   Lightbulb,
   Heart,
+  BarChart3,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -503,6 +504,86 @@ export default function FunctionalStatusPage() {
                 {diff > 5 ? `+${diff}% overall improvement` : diff < -5 ? `${diff}% overall decline` : 'Overall stable trend'}
                 {' '}across {history.length} assessments
               </p>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Sprint 50 — Domain-Level Trend Analysis */}
+      {history.length >= 2 && (
+        <div className="rounded-2xl bg-white p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="h-4 w-4 text-teal" />
+            <h2 className="text-base font-semibold text-charcoal">Domain Trends</h2>
+          </div>
+          <div className="space-y-3">
+            {DOMAINS.map((d) => {
+              const scores = history.map((h) => (h as any)[d.key] as number);
+              const first = scores[0];
+              const last = scores[scores.length - 1];
+              const avg = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length * 10) / 10;
+              const diff = last - first;
+              const maxScore = Math.max(...scores);
+              const minScore = Math.min(...scores);
+              return (
+                <div key={d.key}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-charcoal/70">
+                      <d.icon className="h-3.5 w-3.5 text-charcoal/40" /> {d.label}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-charcoal/40">avg {avg}</span>
+                      <span className={clsx(
+                        'text-xs font-bold',
+                        diff > 0 ? 'text-sage' : diff < 0 ? 'text-terra' : 'text-charcoal/30',
+                      )}>
+                        {diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {scores.map((sc, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center">
+                        <div
+                          className={clsx('w-full rounded', domainBg(sc))}
+                          style={{ height: `${Math.max(4, (sc / 5) * 20)}px`, opacity: 0.6 + (i / scores.length) * 0.4 }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <span className="text-[8px] text-charcoal/30">range: {minScore}–{maxScore}</span>
+                    <span className="text-[8px] text-charcoal/30">{scores.length} assessments</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {(() => {
+            const improving = DOMAINS.filter(d => {
+              const sc = history.map(h => (h as any)[d.key] as number);
+              return sc[sc.length - 1] > sc[0];
+            });
+            const declining = DOMAINS.filter(d => {
+              const sc = history.map(h => (h as any)[d.key] as number);
+              return sc[sc.length - 1] < sc[0];
+            });
+            return (
+              <div className="mt-3 flex items-center gap-3 text-[10px] border-t border-charcoal/5 pt-2">
+                {improving.length > 0 && (
+                  <span className="text-sage">
+                    {improving.map(d => d.label).join(', ')} improving
+                  </span>
+                )}
+                {declining.length > 0 && (
+                  <span className="text-terra">
+                    {declining.map(d => d.label).join(', ')} declining
+                  </span>
+                )}
+                {improving.length === 0 && declining.length === 0 && (
+                  <span className="text-charcoal/40">All domains stable</span>
+                )}
+              </div>
             );
           })()}
         </div>

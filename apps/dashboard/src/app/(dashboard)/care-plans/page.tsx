@@ -17,6 +17,7 @@ import {
   Save,
   AlertTriangle,
   Users2,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -646,6 +647,70 @@ export default function CarePlansPage() {
                     />
                   </div>
                   <span className="text-xs font-bold text-charcoal w-6 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 50 — Plan Review Timeline & Goal Velocity */}
+      {(() => {
+        const planReviews = allPlans
+          .filter((p: any) => p.status !== 'archived')
+          .map((p: any) => {
+            const reviewStr = p.reviewDate || '';
+            const lastStr = p.lastUpdated || '';
+            const parsed = Date.parse(reviewStr.replace(/(\d{2}) (\w+) (\d{4})/, '$2 $1, $3'));
+            const isOverdue = !isNaN(parsed) && parsed < Date.now();
+            const daysDiff = !isNaN(parsed) ? Math.ceil((parsed - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+            return { name: p.patient, title: p.title, status: p.status, review: reviewStr, lastUpdated: lastStr, isOverdue, daysDiff, version: p.version || 1 };
+          })
+          .sort((a, b) => (a.daysDiff ?? 999) - (b.daysDiff ?? 999));
+
+        const totalVersions = allPlans.reduce((s: number, p: any) => s + (p.version || 1), 0);
+        const avgVersion = allPlans.length > 0 ? (totalVersions / allPlans.length).toFixed(1) : '0';
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+                <Activity className="h-4 w-4" /> Plan Review Timeline
+              </h2>
+              <div className="flex items-center gap-3 text-[10px] text-charcoal/40">
+                <span>Avg {avgVersion} revisions/plan</span>
+                <span>{goalsPct}% goals met</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {planReviews.map((pr, i) => (
+                <div key={i} className={cn(
+                  'flex items-center gap-3 rounded-lg border px-3 py-2.5',
+                  pr.isOverdue ? 'border-amber/30 bg-amber/5' : 'border-sage/10',
+                )}>
+                  <span className={cn(
+                    'rounded-full px-2 py-0.5 text-[9px] font-bold uppercase',
+                    STATUS_BADGE[pr.status] || 'bg-charcoal/10 text-charcoal/60',
+                  )}>
+                    {pr.status.replace('_', ' ')}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-charcoal truncate">{pr.name}</p>
+                    <p className="text-[10px] text-charcoal/40 truncate">v{pr.version} · {pr.title}</p>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    {pr.daysDiff !== null ? (
+                      <p className={cn(
+                        'text-xs font-bold',
+                        pr.isOverdue ? 'text-amber' : pr.daysDiff <= 3 ? 'text-terra' : 'text-charcoal/50',
+                      )}>
+                        {pr.isOverdue ? `${Math.abs(pr.daysDiff)}d overdue` : pr.daysDiff === 0 ? 'Today' : `in ${pr.daysDiff}d`}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-charcoal/30">No review date</p>
+                    )}
+                    <p className="text-[9px] text-charcoal/30">Updated: {pr.lastUpdated}</p>
+                  </div>
                 </div>
               ))}
             </div>

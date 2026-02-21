@@ -22,6 +22,7 @@ import {
   CalendarClock,
   Plus,
   Filter,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -377,6 +378,70 @@ export default function MDTPage() {
               <div className="ml-auto h-2 w-32 overflow-hidden rounded-full bg-cream">
                 <div className="h-full rounded-full bg-teal transition-all" style={{ width: `${pctDone}%` }} />
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 50 — Team Workload Distribution */}
+      {(() => {
+        const roleWorkload: Record<string, { total: number; done: number; overdue: number; patients: Set<string> }> = {};
+        PATIENTS_LIST.forEach((pt) => {
+          const ptTasks = tasksByPatient[pt.id] || (PATIENT_DATA[pt.id] || PATIENT_DATA['1']).carePlan.teamTasks;
+          ptTasks.forEach((t: any) => {
+            const role = t.role || 'Unassigned';
+            if (!roleWorkload[role]) roleWorkload[role] = { total: 0, done: 0, overdue: 0, patients: new Set() };
+            roleWorkload[role].total += 1;
+            if (t.done) roleWorkload[role].done += 1;
+            if (!t.done && isOverdue(t.deadline)) roleWorkload[role].overdue += 1;
+            roleWorkload[role].patients.add(pt.name);
+          });
+        });
+        const entries = Object.entries(roleWorkload).sort((a, b) => b[1].total - a[1].total);
+        const maxTotal = Math.max(...entries.map(e => e[1].total), 1);
+        const roleColors: Record<string, string> = {
+          'Palliative Medicine': 'bg-teal', 'Palliative Nurse': 'bg-sage', 'Clinical Psychology': 'bg-lavender',
+          'Oncology': 'bg-amber', 'Pharmacy': 'bg-amber/70', 'Social Work': 'bg-terra', 'Dietetics': 'bg-sage/70',
+          'Physiotherapy': 'bg-teal/60', 'Speech Pathology': 'bg-lavender/60', 'Spiritual Care': 'bg-charcoal/30',
+        };
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                <BarChart3 className="h-4 w-4 text-teal" /> Team Workload by Role
+              </h2>
+              <span className="text-[10px] text-charcoal/40">{entries.length} roles · {PATIENTS_LIST.length} patients</span>
+            </div>
+            <div className="space-y-2">
+              {entries.map(([role, data]) => {
+                const pctDone = data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
+                return (
+                  <div key={role} className="flex items-center gap-2">
+                    <span className="text-[11px] text-charcoal/60 w-36 truncate">{role}</span>
+                    <div className="flex-1 h-3.5 rounded-full bg-charcoal/5 relative overflow-hidden">
+                      <div
+                        className={cn('h-full rounded-full transition-all', roleColors[role] || 'bg-charcoal/30')}
+                        style={{ width: `${(data.total / maxTotal) * 100}%`, opacity: 0.7 }}
+                      />
+                      <div
+                        className="h-full rounded-full bg-alert-success/60 absolute top-0 left-0"
+                        style={{ width: `${(data.done / maxTotal) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-14 text-right text-[10px] font-bold text-charcoal">
+                      {data.done}/{data.total}
+                    </span>
+                    {data.overdue > 0 && (
+                      <span className="text-[9px] font-bold text-alert-critical">{data.overdue}!</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex items-center gap-4 text-[9px] text-charcoal/40 border-t border-sage/10 pt-2">
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-alert-success/60" /> Done</span>
+              <span className="flex items-center gap-1"><span className="h-1.5 w-3 rounded bg-charcoal/20" /> Total assigned</span>
+              <span className="flex items-center gap-1 text-alert-critical">! Overdue</span>
             </div>
           </div>
         );
