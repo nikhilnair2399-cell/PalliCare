@@ -18,6 +18,7 @@ import {
   PinOff,
   Zap,
   X,
+  Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessageCount, useSendMessage } from '@/lib/hooks';
@@ -260,6 +261,46 @@ export default function MessagesPage() {
               <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Most Active</p>
               <p className="mt-1 text-sm font-bold text-charcoal truncate">{mostActive?.patientName || '—'}</p>
               <p className="text-[10px] text-charcoal/40">{messages[mostActive?.id || '']?.length || 0} messages</p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Communication Activity by Patient */}
+      {(() => {
+        const patientActivity = threads.map(t => {
+          const msgs = messages[t.id] || [];
+          const ownMsgs = msgs.filter(m => m.isOwn).length;
+          const teamMsgs = msgs.filter(m => !m.isOwn).length;
+          return { name: t.patientName, avatar: t.avatar, own: ownMsgs, team: teamMsgs, total: msgs.length };
+        }).sort((a, b) => b.total - a.total);
+
+        const maxTotal = Math.max(...patientActivity.map(p => p.total), 1);
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="h-4 w-4 text-teal" />
+              <h2 className="text-sm font-bold text-teal">Communication Volume</h2>
+            </div>
+            <div className="space-y-2">
+              {patientActivity.map(p => (
+                <div key={p.name} className="flex items-center gap-3">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-sage/20 text-[9px] font-bold text-charcoal/70">
+                    {p.avatar}
+                  </div>
+                  <span className="text-xs text-charcoal/70 w-24 truncate">{p.name}</span>
+                  <div className="flex-1 flex h-4 overflow-hidden rounded-full bg-cream">
+                    <div className="h-full bg-teal/70 rounded-l-full" style={{ width: `${(p.own / maxTotal) * 100}%` }} title={`You: ${p.own}`} />
+                    <div className="h-full bg-sage/70" style={{ width: `${(p.team / maxTotal) * 100}%` }} title={`Team: ${p.team}`} />
+                  </div>
+                  <span className="text-[10px] text-charcoal/40 w-6 text-right">{p.total}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 flex gap-4 text-[10px] text-charcoal/40">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-teal/70" />Your messages</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sage/70" />Team messages</span>
             </div>
           </div>
         );

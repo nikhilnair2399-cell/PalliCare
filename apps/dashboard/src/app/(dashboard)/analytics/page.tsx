@@ -5,7 +5,7 @@ import {
   BarChart3, Users, UserPlus, UserMinus, Heart, Clock, Activity,
   Pill, TrendingUp, Download, Database, FileText, Shield, Star,
   CheckCircle, AlertTriangle, Loader2, X, CheckCircle2,
-  Brain, ScrollText, Utensils, Lightbulb,
+  Brain, ScrollText, Utensils, Lightbulb, Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, usePainDistribution, useQualityMetrics } from '@/lib/hooks';
@@ -320,6 +320,69 @@ export default function AnalyticsPage() {
           ))}
         </div>
       </div>
+
+      {/* Sprint 48 — Department KPI Scoreboard */}
+      {(() => {
+        const KPIs = [
+          { name: 'Avg Time to Pain Control', value: 18, target: 24, unit: 'hrs', better: 'lower' as const },
+          { name: 'PRO Completion', value: 78, target: 80, unit: '%', better: 'higher' as const },
+          { name: 'PHQ-9 Screening', value: 81, target: 80, unit: '%', better: 'higher' as const },
+          { name: 'GAD-7 Screening', value: 69, target: 80, unit: '%', better: 'higher' as const },
+          { name: 'Goals-of-Care Documented', value: 88, target: 90, unit: '%', better: 'higher' as const },
+          { name: 'Advance Directives', value: 56, target: 70, unit: '%', better: 'higher' as const },
+          { name: 'NDPS Compliance', value: 100, target: 100, unit: '%', better: 'higher' as const },
+          { name: 'Patient Satisfaction', value: 4.2, target: 4.0, unit: '/5', better: 'higher' as const },
+          { name: 'Avg Pain at Discharge', value: 3.2, target: 4.0, unit: 'NRS', better: 'lower' as const },
+          { name: 'Bed Occupancy', value: 75, target: 85, unit: '%', better: 'higher' as const },
+        ];
+
+        const metKPIs = KPIs.filter(k =>
+          k.better === 'higher' ? k.value >= k.target : k.value <= k.target
+        );
+        const overallPct = Math.round((metKPIs.length / KPIs.length) * 100);
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="flex items-center gap-2 font-heading text-base font-bold text-charcoal">
+                <Target className="h-4 w-4 text-teal" /> Department KPI Scoreboard
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  'rounded-full px-2.5 py-0.5 text-xs font-bold',
+                  overallPct >= 80 ? 'bg-alert-success/10 text-alert-success' : overallPct >= 60 ? 'bg-amber/10 text-amber' : 'bg-alert-critical/10 text-alert-critical',
+                )}>
+                  {metKPIs.length}/{KPIs.length} targets met
+                </span>
+                <span className="text-[10px] text-charcoal/40">({overallPct}%)</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {KPIs.map((kpi) => {
+                const met = kpi.better === 'higher' ? kpi.value >= kpi.target : kpi.value <= kpi.target;
+                const pct = kpi.better === 'higher'
+                  ? Math.min(100, (kpi.value / kpi.target) * 100)
+                  : kpi.value <= kpi.target ? 100 : Math.max(0, 100 - ((kpi.value - kpi.target) / kpi.target) * 100);
+                return (
+                  <div key={kpi.name} className={cn(
+                    'rounded-lg border p-3 text-center transition-colors',
+                    met ? 'border-alert-success/20 bg-alert-success/5' : 'border-amber/20 bg-amber/5',
+                  )}>
+                    <p className="text-[10px] font-medium text-charcoal/50 leading-tight h-6 flex items-center justify-center">{kpi.name}</p>
+                    <p className={cn('mt-1 text-xl font-bold', met ? 'text-alert-success' : 'text-amber')}>
+                      {kpi.value}<span className="text-[10px] font-normal text-charcoal/40">{kpi.unit}</span>
+                    </p>
+                    <div className="mt-1.5 h-1 w-full rounded-full bg-charcoal/10">
+                      <div className={cn('h-1 rounded-full', met ? 'bg-alert-success' : 'bg-amber')} style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="mt-1 text-[9px] text-charcoal/30">Target: {kpi.target}{kpi.unit}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Two-column: Opioid Utilization + Pain Distribution */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

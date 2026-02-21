@@ -23,6 +23,7 @@ import {
   X,
   SlidersHorizontal,
   Timer,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHealthCheck } from '@/lib/hooks';
@@ -209,6 +210,69 @@ export default function SettingsPage() {
               <p className="text-[10px] font-semibold text-charcoal/40 uppercase">Thresholds</p>
               <p className="mt-1 text-sm font-bold text-charcoal">Pain ≥{painThreshold} · MEDD ≥{meddThreshold}</p>
               <p className="text-[10px] text-charcoal/40">Adherence &lt;{adherenceThreshold}% · PRN ≥{prnMaxPerDay}/d</p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 48 — Audit Log Preview */}
+      {(() => {
+        const AUDIT_ENTRIES = [
+          { action: 'Alert threshold updated', detail: 'Pain threshold changed from 6 to 7', user: 'Dr. Nikhil Nair', time: '10 min ago', type: 'setting' as const },
+          { action: 'Patient record accessed', detail: 'Viewed Rajesh Kumar (UHID-2024-0847)', user: 'Dr. Nikhil Nair', time: '25 min ago', type: 'access' as const },
+          { action: 'MEDD report exported', detail: 'Quarterly NDPS compliance report (PDF)', user: 'Dr. Nikhil Nair', time: '1 hr ago', type: 'export' as const },
+          { action: 'Quiet hours modified', detail: 'Changed to 22:00–06:00', user: 'Dr. Nikhil Nair', time: '2 hrs ago', type: 'setting' as const },
+          { action: 'New patient assigned', detail: 'Priya Sharma added to care team', user: 'System', time: '3 hrs ago', type: 'system' as const },
+          { action: 'Login from new device', detail: 'Chrome · Windows 11 · AIIMS Network', user: 'Dr. Nikhil Nair', time: '4 hrs ago', type: 'security' as const },
+          { action: 'Bulk data export', detail: 'De-identified cohort export (32 patients)', user: 'Dr. Nikhil Nair', time: '1 day ago', type: 'export' as const },
+          { action: 'Notification method changed', detail: 'Switched from Push Only to Push + Email', user: 'Dr. Nikhil Nair', time: '2 days ago', type: 'setting' as const },
+        ];
+        const typeStyle: Record<string, { bg: string; label: string }> = {
+          setting: { bg: 'bg-teal/10 text-teal', label: 'Setting' },
+          access: { bg: 'bg-sage/10 text-sage', label: 'Access' },
+          export: { bg: 'bg-amber/10 text-amber', label: 'Export' },
+          system: { bg: 'bg-lavender/10 text-lavender', label: 'System' },
+          security: { bg: 'bg-terra/10 text-terra', label: 'Security' },
+        };
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 font-heading text-base font-bold text-teal">
+                <FileText className="h-5 w-5" />
+                Recent Activity Log
+              </h2>
+              <span className="text-[10px] text-charcoal/40">Last 48 hours · {AUDIT_ENTRIES.length} events</span>
+            </div>
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {AUDIT_ENTRIES.map((entry, i) => {
+                const style = typeStyle[entry.type] || typeStyle.system;
+                return (
+                  <div key={i} className="flex items-center gap-3 rounded-lg border border-sage/5 px-3 py-2.5 hover:bg-cream/30 transition-colors">
+                    <div className="flex-shrink-0">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[9px] font-bold uppercase', style.bg)}>{style.label}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-charcoal truncate">{entry.action}</p>
+                      <p className="text-[11px] text-charcoal/40 truncate">{entry.detail}</p>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <p className="text-[11px] text-charcoal/50">{entry.time}</p>
+                      <p className="text-[10px] text-charcoal/30">{entry.user}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-sage/10 pt-3">
+              <div className="flex items-center gap-3 text-[10px] text-charcoal/40">
+                {Object.entries(typeStyle).map(([key, val]) => (
+                  <span key={key} className="flex items-center gap-1">
+                    <span className={cn('h-1.5 w-1.5 rounded-full', val.bg.split(' ')[0])} />
+                    {val.label}
+                  </span>
+                ))}
+              </div>
+              <span className="text-[10px] text-charcoal/30">Audit logs retained indefinitely per DPDPA 2023</span>
             </div>
           </div>
         );
