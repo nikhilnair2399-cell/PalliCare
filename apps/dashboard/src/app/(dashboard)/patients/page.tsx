@@ -126,6 +126,38 @@ export default function PatientsPage() {
         </div>
       </div>
 
+      {/* Census Summary */}
+      {(() => {
+        const avgPain = allPatients.length > 0 ? (allPatients.reduce((s, p) => s + p.pain, 0) / allPatients.length).toFixed(1) : '0';
+        const avgPPS = allPatients.length > 0 ? Math.round(allPatients.reduce((s, p) => s + p.pps, 0) / allPatients.length) : 0;
+        const avgAdherence = allPatients.length > 0 ? Math.round(allPatients.reduce((s, p) => s + p.adherence, 0) / allPatients.length) : 0;
+        const worseningCount = allPatients.filter(p => p.trend === 'worsening').length;
+        return (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+              <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Avg Pain</p>
+              <p className={cn('text-2xl font-bold', parseFloat(avgPain) >= 6 ? 'text-alert-critical' : parseFloat(avgPain) >= 4 ? 'text-amber' : 'text-alert-success')}>{avgPain}</p>
+              <p className="text-[10px] text-charcoal/40">NRS across census</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+              <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Avg PPS</p>
+              <p className={cn('text-2xl font-bold', avgPPS <= 40 ? 'text-alert-critical' : avgPPS <= 60 ? 'text-amber' : 'text-sage')}>{avgPPS}%</p>
+              <p className="text-[10px] text-charcoal/40">functional status</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+              <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Avg Adherence</p>
+              <p className={cn('text-2xl font-bold', avgAdherence >= 90 ? 'text-alert-success' : avgAdherence >= 70 ? 'text-amber' : 'text-alert-critical')}>{avgAdherence}%</p>
+              <p className="text-[10px] text-charcoal/40">medication compliance</p>
+            </div>
+            <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+              <p className="text-[10px] font-semibold text-charcoal/50 uppercase">Worsening</p>
+              <p className={cn('text-2xl font-bold', worseningCount > 0 ? 'text-alert-critical' : 'text-alert-success')}>{worseningCount}</p>
+              <p className="text-[10px] text-charcoal/40">pain trend ↑</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px]">

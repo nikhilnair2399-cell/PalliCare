@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User, Globe, Bell, Shield, Save, Loader2 } from 'lucide-react';
+import { User, Globe, Bell, Shield, Save, Loader2, Accessibility, Phone } from 'lucide-react';
 import { usePatientProfile, useUpdatePatientProfile } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE } from '@/lib/patient-mock-data';
@@ -17,6 +17,8 @@ export default function SettingsPage() {
     wellness_tips: false,
   });
   const [saving, setSaving] = useState(false);
+  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
+  const [highContrast, setHighContrast] = useState(false);
 
   const profileQuery = usePatientProfile();
   const updateProfile = useUpdatePatientProfile();
@@ -140,6 +142,85 @@ export default function SettingsPage() {
                   }`}
                 />
               </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Accessibility */}
+      <div className="rounded-2xl bg-white p-6">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
+          <Accessibility className="h-5 w-5 text-teal" />
+          Accessibility
+        </h2>
+        <div className="mt-4 space-y-5">
+          <div>
+            <p className="text-base font-medium text-charcoal">Text Size</p>
+            <p className="text-sm text-charcoal-light">Choose a comfortable reading size</p>
+            <div className="mt-3 flex gap-3">
+              {([
+                { key: 'normal' as const, label: 'Normal', sample: 'text-sm' },
+                { key: 'large' as const, label: 'Large', sample: 'text-base' },
+                { key: 'extra-large' as const, label: 'Extra Large', sample: 'text-lg' },
+              ]).map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => setFontSize(opt.key)}
+                  className={`flex-1 rounded-xl p-3 text-center transition-all ${
+                    fontSize === opt.key
+                      ? 'bg-teal/5 text-teal ring-2 ring-teal/20'
+                      : 'bg-cream text-charcoal-light hover:bg-charcoal/5'
+                  }`}
+                >
+                  <span className={`font-medium ${opt.sample}`}>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-base font-medium text-charcoal">High Contrast</p>
+              <p className="text-sm text-charcoal-light">Increase contrast for better readability</p>
+            </div>
+            <button
+              onClick={() => setHighContrast(v => !v)}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                highContrast ? 'bg-teal' : 'bg-charcoal/20'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                highContrast ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Emergency Contact */}
+      <div className="rounded-2xl bg-white p-6">
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
+          <Phone className="h-5 w-5 text-teal" />
+          Emergency Contacts
+        </h2>
+        <p className="mt-1 text-sm text-charcoal-light">Quick access to your care team and emergency numbers</p>
+        <div className="mt-4 space-y-3">
+          {[
+            { name: p.primary_clinician || 'Dr. Nikhil Nair', role: 'Primary Clinician', phone: '+91 98765 43210' },
+            { name: 'Palliative Care Unit', role: 'AIIMS Bhopal', phone: '+91 755 267 0000' },
+            { name: 'Emergency Helpline', role: 'National', phone: '112' },
+          ].map((contact, i) => (
+            <div key={i} className="flex items-center justify-between rounded-xl bg-cream/50 px-4 py-3">
+              <div>
+                <p className="text-base font-medium text-charcoal">{contact.name}</p>
+                <p className="text-sm text-charcoal-light">{contact.role}</p>
+              </div>
+              <a
+                href={`tel:${contact.phone.replace(/\s/g, '')}`}
+                className="flex items-center gap-2 rounded-xl bg-teal/10 px-4 py-2 text-sm font-semibold text-teal transition-colors hover:bg-teal/20"
+              >
+                <Phone className="h-4 w-4" />
+                Call
+              </a>
             </div>
           ))}
         </div>

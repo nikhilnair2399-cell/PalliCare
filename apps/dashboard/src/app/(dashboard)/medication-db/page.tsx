@@ -376,6 +376,28 @@ export default function MedicationDbPage() {
         </div>
       </div>
 
+      {/* Frequently Prescribed */}
+      <div className="rounded-xl border border-teal/20 bg-teal/5 p-4">
+        <p className="text-xs font-bold text-teal uppercase mb-2">Frequently Prescribed — Quick Access</p>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {['Morphine Sulfate', 'Gabapentin', 'Ondansetron', 'Paracetamol', 'Lactulose', 'Dexamethasone'].map(name => {
+            const med = baseMeds.find(m => m.generic_name === name);
+            return (
+              <button
+                key={name}
+                onClick={() => {
+                  if (med) { setExpandedId(expandedId === med.id ? null : med.id); setSearchQuery(''); setCategory('all'); }
+                }}
+                className="flex-shrink-0 rounded-lg border border-teal/20 bg-white px-3 py-2 text-xs font-semibold text-charcoal hover:bg-teal/5 hover:border-teal/40 transition-colors"
+              >
+                <Pill className="inline h-3 w-3 mr-1 text-teal" />
+                {name.split(' ')[0]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* MEDD Quick Reference Card */}
       <div className="rounded-xl border border-amber/20 bg-amber/5 p-4">
         <div className="flex items-center gap-2">
