@@ -16,6 +16,12 @@ import {
   Pill,
   User,
   Stethoscope,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  CalendarClock,
+  Plus,
+  Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +35,25 @@ const PATIENTS_LIST = [
 ];
 
 const PATIENT_DATA: Record<string, { carePlan: typeof CARE_PLAN_1; sbar: typeof SBAR_1; teamMessages: typeof MESSAGES_1 }> = {};
+
+type TaskPriority = 'urgent' | 'high' | 'medium' | 'low';
+const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string; icon: typeof ArrowUp; bg: string }> = {
+  urgent: { label: 'Urgent', color: 'text-alert-critical', icon: ArrowUp, bg: 'bg-alert-critical/10' },
+  high: { label: 'High', color: 'text-terra', icon: ArrowUp, bg: 'bg-terra/10' },
+  medium: { label: 'Medium', color: 'text-amber', icon: ArrowRight, bg: 'bg-amber/10' },
+  low: { label: 'Low', color: 'text-sage', icon: ArrowDown, bg: 'bg-sage/10' },
+};
+
+function isOverdue(deadline: string): boolean {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date('2026-02-21');
+}
+
+function daysUntil(deadline: string): number | null {
+  if (!deadline) return null;
+  const diff = Math.ceil((new Date(deadline).getTime() - new Date('2026-02-21').getTime()) / (1000 * 60 * 60 * 24));
+  return diff;
+}
 
 const CARE_PLAN_1 = {
   goalsOfCare: [
@@ -45,13 +70,13 @@ const CARE_PLAN_1 = {
     'Consider opioid rotation if MEDD exceeds 300mg or intolerable side effects',
   ],
   teamTasks: [
-    { id: 't1', text: 'Review breakthrough dose frequency and adjust background dose', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false },
-    { id: 't2', text: 'Train caregiver on PRN timing and pain diary recording', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
-    { id: 't3', text: 'Schedule palliative RT consultation for T10 vertebral met', assignee: 'Dr. Anil K.', role: 'Oncology', done: false },
-    { id: 't4', text: 'Assess for depression using PHQ-9 (low mood 3+ days)', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
-    { id: 't5', text: 'Review Gabapentin adherence -- check for side effects causing missed doses', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
-    { id: 't6', text: 'Update NDPS register for increased morphine dosing', assignee: 'Pharm. Rajan T.', role: 'Pharmacy', done: true },
-    { id: 't7', text: 'Caregiver distress assessment and support counselling session', assignee: 'Ms. Sunita M.', role: 'Social Work', done: false },
+    { id: 't1', text: 'Review breakthrough dose frequency and adjust background dose', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false, priority: 'urgent' as TaskPriority, deadline: '2026-02-21' },
+    { id: 't2', text: 'Train caregiver on PRN timing and pain diary recording', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true, priority: 'high' as TaskPriority, deadline: '2026-02-19' },
+    { id: 't3', text: 'Schedule palliative RT consultation for T10 vertebral met', assignee: 'Dr. Anil K.', role: 'Oncology', done: false, priority: 'urgent' as TaskPriority, deadline: '2026-02-22' },
+    { id: 't4', text: 'Assess for depression using PHQ-9 (low mood 3+ days)', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-23' },
+    { id: 't5', text: 'Review Gabapentin adherence -- check for side effects causing missed doses', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-24' },
+    { id: 't6', text: 'Update NDPS register for increased morphine dosing', assignee: 'Pharm. Rajan T.', role: 'Pharmacy', done: true, priority: 'high' as TaskPriority, deadline: '2026-02-18' },
+    { id: 't7', text: 'Caregiver distress assessment and support counselling session', assignee: 'Ms. Sunita M.', role: 'Social Work', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-25' },
   ],
 };
 
@@ -86,10 +111,10 @@ PATIENT_DATA['2'] = {
       'Bland diet plan with small frequent meals',
     ],
     teamTasks: [
-      { id: 't1', text: 'Monitor nausea severity daily and adjust anti-emetics', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
-      { id: 't2', text: 'Weekly dietary assessment and calorie intake monitoring', assignee: 'Dt. Anita P.', role: 'Dietetics', done: true },
-      { id: 't3', text: 'Psychological support session for disease progression anxiety', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
-      { id: 't4', text: 'Educate family on subcutaneous medication administration', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+      { id: 't1', text: 'Monitor nausea severity daily and adjust anti-emetics', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-22' },
+      { id: 't2', text: 'Weekly dietary assessment and calorie intake monitoring', assignee: 'Dt. Anita P.', role: 'Dietetics', done: true, priority: 'medium' as TaskPriority, deadline: '2026-02-20' },
+      { id: 't3', text: 'Psychological support session for disease progression anxiety', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-23' },
+      { id: 't4', text: 'Educate family on subcutaneous medication administration', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-26' },
     ],
   },
   sbar: {
@@ -120,11 +145,11 @@ PATIENT_DATA['3'] = {
       'Consider intrathecal pump if oral route fails',
     ],
     teamTasks: [
-      { id: 't1', text: 'Daily pain assessment with NRS + Wong-Baker', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
-      { id: 't2', text: 'Nutrition assessment and NG tube consideration', assignee: 'Dt. Anita P.', role: 'Dietetics', done: false },
-      { id: 't3', text: 'Family goals-of-care meeting coordination', assignee: 'Ms. Sunita M.', role: 'Social Work', done: true },
-      { id: 't4', text: 'Review fentanyl patch absorption and dose adequacy', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false },
-      { id: 't5', text: 'Spiritual care assessment and support', assignee: 'Chaplain Ravi', role: 'Spiritual Care', done: false },
+      { id: 't1', text: 'Daily pain assessment with NRS + Wong-Baker', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'urgent' as TaskPriority, deadline: '2026-02-21' },
+      { id: 't2', text: 'Nutrition assessment and NG tube consideration', assignee: 'Dt. Anita P.', role: 'Dietetics', done: false, priority: 'urgent' as TaskPriority, deadline: '2026-02-20' },
+      { id: 't3', text: 'Family goals-of-care meeting coordination', assignee: 'Ms. Sunita M.', role: 'Social Work', done: true, priority: 'high' as TaskPriority, deadline: '2026-02-19' },
+      { id: 't4', text: 'Review fentanyl patch absorption and dose adequacy', assignee: 'Dr. Nikhil N.', role: 'Palliative Medicine', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-22' },
+      { id: 't5', text: 'Spiritual care assessment and support', assignee: 'Chaplain Ravi', role: 'Spiritual Care', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-24' },
     ],
   },
   sbar: {
@@ -153,9 +178,9 @@ PATIENT_DATA['4'] = {
       'Gabapentin 100mg TID for neuropathic component (titrate up)',
     ],
     teamTasks: [
-      { id: 't1', text: 'Post-op wound assessment and dressing', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
-      { id: 't2', text: 'Physiotherapy mobilization plan initiation', assignee: 'PT Ravi K.', role: 'Physiotherapy', done: false },
-      { id: 't3', text: 'Body image and coping counselling', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false },
+      { id: 't1', text: 'Post-op wound assessment and dressing', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true, priority: 'high' as TaskPriority, deadline: '2026-02-18' },
+      { id: 't2', text: 'Physiotherapy mobilization plan initiation', assignee: 'PT Ravi K.', role: 'Physiotherapy', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-21' },
+      { id: 't3', text: 'Body image and coping counselling', assignee: 'Ms. Priya S.', role: 'Clinical Psychology', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-24' },
     ],
   },
   sbar: {
@@ -185,10 +210,10 @@ PATIENT_DATA['5'] = {
       'Dexamethasone 2mg BD to reduce tumour-related oedema',
     ],
     teamTasks: [
-      { id: 't1', text: 'Monitor PEG tube site and feeding tolerance', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
-      { id: 't2', text: 'Speech therapy assessment for swallowing function', assignee: 'SLP Kavita D.', role: 'Speech Pathology', done: false },
-      { id: 't3', text: 'Caregiver PEG feeding education session', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true },
-      { id: 't4', text: 'Oral hygiene protocol implementation', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false },
+      { id: 't1', text: 'Monitor PEG tube site and feeding tolerance', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'high' as TaskPriority, deadline: '2026-02-21' },
+      { id: 't2', text: 'Speech therapy assessment for swallowing function', assignee: 'SLP Kavita D.', role: 'Speech Pathology', done: false, priority: 'medium' as TaskPriority, deadline: '2026-02-23' },
+      { id: 't3', text: 'Caregiver PEG feeding education session', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: true, priority: 'high' as TaskPriority, deadline: '2026-02-17' },
+      { id: 't4', text: 'Oral hygiene protocol implementation', assignee: 'Sr. Meena R.', role: 'Palliative Nurse', done: false, priority: 'low' as TaskPriority, deadline: '2026-02-27' },
     ],
   },
   sbar: {
@@ -210,6 +235,13 @@ export default function MDTPage() {
   const [messageText, setMessageText] = useState('');
   const [messagesByPatient, setMessagesByPatient] = useState<Record<string, typeof MESSAGES_1>>({});
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  const [taskFilter, setTaskFilter] = useState<'all' | 'overdue' | 'urgent' | 'pending'>('all');
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [newTaskAssignee, setNewTaskAssignee] = useState('Dr. Nikhil N.');
+  const [newTaskRole, setNewTaskRole] = useState('Palliative Medicine');
+  const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('medium');
+  const [newTaskDeadline, setNewTaskDeadline] = useState('');
 
   const patient = PATIENTS_LIST.find((p) => p.id === selectedPatient) || PATIENTS_LIST[0];
   const patientData = PATIENT_DATA[selectedPatient] || PATIENT_DATA['1'];
@@ -218,6 +250,33 @@ export default function MDTPage() {
   const sbar = patientData.sbar;
   const carePlan = patientData.carePlan;
   const completedTasks = tasks.filter((t) => t.done).length;
+  const overdueTasks = tasks.filter((t) => !t.done && isOverdue(t.deadline)).length;
+  const urgentTasks = tasks.filter((t) => !t.done && (t.priority === 'urgent' || t.priority === 'high')).length;
+
+  // Sort: urgent/overdue first, then by priority, then by deadline
+  const priorityOrder: Record<TaskPriority, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+  const sortedFilteredTasks = [...tasks]
+    .sort((a, b) => {
+      // Completed tasks go to bottom
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      // Overdue tasks bubble up
+      const aOverdue = isOverdue(a.deadline) ? 0 : 1;
+      const bOverdue = isOverdue(b.deadline) ? 0 : 1;
+      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+      // Then by priority
+      const aPri = priorityOrder[a.priority] ?? 2;
+      const bPri = priorityOrder[b.priority] ?? 2;
+      if (aPri !== bPri) return aPri - bPri;
+      // Then by deadline
+      if (a.deadline && b.deadline) return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      return 0;
+    })
+    .filter((t) => {
+      if (taskFilter === 'overdue') return !t.done && isOverdue(t.deadline);
+      if (taskFilter === 'urgent') return !t.done && (t.priority === 'urgent' || t.priority === 'high');
+      if (taskFilter === 'pending') return !t.done;
+      return true;
+    });
 
   function toggleTask(id: string) {
     const currentTasks = tasksByPatient[selectedPatient] || patientData.carePlan.teamTasks;
@@ -244,6 +303,28 @@ export default function MDTPage() {
       [selectedPatient]: [...currentMessages, newMsg],
     }));
     setMessageText('');
+  }
+
+  function addTask() {
+    if (!newTaskText.trim()) return;
+    const currentTasks = tasksByPatient[selectedPatient] || patientData.carePlan.teamTasks;
+    const newTask = {
+      id: `t-new-${Date.now()}`,
+      text: newTaskText.trim(),
+      assignee: newTaskAssignee,
+      role: newTaskRole,
+      done: false,
+      priority: newTaskPriority,
+      deadline: newTaskDeadline || '',
+    };
+    setTasksByPatient(prev => ({
+      ...prev,
+      [selectedPatient]: [...currentTasks, newTask],
+    }));
+    setNewTaskText('');
+    setNewTaskDeadline('');
+    setNewTaskPriority('medium');
+    setShowAddTask(false);
   }
 
   return (
@@ -344,12 +425,21 @@ export default function MDTPage() {
             </ul>
           </div>
 
-          {/* Team Tasks */}
+          {/* Team Tasks — Enhanced */}
           <div className="mt-5">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-charcoal/60 uppercase">Team Tasks</p>
-              <span className="text-xs text-charcoal/40">{completedTasks}/{tasks.length} done</span>
+              <div className="flex items-center gap-2">
+                {overdueTasks > 0 && (
+                  <span className="flex items-center gap-1 rounded-full bg-alert-critical/10 px-2 py-0.5 text-[10px] font-bold text-alert-critical">
+                    <AlertTriangle className="h-3 w-3" />
+                    {overdueTasks} overdue
+                  </span>
+                )}
+                <span className="text-xs text-charcoal/40">{completedTasks}/{tasks.length} done</span>
+              </div>
             </div>
+
             {/* Progress bar */}
             <div className="mt-2 h-1.5 w-full rounded-full bg-sage/10">
               <div
@@ -357,30 +447,164 @@ export default function MDTPage() {
                 style={{ width: `${(completedTasks / tasks.length) * 100}%` }}
               />
             </div>
-            <ul className="mt-3 space-y-2">
-              {tasks.map((task) => (
-                <li key={task.id} className="flex items-start gap-2">
-                  <button
-                    onClick={() => toggleTask(task.id)}
-                    className="mt-0.5 flex-shrink-0"
-                  >
-                    {task.done ? (
-                      <CheckSquare className="h-4 w-4 text-alert-success" />
-                    ) : (
-                      <Square className="h-4 w-4 text-charcoal/30 hover:text-teal" />
-                    )}
-                  </button>
-                  <div className={cn('flex-1', task.done && 'opacity-50')}>
-                    <p className={cn('text-sm text-charcoal/70', task.done && 'line-through')}>
-                      {task.text}
-                    </p>
-                    <p className="text-[10px] text-charcoal/40 mt-0.5">
-                      {task.assignee} &middot; {task.role}
-                    </p>
-                  </div>
-                </li>
+
+            {/* Filter chips */}
+            <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+              {([
+                { key: 'all', label: 'All' },
+                { key: 'overdue', label: `Overdue (${overdueTasks})` },
+                { key: 'urgent', label: `Urgent/High (${urgentTasks})` },
+                { key: 'pending', label: 'Pending' },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setTaskFilter(key)}
+                  className={cn(
+                    'rounded-full px-2.5 py-1 text-[10px] font-semibold transition-colors',
+                    taskFilter === key
+                      ? 'bg-teal text-white'
+                      : 'bg-sage/10 text-charcoal/50 hover:bg-sage/20',
+                  )}
+                >
+                  {label}
+                </button>
               ))}
+              <button
+                onClick={() => setShowAddTask(!showAddTask)}
+                className="ml-auto flex items-center gap-1 rounded-full bg-teal/10 px-2.5 py-1 text-[10px] font-semibold text-teal hover:bg-teal/20"
+              >
+                <Plus className="h-3 w-3" /> Add Task
+              </button>
+            </div>
+
+            {/* Add Task inline form */}
+            {showAddTask && (
+              <div className="mt-2 rounded-lg border border-teal/20 bg-teal/5 p-3 space-y-2">
+                <input
+                  type="text"
+                  placeholder="Task description..."
+                  value={newTaskText}
+                  onChange={(e) => setNewTaskText(e.target.value)}
+                  className="w-full rounded-lg border border-sage/20 bg-white px-3 py-1.5 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-teal focus:outline-none"
+                />
+                <div className="flex gap-2 flex-wrap">
+                  <input
+                    type="text"
+                    placeholder="Assignee"
+                    value={newTaskAssignee}
+                    onChange={(e) => setNewTaskAssignee(e.target.value)}
+                    className="flex-1 min-w-[120px] rounded-lg border border-sage/20 bg-white px-2 py-1 text-xs text-charcoal focus:border-teal focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role"
+                    value={newTaskRole}
+                    onChange={(e) => setNewTaskRole(e.target.value)}
+                    className="flex-1 min-w-[120px] rounded-lg border border-sage/20 bg-white px-2 py-1 text-xs text-charcoal focus:border-teal focus:outline-none"
+                  />
+                  <select
+                    value={newTaskPriority}
+                    onChange={(e) => setNewTaskPriority(e.target.value as TaskPriority)}
+                    className="rounded-lg border border-sage/20 bg-white px-2 py-1 text-xs text-charcoal focus:border-teal focus:outline-none"
+                  >
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <input
+                    type="date"
+                    value={newTaskDeadline}
+                    onChange={(e) => setNewTaskDeadline(e.target.value)}
+                    className="rounded-lg border border-sage/20 bg-white px-2 py-1 text-xs text-charcoal focus:border-teal focus:outline-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowAddTask(false)} className="rounded-lg px-3 py-1 text-xs text-charcoal/50 hover:bg-sage/10">Cancel</button>
+                  <button
+                    onClick={addTask}
+                    disabled={!newTaskText.trim()}
+                    className="rounded-lg bg-teal px-3 py-1 text-xs font-semibold text-white hover:bg-teal/90 disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Task list */}
+            <ul className="mt-3 space-y-2">
+              {sortedFilteredTasks.map((task) => {
+                const priCfg = PRIORITY_CONFIG[task.priority];
+                const PriIcon = priCfg.icon;
+                const overdue = !task.done && isOverdue(task.deadline);
+                const days = daysUntil(task.deadline);
+                return (
+                  <li
+                    key={task.id}
+                    className={cn(
+                      'flex items-start gap-2 rounded-lg border p-2.5 transition-colors',
+                      overdue
+                        ? 'border-alert-critical/30 bg-alert-critical/5'
+                        : 'border-sage/10 hover:bg-cream/30',
+                    )}
+                  >
+                    <button
+                      onClick={() => toggleTask(task.id)}
+                      className="mt-0.5 flex-shrink-0"
+                    >
+                      {task.done ? (
+                        <CheckSquare className="h-4 w-4 text-alert-success" />
+                      ) : (
+                        <Square className="h-4 w-4 text-charcoal/30 hover:text-teal" />
+                      )}
+                    </button>
+                    <div className={cn('flex-1 min-w-0', task.done && 'opacity-50')}>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={cn(priCfg.bg, priCfg.color, 'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase')}>
+                          <PriIcon className="h-2.5 w-2.5" />
+                          {priCfg.label}
+                        </span>
+                        {overdue && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-alert-critical/10 px-1.5 py-0.5 text-[9px] font-bold text-alert-critical uppercase">
+                            <AlertTriangle className="h-2.5 w-2.5" />
+                            Overdue
+                          </span>
+                        )}
+                        {task.deadline && !overdue && !task.done && days !== null && days <= 2 && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber/10 px-1.5 py-0.5 text-[9px] font-bold text-amber uppercase">
+                            Due soon
+                          </span>
+                        )}
+                      </div>
+                      <p className={cn('mt-1 text-sm text-charcoal/70', task.done && 'line-through')}>
+                        {task.text}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2 flex-wrap text-[10px] text-charcoal/40">
+                        <span>{task.assignee} &middot; {task.role}</span>
+                        {task.deadline && (
+                          <span className={cn(
+                            'flex items-center gap-0.5',
+                            overdue ? 'text-alert-critical font-semibold' : '',
+                          )}>
+                            <CalendarClock className="h-2.5 w-2.5" />
+                            {new Date(task.deadline).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            {days !== null && !task.done && (
+                              <span>
+                                ({overdue ? `${Math.abs(days)}d late` : days === 0 ? 'Today' : `${days}d left`})
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
+            {sortedFilteredTasks.length === 0 && (
+              <p className="mt-3 text-center text-xs text-charcoal/40">No tasks match this filter</p>
+            )}
           </div>
         </div>
 

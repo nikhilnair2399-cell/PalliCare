@@ -144,10 +144,10 @@ export default function MoodCheckPage() {
   /* ─── HOME ─── */
   if (mode === 'home') {
     return (
-      <div className="space-y-6">
+      <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-teal">Mood Check</h1>
-          <p className="text-sm text-charcoal-light">
+          <h1 className="font-heading text-3xl font-bold text-teal">Mood Check</h1>
+          <p className="mt-1 text-base text-charcoal-light">
             Validated screenings for depression &amp; anxiety — recommended every 2 weeks
           </p>
         </div>
@@ -161,14 +161,14 @@ export default function MoodCheckPage() {
             <button
               key={opt.type}
               onClick={() => startScreening(opt.type)}
-              className="flex w-full items-center gap-4 rounded-xl border border-sage-light/30 bg-white p-4 text-left shadow-sm transition-all hover:shadow-md"
+              className="flex w-full items-center gap-4 rounded-2xl bg-white p-5 text-left transition-all hover:bg-white/80"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-lavender/20">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-lavender/20">
                 <Brain className="h-5 w-5 text-charcoal" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-charcoal">{opt.title}</p>
-                <p className="text-xs text-charcoal-light">{opt.desc}</p>
+                <p className="text-base font-semibold text-charcoal">{opt.title}</p>
+                <p className="text-sm text-charcoal-light">{opt.desc}</p>
               </div>
               <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${opt.type === 'both' ? 'bg-teal/10 text-teal' : 'bg-sage/10 text-charcoal-light'}`}>
                 {opt.badge}
@@ -179,22 +179,22 @@ export default function MoodCheckPage() {
         </div>
 
         {history.length > 0 && (
-          <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-            <div className="border-b border-sage-light/20 px-5 py-4">
+          <div className="rounded-2xl bg-white">
+            <div className="px-6 py-4">
               <h2 className="font-heading text-lg font-bold text-teal">Past Screenings</h2>
             </div>
-            <div className="divide-y divide-sage-light/10">
+            <div className="divide-y divide-charcoal/5">
               {history.map((h, i) => (
-                <div key={i} className="flex items-center justify-between px-5 py-3">
+                <div key={i} className="flex items-center justify-between px-6 py-3">
                   <div className="flex items-center gap-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${h.colorClass}`}>
                       {h.type === 'phq9' ? 'PHQ-9' : 'GAD-7'}
                     </span>
-                    <span className="text-xs text-charcoal-light">{h.severity}</span>
+                    <span className="text-sm text-charcoal-light">{h.severity}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-bold text-charcoal">{h.total}</span>
-                    <span className="text-xs text-charcoal-light">{h.date}</span>
+                    <span className="font-mono text-base font-bold text-charcoal">{h.total}</span>
+                    <span className="text-sm text-charcoal-light">{h.date}</span>
                   </div>
                 </div>
               ))}
@@ -202,9 +202,9 @@ export default function MoodCheckPage() {
           </div>
         )}
 
-        <div className="flex items-start gap-3 rounded-xl border border-teal/20 bg-teal/5 p-4">
+        <div className="flex items-start gap-3 rounded-2xl bg-teal/5 p-5">
           <Shield className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal" />
-          <p className="text-xs leading-relaxed text-charcoal-light">
+          <p className="text-sm leading-relaxed text-charcoal-light">
             These validated screening tools help your care team understand your emotional wellbeing.
             Results are shared only with your palliative care team.
           </p>
@@ -230,26 +230,26 @@ export default function MoodCheckPage() {
                 </div>
                 <h3 className="font-heading text-lg font-bold text-charcoal">You Are Not Alone</h3>
               </div>
-              <p className="mb-4 text-sm leading-relaxed text-charcoal-light">
+              <p className="mb-4 text-base leading-relaxed text-charcoal-light">
                 We noticed you may be having difficult thoughts. Your care team is here to support you.
               </p>
               <div className="mb-4 space-y-2">
-                <a href="tel:9152987821" className="flex items-center gap-3 rounded-xl border border-alert-critical/20 bg-alert-critical/5 p-3">
+                <a href="tel:9152987821" className="flex items-center gap-3 rounded-2xl bg-alert-critical/5 p-4">
                   <Phone className="h-4 w-4 text-alert-critical" />
                   <div>
-                    <p className="text-sm font-semibold text-alert-critical">iCall: 9152987821</p>
-                    <p className="text-xs text-charcoal-light">Free counseling helpline (Mon-Sat, 8am-10pm)</p>
+                    <p className="text-base font-semibold text-alert-critical">iCall: 9152987821</p>
+                    <p className="text-sm text-charcoal-light">Free counseling helpline (Mon-Sat, 8am-10pm)</p>
                   </div>
                 </a>
-                <a href="tel:08046110007" className="flex items-center gap-3 rounded-xl border border-teal/20 bg-teal/5 p-3">
+                <a href="tel:08046110007" className="flex items-center gap-3 rounded-2xl bg-teal/5 p-4">
                   <Phone className="h-4 w-4 text-teal" />
                   <div>
-                    <p className="text-sm font-semibold text-teal">NIMHANS: 080-46110007</p>
-                    <p className="text-xs text-charcoal-light">24/7 mental health helpline</p>
+                    <p className="text-base font-semibold text-teal">NIMHANS: 080-46110007</p>
+                    <p className="text-sm text-charcoal-light">24/7 mental health helpline</p>
                   </div>
                 </a>
               </div>
-              <button onClick={() => setShowSafetyAlert(false)} className="w-full rounded-xl bg-teal py-2.5 text-sm font-semibold text-white">
+              <button onClick={() => setShowSafetyAlert(false)} className="w-full rounded-2xl bg-teal py-3.5 text-base font-semibold text-white">
                 I understand, continue
               </button>
             </div>
@@ -258,10 +258,10 @@ export default function MoodCheckPage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-xl font-bold text-teal">{screenLabel}</h1>
-            <p className="mt-1 text-xs text-charcoal-light">Over the last 2 weeks, how often have you been bothered by:</p>
+            <h1 className="font-heading text-2xl font-bold text-teal">{screenLabel}</h1>
+            <p className="mt-1 text-sm text-charcoal-light">Over the last 2 weeks, how often have you been bothered by:</p>
           </div>
-          <button onClick={() => setMode('home')} className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light hover:bg-cream">
+          <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">
             Cancel
           </button>
         </div>
@@ -269,20 +269,20 @@ export default function MoodCheckPage() {
         {/* Progress */}
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-semibold text-charcoal">Question {currentQ + 1} of {items.length}</span>
+            <span className="text-sm font-semibold text-charcoal">Question {currentQ + 1} of {items.length}</span>
             {screenType === 'both' && (
               <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-medium text-teal">
                 {activeScreen === 'phq9' ? 'Part 1/2' : 'Part 2/2'}
               </span>
             )}
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-sage-light/20">
+          <div className="h-2.5 overflow-hidden rounded-full bg-cream">
             <div className="h-full rounded-full bg-gradient-to-r from-sage to-teal transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
         </div>
 
         {/* Question */}
-        <div className="rounded-xl border border-sage-light/30 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-6">
           <p className="mb-6 text-base font-medium leading-relaxed text-charcoal">
             {items[currentQ]}
             {activeScreen === 'phq9' && currentQ === 8 && (
@@ -296,18 +296,18 @@ export default function MoodCheckPage() {
               <button
                 key={opt.value}
                 onClick={() => selectAnswer(opt.value)}
-                className={`flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-all ${
+                className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${
                   scores[currentQ] === opt.value
                     ? 'border-teal bg-teal/5'
-                    : 'border-sage-light/20 hover:border-sage-light/40'
+                    : 'border-charcoal/10 hover:border-charcoal/20'
                 }`}
               >
-                <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                  scores[currentQ] === opt.value ? 'bg-teal text-white' : 'bg-sage-light/20 text-charcoal-light'
+                <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                  scores[currentQ] === opt.value ? 'bg-teal text-white' : 'bg-cream text-charcoal-light'
                 }`}>
                   {opt.value}
                 </div>
-                <span className={`text-sm font-medium ${scores[currentQ] === opt.value ? 'text-teal' : 'text-charcoal'}`}>
+                <span className={`text-base font-medium ${scores[currentQ] === opt.value ? 'text-teal' : 'text-charcoal'}`}>
                   {opt.label}
                 </span>
               </button>
@@ -316,11 +316,11 @@ export default function MoodCheckPage() {
         </div>
 
         <div className="flex items-center justify-between">
-          <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0} className="flex items-center gap-1 text-sm font-medium text-charcoal-light disabled:opacity-30">
+          <button onClick={() => setCurrentQ(Math.max(0, currentQ - 1))} disabled={currentQ === 0} className="flex items-center gap-1 text-base font-medium text-charcoal-light disabled:opacity-30">
             <ChevronLeft className="h-4 w-4" /> Previous
           </button>
           {currentQ < items.length - 1 && scores[currentQ] >= 0 && (
-            <button onClick={() => setCurrentQ(currentQ + 1)} className="flex items-center gap-1 text-sm font-medium text-teal">
+            <button onClick={() => setCurrentQ(currentQ + 1)} className="flex items-center gap-1 text-base font-medium text-teal">
               Next <ChevronRight className="h-4 w-4" />
             </button>
           )}
@@ -331,10 +331,10 @@ export default function MoodCheckPage() {
 
   /* ─── RESULTS ─── */
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">Your Results</h1>
-        <p className="text-sm text-charcoal-light">Screening completed on {new Date().toLocaleDateString()}</p>
+        <h1 className="font-heading text-3xl font-bold text-teal">Your Results</h1>
+        <p className="text-base text-charcoal-light">Screening completed on {new Date().toLocaleDateString()}</p>
       </div>
 
       {results.map((r) => {
@@ -344,14 +344,14 @@ export default function MoodCheckPage() {
         const pct = (r.total / maxScore) * 100;
 
         return (
-          <div key={r.type} className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <div key={r.type} className="rounded-2xl bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-charcoal">
                 <Brain className={`h-5 w-5 ${sev.cls}`} />
                 {r.type === 'phq9' ? 'Depression (PHQ-9)' : 'Anxiety (GAD-7)'}
               </h2>
               {trend && (
-                <span className={`flex items-center gap-1 text-xs font-medium ${trend.cls}`}>
+                <span className={`flex items-center gap-1 text-sm font-medium ${trend.cls}`}>
                   <trend.icon className="h-3.5 w-3.5" /> {trend.label}
                 </span>
               )}
@@ -359,21 +359,21 @@ export default function MoodCheckPage() {
 
             <div className="mb-4 flex items-end gap-2">
               <span className={`font-mono text-4xl font-bold ${sev.cls}`}>{r.total}</span>
-              <span className="mb-1 text-sm text-charcoal-light">/ {maxScore}</span>
+              <span className="mb-1 text-base text-charcoal-light">/ {maxScore}</span>
               <span className={`mb-1.5 ml-2 rounded-full px-2.5 py-0.5 text-xs font-bold ${sev.bgCls} ${sev.cls}`}>{sev.label}</span>
             </div>
 
-            <div className="mb-4 h-3 overflow-hidden rounded-full bg-sage-light/15">
+            <div className="mb-4 h-3 overflow-hidden rounded-full bg-cream">
               <div className={`h-full rounded-full transition-all duration-500 ${sev.cls === 'text-sage-dark' ? 'bg-sage' : sev.cls === 'text-amber' ? 'bg-amber' : sev.cls === 'text-terra' ? 'bg-terra' : 'bg-alert-critical'}`} style={{ width: `${pct}%` }} />
             </div>
 
-            <p className="text-sm leading-relaxed text-charcoal-light">{sev.advice}</p>
+            <p className="text-base leading-relaxed text-charcoal-light">{sev.advice}</p>
 
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs font-semibold text-teal">View item scores</summary>
+              <summary className="cursor-pointer text-sm font-semibold text-teal">View item scores</summary>
               <div className="mt-2 space-y-1.5">
                 {(r.type === 'phq9' ? PHQ9_ITEMS : GAD7_ITEMS).map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs text-charcoal-light">
+                  <div key={i} className="flex items-center gap-2 text-sm text-charcoal-light">
                     <span className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[10px] font-bold text-white ${r.scores[i] >= 2 ? 'bg-terra' : r.scores[i] >= 1 ? 'bg-amber' : 'bg-sage'}`}>
                       {r.scores[i]}
                     </span>
@@ -387,11 +387,11 @@ export default function MoodCheckPage() {
       })}
 
       {results.some((r) => r.total >= 10) && (
-        <div className="flex items-start gap-3 rounded-xl border border-alert-critical/20 bg-alert-critical/5 p-4">
+        <div className="flex items-start gap-3 rounded-2xl bg-alert-critical/5 p-5">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-alert-critical" />
           <div>
-            <p className="text-sm font-semibold text-alert-critical">Your care team has been notified</p>
-            <p className="mt-1 text-xs text-charcoal-light">
+            <p className="text-base font-semibold text-alert-critical">Your care team has been notified</p>
+            <p className="mt-1 text-sm text-charcoal-light">
               Based on your scores, a notification has been sent to your palliative care team.
             </p>
           </div>
@@ -399,10 +399,10 @@ export default function MoodCheckPage() {
       )}
 
       <div className="flex items-center gap-3">
-        <button onClick={() => { setMode('home'); setResults([]); }} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-teal py-3 text-sm font-semibold text-white hover:bg-teal/90">
-          <CheckCircle2 className="h-4 w-4" /> Done
+        <button onClick={() => { setMode('home'); setResults([]); }} className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-teal py-4 text-base font-semibold text-white hover:bg-teal/90">
+          <CheckCircle2 className="h-5 w-5" /> Done
         </button>
-        <button onClick={() => startScreening('both')} className="rounded-xl border border-sage-light/30 px-5 py-3 text-sm font-medium text-charcoal-light hover:bg-cream">
+        <button onClick={() => startScreening('both')} className="rounded-2xl bg-cream px-6 py-4 text-base font-medium text-charcoal-light hover:bg-charcoal/5">
           Retake
         </button>
       </div>

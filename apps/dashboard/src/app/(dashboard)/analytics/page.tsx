@@ -5,6 +5,7 @@ import {
   BarChart3, Users, UserPlus, UserMinus, Heart, Clock, Activity,
   Pill, TrendingUp, Download, Database, FileText, Shield, Star,
   CheckCircle, AlertTriangle, Loader2, X, CheckCircle2,
+  Brain, ScrollText, Utensils,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, usePainDistribution, useQualityMetrics } from '@/lib/hooks';
@@ -45,6 +46,40 @@ const MOCK_DISTRIBUTION = [
   { nrs: 4, count: 6 }, { nrs: 5, count: 4 }, { nrs: 6, count: 3 }, { nrs: 7, count: 3 },
   { nrs: 8, count: 1 }, { nrs: 9, count: 1 }, { nrs: 10, count: 0 },
 ];
+
+// Sprint 24 — Enhanced analytics mock data
+const MOCK_PPS_DISTRIBUTION = [
+  { bracket: '10-20%', count: 3, color: 'bg-alert-critical' },
+  { bracket: '30-40%', count: 6, color: 'bg-terra' },
+  { bracket: '50-60%', count: 12, color: 'bg-amber' },
+  { bracket: '70-80%', count: 8, color: 'bg-sage' },
+  { bracket: '90-100%', count: 3, color: 'bg-teal' },
+];
+
+const MOCK_SYMPTOM_BURDEN = [
+  { symptom: 'Pain', prevalence: 88, avgSeverity: 5.4, trend: 'stable' as const },
+  { symptom: 'Fatigue', prevalence: 75, avgSeverity: 5.8, trend: 'worsening' as const },
+  { symptom: 'Constipation', prevalence: 63, avgSeverity: 4.4, trend: 'stable' as const },
+  { symptom: 'Insomnia', prevalence: 56, avgSeverity: 5.1, trend: 'worsening' as const },
+  { symptom: 'Anxiety', prevalence: 47, avgSeverity: 4.6, trend: 'improving' as const },
+  { symptom: 'Nausea', prevalence: 44, avgSeverity: 3.2, trend: 'improving' as const },
+  { symptom: 'Dyspnea', prevalence: 38, avgSeverity: 4.1, trend: 'stable' as const },
+  { symptom: 'Appetite Loss', prevalence: 69, avgSeverity: 4.9, trend: 'worsening' as const },
+];
+
+const MOCK_SCREENING_RATES = {
+  phq9: { screened: 26, total: 32, rate: 81 },
+  gad7: { screened: 22, total: 32, rate: 69 },
+  mustRisk: { screened: 28, total: 32, rate: 88 },
+  caregiverDistress: { avgScore: 5.2, highDistress: 8 },
+};
+
+const MOCK_GOALS_DOCS = {
+  goalsDocumented: { count: 28, total: 32, rate: 88 },
+  advanceDirective: { count: 18, total: 32, rate: 56 },
+  codeStatus: { count: 30, total: 32, rate: 94 },
+  preferredPlace: { count: 24, total: 32, rate: 75 },
+};
 
 export default function AnalyticsPage() {
   const [toast, setToast] = useState<string | null>(null);
@@ -228,6 +263,196 @@ export default function AnalyticsPage() {
             <div className="text-center"><p className="text-xs text-charcoal/50">Mild (0-3)</p><p className="text-lg font-bold text-alert-success">{mildCount}</p></div>
             <div className="text-center"><p className="text-xs text-charcoal/50">Moderate (4-6)</p><p className="text-lg font-bold text-amber">{modCount}</p></div>
             <div className="text-center"><p className="text-xs text-charcoal/50">Severe (7-10)</p><p className="text-lg font-bold text-alert-critical">{sevCount}</p></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sprint 24 — Functional Status Distribution + Symptom Burden */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* PPS Distribution */}
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-heading text-base font-bold text-charcoal">
+            <Activity className="h-4 w-4 text-teal" /> Functional Status (PPS Distribution)
+          </h2>
+          <p className="mt-1 text-xs text-charcoal/50">Current census by Palliative Performance Scale bracket</p>
+          <div className="mt-4 space-y-3">
+            {MOCK_PPS_DISTRIBUTION.map((item) => {
+              const maxCount = Math.max(...MOCK_PPS_DISTRIBUTION.map((d) => d.count));
+              return (
+                <div key={item.bracket} className="flex items-center gap-3">
+                  <span className="w-16 text-xs font-semibold text-charcoal/60 text-right">{item.bracket}</span>
+                  <div className="flex-1 h-6 rounded bg-sage/5 relative">
+                    <div
+                      className={cn('h-6 rounded transition-all', item.color)}
+                      style={{ width: `${maxCount > 0 ? (item.count / maxCount) * 100 : 0}%`, minWidth: item.count > 0 ? '8px' : '0px', opacity: 0.7 }}
+                    />
+                  </div>
+                  <span className="w-16 text-sm font-bold text-charcoal">{item.count} <span className="text-xs font-normal text-charcoal/40">pts</span></span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-sage/10 pt-3">
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Bed-bound</p>
+              <p className="text-lg font-bold text-alert-critical">{MOCK_PPS_DISTRIBUTION[0].count}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Limited</p>
+              <p className="text-lg font-bold text-amber">{MOCK_PPS_DISTRIBUTION[1].count + MOCK_PPS_DISTRIBUTION[2].count}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-charcoal/50">Ambulatory</p>
+              <p className="text-lg font-bold text-sage">{MOCK_PPS_DISTRIBUTION[3].count + MOCK_PPS_DISTRIBUTION[4].count}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Symptom Burden */}
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-heading text-base font-bold text-charcoal">
+            <Heart className="h-4 w-4 text-teal" /> Symptom Burden Overview
+          </h2>
+          <p className="mt-1 text-xs text-charcoal/50">Prevalence and severity across active patients</p>
+          <div className="mt-4 space-y-2">
+            {MOCK_SYMPTOM_BURDEN.sort((a, b) => b.prevalence - a.prevalence).map((item) => (
+              <div key={item.symptom} className="flex items-center gap-3">
+                <span className="w-24 text-xs font-medium text-charcoal/70 truncate">{item.symptom}</span>
+                <div className="flex-1 h-4 rounded-full bg-sage/10 relative">
+                  <div
+                    className="h-4 rounded-full transition-all"
+                    style={{
+                      width: `${item.prevalence}%`,
+                      backgroundColor: item.avgSeverity >= 5 ? '#D4856B' : item.avgSeverity >= 3 ? '#E8A838' : '#7BA68C',
+                      opacity: 0.7,
+                    }}
+                  />
+                </div>
+                <span className="w-10 text-xs font-bold text-charcoal text-right">{item.prevalence}%</span>
+                <span className={cn(
+                  'w-4 text-[10px]',
+                  item.trend === 'worsening' ? 'text-alert-critical' :
+                  item.trend === 'improving' ? 'text-alert-success' : 'text-charcoal/30'
+                )}>
+                  {item.trend === 'worsening' ? '\u2191' : item.trend === 'improving' ? '\u2193' : '\u2014'}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-[10px] text-charcoal/40 border-t border-sage/10 pt-2">
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-terra/70" /> Severe (&ge;5)</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber/70" /> Moderate (3-4)</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sage/70" /> Mild (&lt;3)</span>
+            <span className="ml-auto">&uarr; worsening &darr; improving</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sprint 24 — Psychosocial Screening + Goals-of-Care Documentation */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Psychosocial Screening */}
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-heading text-base font-bold text-charcoal">
+            <Brain className="h-4 w-4 text-teal" /> Psychosocial Screening Rates
+          </h2>
+          <p className="mt-1 text-xs text-charcoal/50">Active census screening compliance</p>
+          <div className="mt-4 space-y-4">
+            {[
+              { label: 'PHQ-9 (Depression)', ...MOCK_SCREENING_RATES.phq9, target: 80, icon: Brain },
+              { label: 'GAD-7 (Anxiety)', ...MOCK_SCREENING_RATES.gad7, target: 80, icon: Brain },
+              { label: 'MUST (Nutrition Risk)', ...MOCK_SCREENING_RATES.mustRisk, target: 85, icon: Utensils },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg border border-sage/10 p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <item.icon className="h-4 w-4 text-charcoal/40" />
+                    <span className="text-sm font-medium text-charcoal/70">{item.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'text-lg font-bold',
+                      item.rate >= item.target ? 'text-alert-success' : item.rate >= item.target - 10 ? 'text-amber' : 'text-alert-critical'
+                    )}>
+                      {item.rate}%
+                    </span>
+                    <span className="text-[10px] text-charcoal/40">{item.screened}/{item.total}</span>
+                  </div>
+                </div>
+                <div className="mt-2 h-2 w-full rounded-full bg-sage/10">
+                  <div
+                    className="h-2 rounded-full transition-all"
+                    style={{
+                      width: `${item.rate}%`,
+                      backgroundColor: item.rate >= item.target ? '#7BA68C' : item.rate >= item.target - 10 ? '#E8A838' : '#C25A45',
+                    }}
+                  />
+                </div>
+                <p className="mt-1 text-[10px] text-charcoal/40">Target: {item.target}%</p>
+              </div>
+            ))}
+            {/* Caregiver distress summary */}
+            <div className="rounded-lg bg-lavender/20 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-charcoal/70">Caregiver Distress</span>
+                <span className="text-lg font-bold text-charcoal">{MOCK_SCREENING_RATES.caregiverDistress.avgScore}/10</span>
+              </div>
+              <p className="mt-1 text-xs text-charcoal/50">
+                {MOCK_SCREENING_RATES.caregiverDistress.highDistress} caregivers with high distress (&ge;7/10)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Goals-of-Care Documentation */}
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-heading text-base font-bold text-charcoal">
+            <ScrollText className="h-4 w-4 text-teal" /> Goals-of-Care Documentation
+          </h2>
+          <p className="mt-1 text-xs text-charcoal/50">Advance planning documentation completeness</p>
+          <div className="mt-4 space-y-4">
+            {[
+              { label: 'Goals of Care Documented', ...MOCK_GOALS_DOCS.goalsDocumented, target: 90 },
+              { label: 'Code Status Documented', ...MOCK_GOALS_DOCS.codeStatus, target: 95 },
+              { label: 'Preferred Place of Death', ...MOCK_GOALS_DOCS.preferredPlace, target: 80 },
+              { label: 'Advance Directive on File', ...MOCK_GOALS_DOCS.advanceDirective, target: 70 },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-charcoal/70">{item.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'text-sm font-bold',
+                      item.rate >= item.target ? 'text-alert-success' : item.rate >= item.target - 15 ? 'text-amber' : 'text-alert-critical'
+                    )}>
+                      {item.rate}%
+                    </span>
+                    <span className="text-[10px] text-charcoal/40">{item.count}/{item.total}</span>
+                  </div>
+                </div>
+                <div className="mt-1.5 h-2 w-full rounded-full bg-sage/10 relative">
+                  <div
+                    className="h-2 rounded-full transition-all"
+                    style={{
+                      width: `${item.rate}%`,
+                      backgroundColor: item.rate >= item.target ? '#7BA68C' : item.rate >= item.target - 15 ? '#E8A838' : '#C25A45',
+                    }}
+                  />
+                  {/* Target marker */}
+                  <div
+                    className="absolute top-0 h-2 w-0.5 bg-charcoal/30"
+                    style={{ left: `${item.target}%` }}
+                    title={`Target: ${item.target}%`}
+                  />
+                </div>
+                <p className="mt-0.5 text-[10px] text-charcoal/40">Target: {item.target}%</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 rounded-lg bg-teal/5 border border-teal/10 p-3">
+            <p className="text-xs text-teal font-semibold">
+              Overall Documentation Score: {Math.round((MOCK_GOALS_DOCS.goalsDocumented.rate + MOCK_GOALS_DOCS.codeStatus.rate + MOCK_GOALS_DOCS.preferredPlace.rate + MOCK_GOALS_DOCS.advanceDirective.rate) / 4)}%
+            </p>
+            <p className="text-[10px] text-charcoal/50 mt-0.5">Average across all 4 documentation categories</p>
           </div>
         </div>
       </div>

@@ -125,51 +125,51 @@ export default function SleepPage() {
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-teal">Log Sleep</h1>
-            <p className="mt-1 text-sm text-charcoal-light">How did you sleep last night?</p>
+            <h1 className="font-heading text-3xl font-bold text-teal">Log Sleep</h1>
+            <p className="mt-1 text-base text-charcoal-light">How did you sleep last night?</p>
           </div>
-          <button onClick={() => setMode('home')} className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light">
+          <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">
             Cancel
           </button>
         </div>
 
         {/* Bedtime & Wake time */}
-        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl bg-white p-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-charcoal-light">
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
                 <Moon className="h-4 w-4 text-teal" /> Bedtime
               </label>
               <input
                 type="time"
                 value={bedtime}
                 onChange={(e) => setBedtime(e.target.value)}
-                className="w-full rounded-lg border border-sage-light/30 px-3 py-2.5 text-base font-medium text-charcoal outline-none"
+                className="w-full rounded-xl border border-charcoal/10 px-4 py-3 text-base font-medium text-charcoal outline-none focus:border-teal focus:ring-2 focus:ring-teal/20"
               />
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-charcoal-light">
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
                 <Sun className="h-4 w-4 text-amber" /> Wake Up
               </label>
               <input
                 type="time"
                 value={wakeTime}
                 onChange={(e) => setWakeTime(e.target.value)}
-                className="w-full rounded-lg border border-sage-light/30 px-3 py-2.5 text-base font-medium text-charcoal outline-none"
+                className="w-full rounded-xl border border-charcoal/10 px-4 py-3 text-base font-medium text-charcoal outline-none focus:border-teal focus:ring-2 focus:ring-teal/20"
               />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-teal/5 py-2">
+          <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-teal/5 py-3">
             <Clock className="h-4 w-4 text-teal" />
-            <span className="text-sm font-semibold text-teal">
+            <span className="text-base font-semibold text-teal">
               {calcHours(bedtime, wakeTime)} hours of sleep
             </span>
           </div>
         </div>
 
         {/* Sleep Quality */}
-        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
-          <label className="mb-3 block text-sm font-semibold text-charcoal">
+        <div className="rounded-2xl bg-white p-5">
+          <label className="mb-3 block text-base font-semibold text-charcoal">
             Sleep Quality: <span className={qualityText(quality)}>{quality}/10</span>
           </label>
           <input
@@ -180,15 +180,15 @@ export default function SleepPage() {
             onChange={(e) => setQuality(Number(e.target.value))}
             className="w-full accent-teal"
           />
-          <div className="mt-1 flex justify-between text-[10px] text-charcoal-light">
+          <div className="mt-1 flex justify-between text-xs text-charcoal-light">
             <span>Very poor</span>
             <span>Excellent</span>
           </div>
         </div>
 
         {/* Disturbances */}
-        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
-          <p className="mb-3 text-sm font-semibold text-charcoal">What disturbed your sleep?</p>
+        <div className="rounded-2xl bg-white p-5">
+          <p className="mb-3 text-base font-semibold text-charcoal">What disturbed your sleep?</p>
           <div className="flex flex-wrap gap-2">
             {DISTURBANCE_OPTIONS.map((opt) => {
               const isSelected = disturbances.includes(opt.id);
@@ -197,8 +197,8 @@ export default function SleepPage() {
                   key={opt.id}
                   onClick={() => toggleDisturbance(opt.id)}
                   className={clsx(
-                    'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-                    isSelected ? 'border-teal bg-teal/5 text-teal' : 'border-sage-light/30 bg-white text-charcoal-light',
+                    'flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all',
+                    isSelected ? 'border-teal bg-teal/5 text-teal' : 'border-charcoal/10 bg-white text-charcoal-light',
                   )}
                 >
                   <span>{opt.emoji}</span> {opt.label}
@@ -209,15 +209,15 @@ export default function SleepPage() {
         </div>
 
         {/* Sleep medication */}
-        <div className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3">
-          <span className="text-sm font-semibold text-charcoal">Took sleep medication?</span>
+        <div className="flex items-center justify-between rounded-2xl bg-white px-5 py-4">
+          <span className="text-base font-semibold text-charcoal">Took sleep medication?</span>
           <button
             onClick={() => setSleepMed(!sleepMed)}
-            className={clsx('relative h-6 w-11 rounded-full transition-colors', sleepMed ? 'bg-teal' : 'bg-sage-light/30')}
+            className={clsx('relative h-7 w-12 rounded-full transition-colors', sleepMed ? 'bg-teal' : 'bg-charcoal/20')}
           >
             <span
               className={clsx(
-                'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
+                'absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform',
                 sleepMed && 'translate-x-5',
               )}
             />
@@ -225,23 +225,23 @@ export default function SleepPage() {
         </div>
 
         {/* Notes */}
-        <div className="rounded-xl border border-sage-light/20 bg-white p-4">
-          <label className="mb-1.5 block text-xs font-semibold text-charcoal-light">Notes (optional)</label>
+        <div className="rounded-2xl bg-white p-5">
+          <label className="mb-1.5 block text-sm font-semibold text-charcoal-light">Notes (optional)</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Anything else about your sleep..."
             rows={2}
-            className="w-full resize-y rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none placeholder:text-charcoal-light/50"
+            className="w-full resize-y rounded-xl border border-charcoal/10 px-4 py-3 text-base text-charcoal outline-none placeholder:text-charcoal/30 focus:border-teal focus:ring-2 focus:ring-teal/20"
           />
         </div>
 
         {/* Save */}
         <button
           onClick={handleSave}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3 text-sm font-semibold text-white transition-all hover:shadow-md"
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
         >
-          <CheckCircle2 className="h-4 w-4" /> Save Sleep Log
+          <CheckCircle2 className="h-5 w-5" /> Save Sleep Log
         </button>
       </div>
     );
@@ -252,12 +252,12 @@ export default function SleepPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-teal">Sleep Tracker</h1>
-          <p className="mt-1 text-sm text-charcoal-light">Track your sleep patterns to help manage symptoms</p>
+          <h1 className="font-heading text-3xl font-bold text-teal">Sleep Tracker</h1>
+          <p className="mt-1 text-base text-charcoal-light">Track your sleep patterns to help manage symptoms</p>
         </div>
         <button
           onClick={() => setMode('log')}
-          className="flex items-center gap-1.5 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white"
+          className="flex items-center gap-1.5 rounded-2xl bg-teal px-5 py-3 text-base font-semibold text-white"
         >
           <PlusCircle className="h-4 w-4" /> Log Sleep
         </button>
@@ -277,28 +277,28 @@ export default function SleepPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="flex flex-col items-center rounded-xl border border-sage-light/20 bg-white p-3 shadow-sm"
+            className="flex flex-col items-center rounded-2xl bg-white p-4"
           >
             <stat.icon className={clsx('mb-1 h-4 w-4', stat.textCls)} />
-            <span className={clsx('font-mono text-lg font-bold', stat.textCls)}>{stat.value}</span>
-            <span className="text-[10px] font-medium text-charcoal-light">{stat.label}</span>
+            <span className={clsx('font-mono text-xl font-bold', stat.textCls)}>{stat.value}</span>
+            <span className="text-xs font-medium text-charcoal-light">{stat.label}</span>
           </div>
         ))}
       </div>
 
       {/* Top disturbance */}
       {topDisturbance && (
-        <div className="flex items-center gap-3 rounded-xl border border-terra/15 bg-terra/5 px-4 py-3">
+        <div className="flex items-center gap-3 rounded-2xl bg-terra/5 px-5 py-4">
           <AlertCircle className="h-4 w-4 flex-shrink-0 text-terra" />
-          <p className="text-xs text-charcoal-light">
+          <p className="text-sm text-charcoal-light">
             Most common sleep disturbance: <strong className="text-charcoal">{topDisturbance[0]}</strong> ({topDisturbance[1]} of {history.length} nights)
           </p>
         </div>
       )}
 
       {/* Sleep Quality Chart */}
-      <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-charcoal">Sleep Quality (last 14 nights)</h2>
+      <div className="rounded-2xl bg-white p-5">
+        <h2 className="mb-3 text-base font-semibold text-charcoal">Sleep Quality (last 14 nights)</h2>
         <div className="flex items-end gap-1.5" style={{ height: '120px' }}>
           {history.slice(-14).map((h) => {
             const pct = (h.quality / 10) * 100;
@@ -318,28 +318,28 @@ export default function SleepPage() {
 
       {/* Recent Entries */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-charcoal">Recent Logs</h2>
-        <div className="space-y-2">
+        <h2 className="mb-3 text-base font-semibold text-charcoal">Recent Logs</h2>
+        <div className="space-y-3">
           {history.slice(-7).reverse().map((h) => (
             <div
               key={h.id}
-              className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3"
+              className="flex items-center justify-between rounded-2xl bg-white px-5 py-4"
             >
               <div className="flex items-center gap-3">
-                <div className={clsx('flex h-9 w-9 items-center justify-center rounded-lg', qualityLightBg(h.quality))}>
+                <div className={clsx('flex h-10 w-10 items-center justify-center rounded-xl', qualityLightBg(h.quality))}>
                   <Moon className={clsx('h-4 w-4', qualityText(h.quality))} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-charcoal">
+                  <p className="text-base font-semibold text-charcoal">
                     {h.total_hours}h · Quality {h.quality}/10
                   </p>
-                  <p className="text-xs text-charcoal-light">
+                  <p className="text-sm text-charcoal-light">
                     {h.bedtime} → {h.wake_time}
                     {h.disturbances.length > 0 && ` · ${h.disturbances.join(', ')}`}
                   </p>
                 </div>
               </div>
-              <span className="text-xs text-charcoal-light">{h.date}</span>
+              <span className="text-sm text-charcoal-light">{h.date}</span>
             </div>
           ))}
         </div>
@@ -347,7 +347,7 @@ export default function SleepPage() {
 
       {/* Saved toast */}
       {saved && (
-        <div className="fixed bottom-24 right-4 z-50 flex items-center gap-2 rounded-xl bg-teal px-5 py-3 text-sm font-semibold text-white shadow-lg">
+        <div className="fixed bottom-24 right-4 z-50 flex items-center gap-2 rounded-2xl bg-teal px-5 py-3 text-base font-semibold text-white shadow-lg">
           <CheckCircle2 className="h-4 w-4" /> Sleep logged!
         </div>
       )}

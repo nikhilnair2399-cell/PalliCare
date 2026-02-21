@@ -194,20 +194,20 @@ export default function FunctionalStatusPage() {
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-xl font-bold text-teal">How Are You Doing?</h1>
-            <p className="mt-1 text-xs text-charcoal-light">Tell us about your abilities this week</p>
+            <h1 className="font-heading text-2xl font-bold text-teal">How Are You Doing?</h1>
+            <p className="mt-1 text-sm text-charcoal-light">Tell us about your abilities this week</p>
           </div>
-          <button onClick={() => setMode('home')} className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light">Cancel</button>
+          <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">Cancel</button>
         </div>
 
         {/* Progress */}
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-semibold text-charcoal">
+            <span className="text-sm font-semibold text-charcoal">
               {currentDomain + 1} of {DOMAINS.length}: {domain.label}
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-sage-light/20">
+          <div className="h-2.5 overflow-hidden rounded-full bg-cream">
             <div
               className="h-full rounded-full bg-gradient-to-r from-sage to-teal transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -216,12 +216,12 @@ export default function FunctionalStatusPage() {
         </div>
 
         {/* Domain Question */}
-        <div className="rounded-xl border border-sage-light/20 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl bg-white p-6">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal/10">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal/10">
               <domain.icon className="h-5 w-5 text-teal" />
             </div>
-            <h2 className="text-base font-bold text-charcoal">{domain.label}</h2>
+            <h2 className="text-lg font-bold text-charcoal">{domain.label}</h2>
           </div>
 
           <div className="space-y-2.5">
@@ -232,21 +232,21 @@ export default function FunctionalStatusPage() {
                   key={opt.value}
                   onClick={() => selectScore(opt.value)}
                   className={clsx(
-                    'flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-all',
-                    isSelected ? 'border-teal bg-teal/5' : 'border-sage-light/20 bg-white',
+                    'flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all',
+                    isSelected ? 'border-teal bg-teal/5' : 'border-charcoal/10 bg-white',
                   )}
                 >
                   <div
                     className={clsx(
-                      'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                      isSelected ? 'bg-teal text-white' : 'bg-sage-light/15 text-charcoal-light',
+                      'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                      isSelected ? 'bg-teal text-white' : 'bg-cream text-charcoal-light',
                     )}
                   >
                     {opt.value}
                   </div>
                   <div>
-                    <p className={clsx('text-sm font-semibold', isSelected ? 'text-teal' : 'text-charcoal')}>{opt.label}</p>
-                    <p className="text-xs text-charcoal-light">{opt.desc}</p>
+                    <p className={clsx('text-base font-semibold', isSelected ? 'text-teal' : 'text-charcoal')}>{opt.label}</p>
+                    <p className="text-sm text-charcoal-light">{opt.desc}</p>
                   </div>
                 </button>
               );
@@ -259,7 +259,7 @@ export default function FunctionalStatusPage() {
           <button
             onClick={() => setCurrentDomain(Math.max(0, currentDomain - 1))}
             disabled={currentDomain === 0}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-charcoal-light transition-colors disabled:opacity-30"
+            className="rounded-lg px-3 py-2 text-base font-medium text-charcoal-light transition-colors disabled:opacity-30"
           >
             ← Previous
           </button>
@@ -270,7 +270,7 @@ export default function FunctionalStatusPage() {
                 onClick={() => setCurrentDomain(i)}
                 className={clsx(
                   'h-2.5 w-2.5 rounded-full transition-all',
-                  scores[d.key] !== undefined ? 'bg-teal' : i === currentDomain ? 'bg-sage' : 'bg-sage-light/30',
+                  scores[d.key] !== undefined ? 'bg-teal' : i === currentDomain ? 'bg-sage' : 'bg-charcoal/15',
                   i === currentDomain && 'scale-125',
                 )}
               />
@@ -279,7 +279,7 @@ export default function FunctionalStatusPage() {
           {currentDomain < DOMAINS.length - 1 ? (
             <button
               onClick={() => setCurrentDomain(currentDomain + 1)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-teal"
+              className="rounded-lg px-3 py-2 text-base font-medium text-teal"
             >
               Next →
             </button>
@@ -292,33 +292,33 @@ export default function FunctionalStatusPage() {
 
         {/* Submit when all answered */}
         {allAnswered && (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-sage-light/20 bg-white p-4">
-              <label className="mb-1.5 block text-xs font-semibold text-charcoal-light">Anything else? (optional)</label>
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-white p-5">
+              <label className="mb-1.5 block text-sm font-semibold text-charcoal-light">Anything else? (optional)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any changes you noticed this week..."
                 rows={2}
-                className="w-full resize-y rounded-lg border border-sage-light/30 px-3 py-2 text-sm text-charcoal outline-none placeholder:text-charcoal-light/50"
+                className="w-full resize-y rounded-xl border border-charcoal/10 px-4 py-3 text-base text-charcoal outline-none placeholder:text-charcoal/30 focus:border-teal focus:ring-2 focus:ring-teal/20"
               />
             </div>
 
             {/* Preview */}
-            <div className="rounded-xl border border-teal/10 bg-teal/5 p-4">
-              <p className="mb-2 text-sm font-semibold text-teal">
+            <div className="rounded-2xl bg-teal/5 p-5">
+              <p className="mb-2 text-base font-semibold text-teal">
                 Your Functional Score: {calculatePPS(scores)}%
               </p>
-              <p className="text-xs text-charcoal-light">
+              <p className="text-sm text-charcoal-light">
                 {getPPSCategory(calculatePPS(scores)).desc}
               </p>
             </div>
 
             <button
               onClick={handleSave}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal py-3 text-sm font-semibold text-white"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
             >
-              <CheckCircle2 className="h-4 w-4" /> Save Assessment
+              <CheckCircle2 className="h-5 w-5" /> Save Assessment
             </button>
           </div>
         )}
@@ -331,14 +331,14 @@ export default function FunctionalStatusPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-teal">Functional Status</h1>
-          <p className="mt-1 text-sm text-charcoal-light">Track how you are doing with daily activities</p>
+          <h1 className="font-heading text-3xl font-bold text-teal">Functional Status</h1>
+          <p className="mt-1 text-base text-charcoal-light">Track how you are doing with daily activities</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowHelp(!showHelp)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-sage-light/30 text-charcoal-light">
+          <button onClick={() => setShowHelp(!showHelp)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-cream text-charcoal-light">
             <HelpCircle className="h-4 w-4" />
           </button>
-          <button onClick={startAssessment} className="flex items-center gap-1.5 rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white">
+          <button onClick={startAssessment} className="flex items-center gap-1.5 rounded-2xl bg-teal px-5 py-3 text-base font-semibold text-white">
             <PlusCircle className="h-4 w-4" /> Assess
           </button>
         </div>
@@ -346,8 +346,8 @@ export default function FunctionalStatusPage() {
 
       {/* Help card */}
       {showHelp && (
-        <div className="rounded-xl border border-teal/10 bg-teal/5 p-4">
-          <p className="text-xs leading-relaxed text-charcoal-light">
+        <div className="rounded-2xl bg-teal/5 p-5">
+          <p className="text-sm leading-relaxed text-charcoal-light">
             This assessment helps your care team understand how you are managing daily activities.
             It covers 5 areas: mobility, self-care, eating, alertness, and activity level.
             We recommend completing this weekly. Your answers help tailor your care plan.
@@ -357,8 +357,8 @@ export default function FunctionalStatusPage() {
 
       {/* Current Score */}
       {latestEntry && (
-        <div className={clsx('rounded-xl border bg-white p-5 text-center shadow-sm', ppsCat.border)}>
-          <p className="text-xs font-medium text-charcoal-light">Current Functional Score</p>
+        <div className="rounded-2xl bg-white p-6 text-center">
+          <p className="text-sm font-medium text-charcoal-light">Current Functional Score</p>
           <div className="mt-2 flex items-center justify-center gap-3">
             <span className={clsx('font-mono text-5xl font-bold leading-none', ppsCat.text)}>
               {currentPPS}%
@@ -368,7 +368,7 @@ export default function FunctionalStatusPage() {
                 {ppsCat.label}
               </span>
               <div className={clsx(
-                'mt-1 flex items-center gap-1 text-xs',
+                'mt-1 flex items-center gap-1 text-sm',
                 ppsTrend === 'improving' ? 'text-sage' : ppsTrend === 'declining' ? 'text-alert-critical' : 'text-amber',
               )}>
                 {ppsTrend === 'improving' ? <TrendingUp className="h-3 w-3" /> : ppsTrend === 'declining' ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
@@ -376,18 +376,18 @@ export default function FunctionalStatusPage() {
               </div>
             </div>
           </div>
-          <p className="mt-2 text-xs text-charcoal-light">{ppsCat.desc}</p>
-          <p className="mt-1 text-xs text-charcoal-light">Last assessed: {latestEntry.date}</p>
+          <p className="mt-2 text-sm text-charcoal-light">{ppsCat.desc}</p>
+          <p className="mt-1 text-sm text-charcoal-light">Last assessed: {latestEntry.date}</p>
         </div>
       )}
 
       {/* Decline alert */}
       {ppsTrend === 'declining' && (
-        <div className="flex items-start gap-3 rounded-xl border border-alert-critical/15 bg-alert-critical/5 p-4">
+        <div className="flex items-start gap-3 rounded-2xl bg-alert-critical/5 p-5">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-alert-critical" />
           <div>
-            <p className="text-sm font-semibold text-alert-critical">Functional Decline Detected</p>
-            <p className="mt-1 text-xs text-charcoal-light">
+            <p className="text-base font-semibold text-alert-critical">Functional Decline Detected</p>
+            <p className="mt-1 text-sm text-charcoal-light">
               Your care team has been notified about the change in your functional status. They will review your care plan.
             </p>
           </div>
@@ -396,21 +396,21 @@ export default function FunctionalStatusPage() {
 
       {/* Domain Breakdown (latest) */}
       {latestEntry && (
-        <div className="rounded-xl border border-sage-light/20 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-charcoal">Domain Breakdown</h2>
-          <div className="space-y-2.5">
+        <div className="rounded-2xl bg-white p-5">
+          <h2 className="mb-3 text-base font-semibold text-charcoal">Domain Breakdown</h2>
+          <div className="space-y-3">
             {DOMAINS.map((d) => {
               const score = (latestEntry as any)[d.key] as number;
               const pct = (score / 5) * 100;
               return (
                 <div key={d.key}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-xs font-medium text-charcoal-light">
+                    <span className="flex items-center gap-2 text-sm font-medium text-charcoal-light">
                       <d.icon className={clsx('h-3.5 w-3.5', domainText(score))} /> {d.label}
                     </span>
-                    <span className={clsx('text-xs font-bold', domainText(score))}>{score}/5</span>
+                    <span className={clsx('text-sm font-bold', domainText(score))}>{score}/5</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-sage-light/15">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-cream">
                     <div
                       className={clsx('h-full rounded-full transition-all', domainBg(score))}
                       style={{ width: `${pct}%` }}
@@ -425,22 +425,22 @@ export default function FunctionalStatusPage() {
 
       {/* History */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-charcoal">Assessment History</h2>
-        <div className="space-y-2">
+        <h2 className="mb-3 text-base font-semibold text-charcoal">Assessment History</h2>
+        <div className="space-y-3">
           {history.slice().reverse().map((h) => {
             const cat = getPPSCategory(h.ppsEstimate);
             return (
-              <div key={h.id} className="flex items-center justify-between rounded-xl border border-sage-light/20 bg-white px-4 py-3">
+              <div key={h.id} className="flex items-center justify-between rounded-2xl bg-white px-5 py-4">
                 <div className="flex items-center gap-3">
                   <div className={clsx('flex h-10 w-10 items-center justify-center rounded-xl', cat.lightBg)}>
                     <span className={clsx('font-mono text-sm font-bold', cat.text)}>{h.ppsEstimate}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-charcoal">{cat.label}</span>
-                    {h.notes && <p className="text-xs text-charcoal-light">{h.notes}</p>}
+                    <span className="text-base font-semibold text-charcoal">{cat.label}</span>
+                    {h.notes && <p className="text-sm text-charcoal-light">{h.notes}</p>}
                   </div>
                 </div>
-                <span className="text-xs text-charcoal-light">{h.date}</span>
+                <span className="text-sm text-charcoal-light">{h.date}</span>
               </div>
             );
           })}
@@ -448,7 +448,7 @@ export default function FunctionalStatusPage() {
       </div>
 
       {saved && (
-        <div className="fixed bottom-24 right-4 z-50 flex items-center gap-2 rounded-xl bg-teal px-5 py-3 text-sm font-semibold text-white shadow-lg">
+        <div className="fixed bottom-24 right-4 z-50 flex items-center gap-2 rounded-2xl bg-teal px-5 py-3 text-base font-semibold text-white shadow-lg">
           <CheckCircle2 className="h-4 w-4" /> Assessment saved!
         </div>
       )}

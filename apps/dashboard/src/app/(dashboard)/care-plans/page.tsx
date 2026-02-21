@@ -32,6 +32,99 @@ const STATUS_BADGE: Record<string, string> = {
   archived: 'bg-charcoal/5 text-charcoal/40',
 };
 
+// ── Care Plan Templates ──────────────────────────────────────────────
+const CARE_PLAN_TEMPLATES = [
+  {
+    id: 'pain',
+    name: 'Pain Management',
+    icon: '🎯',
+    description: 'WHO ladder-based pain control with opioid titration, breakthrough protocols, and side-effect management',
+    title: 'Palliative Care Plan — Pain Management Focus',
+    goalsOfCare: 'Optimize pain control using WHO analgesic ladder, reduce NRS to ≤4/10, minimize opioid side effects, maintain functional status',
+    goals: [
+      'Pain NRS ≤ 4/10 at rest and ≤ 6/10 on movement',
+      'Breakthrough pain episodes < 3 per day',
+      'Adequate sleep quality (> 6 hours/night)',
+      'Maintain current PPS / functional status',
+    ],
+    interventions: [
+      { text: 'Opioid titration per WHO analgesic ladder protocol', assigned: 'Physician' },
+      { text: 'Non-pharmacological pain management (heat, positioning, TENS)', assigned: 'Physiotherapist' },
+      { text: 'Daily pain diary monitoring via PalliCare app', assigned: 'Patient' },
+      { text: 'Opioid side-effect screening (constipation, nausea, sedation)', assigned: 'Nurse' },
+      { text: 'Breakthrough pain PRN protocol and dose adjustment review', assigned: 'Physician' },
+      { text: 'Weekly psychosocial check-in for pain-related distress', assigned: 'Psychologist' },
+    ],
+  },
+  {
+    id: 'eol',
+    name: 'End-of-Life Care',
+    icon: '🕊️',
+    description: 'Comfort-focused care with symptom control, family support, spiritual needs, and bereavement planning',
+    title: 'End-of-Life Comfort Care Plan',
+    goalsOfCare: 'Comfort-focused care prioritizing dignity, symptom control, family preparation, spiritual support, and preferred place of death',
+    goals: [
+      'Comfort measures established as primary goal of care',
+      'Advance care directive documented and communicated',
+      'Family meeting completed — prognosis and plan understood',
+      'Preferred place of death arranged and logistics in place',
+      'Spiritual and cultural needs assessed and addressed',
+    ],
+    interventions: [
+      { text: 'Symptom assessment every 4 hours (pain, dyspnea, secretions, agitation)', assigned: 'Nurse' },
+      { text: 'PRN medication protocol for pain, dyspnea, and terminal restlessness', assigned: 'Physician' },
+      { text: 'Family support and communication updates', assigned: 'Social Worker' },
+      { text: 'Spiritual care assessment and support', assigned: 'Chaplain' },
+      { text: 'Bereavement support planning and referral', assigned: 'Social Worker' },
+      { text: 'Discontinue non-essential medications and investigations', assigned: 'Physician' },
+    ],
+  },
+  {
+    id: 'symptom',
+    name: 'Symptom Management',
+    icon: '📋',
+    description: 'Systematic multi-symptom control with ESAS tracking, nutrition, nausea, fatigue, and functional optimization',
+    title: 'Palliative Care Plan — Symptom Management',
+    goalsOfCare: 'Systematic symptom control across all domains, quality of life optimization, nutritional support, and functional maintenance',
+    goals: [
+      'Symptom burden reduced by ≥ 30% on ESAS',
+      'Nausea episodes ≤ 2 per day',
+      'Nutritional intake > 1200 kcal/day',
+      'Functional status (PPS) maintained or improved',
+    ],
+    interventions: [
+      { text: 'Daily ESAS symptom assessment and documentation', assigned: 'Nurse' },
+      { text: 'Anti-emetic protocol optimization', assigned: 'Physician' },
+      { text: 'Dietary counselling and calorie-intake monitoring', assigned: 'Dietitian' },
+      { text: 'Physiotherapy and early mobilization programme', assigned: 'Physiotherapist' },
+      { text: 'Psychological screening (PHQ-9, GAD-7) at intake and weekly', assigned: 'Psychologist' },
+      { text: 'Medication review to minimize polypharmacy burden', assigned: 'Physician' },
+    ],
+  },
+  {
+    id: 'caregiver',
+    name: 'Caregiver Support',
+    icon: '🤝',
+    description: 'Caregiver wellbeing, burnout prevention, skills training, respite coordination, and emotional support',
+    title: 'Caregiver Support and Wellbeing Plan',
+    goalsOfCare: 'Support primary caregiver wellbeing, prevent burnout, build care skills, arrange respite, and connect with community resources',
+    goals: [
+      'Caregiver distress score < 5/10 on monthly screening',
+      'Complete hands-on care skills training programme',
+      'Respite care arrangement in place (≥ 1 day/week)',
+      'Connected with caregiver support group or peer network',
+    ],
+    interventions: [
+      { text: 'Monthly caregiver distress screening (Zarit Burden Interview)', assigned: 'Social Worker' },
+      { text: 'Hands-on care skills training (medication, wound, PEG, positioning)', assigned: 'Nurse' },
+      { text: 'Respite care coordination and scheduling', assigned: 'Social Worker' },
+      { text: 'Individual psychological support for anticipatory grief', assigned: 'Psychologist' },
+      { text: 'Financial counselling and government scheme navigation', assigned: 'Social Worker' },
+      { text: 'Peer caregiver support group referral', assigned: 'Social Worker' },
+    ],
+  },
+];
+
 const MOCK_CARE_PLANS = [
   {
     id: '1',
@@ -134,6 +227,8 @@ function NewCarePlanModal({ onClose, onCreated, isFromApi }: {
   onCreated: (plan: any) => void;
   isFromApi: boolean;
 }) {
+  const [step, setStep] = useState<'template' | 'form'>('template');
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [patientName, setPatientName] = useState('');
   const [title, setTitle] = useState('');
   const [goalsOfCare, setGoalsOfCare] = useState('');
@@ -143,6 +238,26 @@ function NewCarePlanModal({ onClose, onCreated, isFromApi }: {
   const [saving, setSaving] = useState(false);
 
   const ROLES = ['Physician', 'Nurse', 'Patient', 'Psychologist', 'Social Worker', 'Dietitian', 'Chaplain', 'Physiotherapist'];
+
+  function applyTemplate(templateId: string) {
+    const tpl = CARE_PLAN_TEMPLATES.find((t) => t.id === templateId);
+    if (!tpl) return;
+    setSelectedTemplate(templateId);
+    setTitle(tpl.title);
+    setGoalsOfCare(tpl.goalsOfCare);
+    setGoals(tpl.goals);
+    setInterventions(tpl.interventions.map((iv) => ({ text: iv.text, assigned: iv.assigned })));
+    setStep('form');
+  }
+
+  function startBlank() {
+    setSelectedTemplate(null);
+    setTitle('');
+    setGoalsOfCare('');
+    setGoals(['']);
+    setInterventions([{ text: '', assigned: 'Physician' }]);
+    setStep('form');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -185,13 +300,70 @@ function NewCarePlanModal({ onClose, onCreated, isFromApi }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-sage-light/20 px-6 py-4">
-          <h2 className="font-heading text-xl font-bold text-teal">New Care Plan</h2>
-          <button onClick={onClose} className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
-            <X className="h-5 w-5" />
-          </button>
+          <h2 className="font-heading text-xl font-bold text-teal">
+            {step === 'template' ? 'Choose a Template' : 'New Care Plan'}
+          </h2>
+          <div className="flex items-center gap-2">
+            {step === 'form' && (
+              <button onClick={() => setStep('template')} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-teal hover:bg-teal/5">
+                ← Templates
+              </button>
+            )}
+            <button onClick={onClose} className="rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-charcoal">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
+        {/* ── Template Picker Step ── */}
+        {step === 'template' && (
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-charcoal/60">
+              Start from a clinically-validated template or build from scratch.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {CARE_PLAN_TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  onClick={() => applyTemplate(tpl.id)}
+                  className="group rounded-xl border border-sage-light/30 bg-white p-4 text-left transition-all hover:border-teal hover:shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{tpl.icon}</span>
+                    <span className="text-sm font-bold text-charcoal group-hover:text-teal">{tpl.name}</span>
+                  </div>
+                  <p className="mt-2 text-xs text-charcoal/50 leading-relaxed">{tpl.description}</p>
+                  <div className="mt-3 flex items-center gap-2 text-[10px] text-charcoal/40">
+                    <span>{tpl.goals.length} goals</span>
+                    <span>&middot;</span>
+                    <span>{tpl.interventions.length} interventions</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={startBlank}
+              className="w-full rounded-xl border-2 border-dashed border-sage-light/40 p-4 text-sm font-semibold text-charcoal/50 hover:border-teal hover:text-teal transition-colors"
+            >
+              + Start from Blank
+            </button>
+          </div>
+        )}
+
+        {/* ── Form Step ── */}
+        {step === 'form' && (
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
+          {/* Template badge */}
+          {selectedTemplate && (
+            <div className="flex items-center gap-2 rounded-lg bg-teal/5 px-3 py-2">
+              <span className="text-sm">{CARE_PLAN_TEMPLATES.find(t => t.id === selectedTemplate)?.icon}</span>
+              <span className="text-xs font-semibold text-teal">
+                Using: {CARE_PLAN_TEMPLATES.find(t => t.id === selectedTemplate)?.name} Template
+              </span>
+              <span className="text-[10px] text-charcoal/40 ml-auto">All fields are editable</span>
+            </div>
+          )}
+
           {/* Patient Name */}
           <div>
             <label className="block text-xs font-semibold text-charcoal/60 uppercase mb-1.5">Patient Name *</label>
@@ -311,6 +483,7 @@ function NewCarePlanModal({ onClose, onCreated, isFromApi }: {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
