@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell } from 'lucide-react';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -246,6 +246,63 @@ export default function PatientHomePage() {
           </div>
         </div>
       )}
+
+      {/* Next Appointment */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal/10">
+            <CalendarClock className="h-6 w-6 text-teal" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase text-charcoal/40">Next Appointment</p>
+            <p className="mt-0.5 text-base font-bold text-charcoal">
+              {w.next_appointment_date || '25 Feb 2026'} at {w.next_appointment_time || '10:30 AM'}
+            </p>
+            <p className="text-sm text-charcoal-light">
+              {w.next_appointment_doctor || p.primary_clinician || 'Dr. Nikhil Nair'} &middot; {w.next_appointment_type || 'Follow-up Review'}
+            </p>
+          </div>
+        </div>
+        {(() => {
+          const apptDate = new Date(w.next_appointment_date || '2026-02-25');
+          const daysUntil = Math.max(0, Math.ceil((apptDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+          if (daysUntil <= 3 && daysUntil > 0) return (
+            <p className="mt-3 rounded-xl bg-amber/10 px-4 py-2 text-sm font-medium text-amber">
+              Coming up in {daysUntil} day{daysUntil !== 1 ? 's' : ''} — remember to log your symptoms before visiting
+            </p>
+          );
+          if (daysUntil === 0) return (
+            <p className="mt-3 rounded-xl bg-teal/10 px-4 py-2 text-sm font-medium text-teal">
+              Your appointment is today! Review your pain diary before you go.
+            </p>
+          );
+          return null;
+        })()}
+      </div>
+
+      {/* Daily Wellness Tip */}
+      {(() => {
+        const tips = [
+          'Gentle stretching for 5 minutes can help ease stiffness and improve your mood.',
+          'Stay hydrated — aim for 6-8 glasses of water. It helps with medication absorption too.',
+          'Deep breathing for 2 minutes can reduce pain perception. Try the Breathe section.',
+          'Writing one thing you are grateful for today can shift your focus and improve wellbeing.',
+          'Taking medications at the same time each day helps maintain steady pain control.',
+          'A short walk, even around the room, supports circulation and reduces fatigue.',
+          'Listening to calming music can reduce anxiety and help with sleep quality.',
+        ];
+        const dayIndex = new Date().getDay();
+        const tip = tips[dayIndex];
+        return (
+          <div className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-sage/5 to-teal/5 p-5">
+            <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-sage" />
+            <div>
+              <p className="text-xs font-bold uppercase text-sage-dark">Daily Wellness Tip</p>
+              <p className="mt-1 text-sm text-charcoal/70">{tip}</p>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Wellness Stats — 2 cards side by side */}
       <div className="grid grid-cols-2 gap-4">

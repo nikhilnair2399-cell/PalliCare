@@ -1,6 +1,7 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { TrendingUp, TrendingDown, Minus, Calendar, Lightbulb } from 'lucide-react';
 import { usePainDiary } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PAIN_DIARY } from '@/lib/patient-mock-data';
@@ -77,6 +78,86 @@ export default function PainDiaryPage() {
           <span>{breakthroughs} breakthrough episode{breakthroughs !== 1 ? 's' : ''}</span>
         </div>
       </div>
+
+      {/* Weekly Comparison */}
+      {(() => {
+        const now = Date.now();
+        const weekMs = 7 * 24 * 60 * 60 * 1000;
+        const thisWeek = entries.filter((e: any) => {
+          const d = new Date(e.date || e.logged_at || 0).getTime();
+          return now - d < weekMs;
+        });
+        const lastWeek = entries.filter((e: any) => {
+          const d = new Date(e.date || e.logged_at || 0).getTime();
+          return now - d >= weekMs && now - d < weekMs * 2;
+        });
+        const thisAvg = thisWeek.length > 0 ? thisWeek.reduce((s: number, e: any) => s + (e.pain_score ?? e.score ?? 0), 0) / thisWeek.length : null;
+        const lastAvg = lastWeek.length > 0 ? lastWeek.reduce((s: number, e: any) => s + (e.pain_score ?? e.score ?? 0), 0) / lastWeek.length : null;
+        const diff = thisAvg !== null && lastAvg !== null ? thisAvg - lastAvg : null;
+        const thisBt = thisWeek.filter((e: any) => (e.pain_score ?? e.score ?? 0) >= 7).length;
+        const lastBt = lastWeek.filter((e: any) => (e.pain_score ?? e.score ?? 0) >= 7).length;
+
+        if (thisAvg === null) return null;
+        return (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase text-charcoal/40">
+                <Calendar className="h-3.5 w-3.5" /> This Week
+              </div>
+              <p className="mt-2 font-heading text-3xl font-bold text-charcoal">{thisAvg.toFixed(1)}</p>
+              <p className="text-sm text-charcoal-light">avg pain &middot; {thisBt} breakthrough{thisBt !== 1 ? 's' : ''}</p>
+              {diff !== null && (
+                <div className={`mt-3 flex items-center gap-1.5 text-sm font-medium ${diff < -0.5 ? 'text-sage-dark' : diff > 0.5 ? 'text-terra' : 'text-charcoal/50'}`}>
+                  {diff < -0.5 ? <TrendingDown className="h-4 w-4" /> : diff > 0.5 ? <TrendingUp className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                  {diff < -0.5 ? `${Math.abs(diff).toFixed(1)} lower` : diff > 0.5 ? `${diff.toFixed(1)} higher` : 'Stable'} vs last week
+                </div>
+              )}
+            </div>
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase text-charcoal/40">
+                <Calendar className="h-3.5 w-3.5" /> Last Week
+              </div>
+              <p className="mt-2 font-heading text-3xl font-bold text-charcoal">{lastAvg !== null ? lastAvg.toFixed(1) : '—'}</p>
+              <p className="text-sm text-charcoal-light">{lastAvg !== null ? `avg pain · ${lastBt} breakthrough${lastBt !== 1 ? 's' : ''}` : 'No data recorded'}</p>
+              {lastAvg !== null && (
+                <p className="mt-3 text-sm text-charcoal/40">{lastWeek.length} entries logged</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Pain Pattern Insights */}
+      {entries.length >= 3 && (() => {
+        const insights: string[] = [];
+        const recent5 = entries.slice(0, 5).map((e: any) => e.pain_score ?? e.score ?? 0);
+        const avgRecent = recent5.reduce((s: number, v: number) => s + v, 0) / recent5.length;
+        if (avgRecent <= 3) insights.push('Your recent pain scores are well-controlled. Keep up the medication schedule!');
+        if (avgRecent >= 7) insights.push('Your recent pain is elevated. Consider using breakthrough medication and inform your care team.');
+        const qualities = entries.flatMap((e: any) => e.qualities || e.pain_qualities || []);
+        const qualityCounts: Record<string, number> = {};
+        qualities.forEach((q: string) => { qualityCounts[q] = (qualityCounts[q] || 0) + 1; });
+        const topQuality = Object.entries(qualityCounts).sort((a, b) => b[1] - a[1])[0];
+        if (topQuality && topQuality[1] >= 2) insights.push(`"${topQuality[0]}" is your most common pain quality — share this with your doctor.`);
+        const scores = entries.map((e: any) => e.pain_score ?? e.score ?? 0);
+        const improving = scores.length >= 4 && scores[0] < scores[scores.length - 1];
+        if (improving) insights.push('Your pain trend shows improvement over time. Your treatment plan is working.');
+
+        if (insights.length === 0) return null;
+        return (
+          <div className="rounded-2xl bg-teal/5 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-teal">Pain Insights</h3>
+            </div>
+            <div className="space-y-2">
+              {insights.slice(0, 3).map((insight, i) => (
+                <p key={i} className="text-sm text-charcoal/70">&bull; {insight}</p>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Timeline Entries */}
       <div>

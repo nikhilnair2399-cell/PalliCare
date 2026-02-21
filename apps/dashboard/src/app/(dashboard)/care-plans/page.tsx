@@ -552,8 +552,62 @@ export default function CarePlansPage() {
   const totalDraft = allPlans.filter(p => p.status === 'draft').length;
   const totalReview = allPlans.filter(p => p.status === 'under_review').length;
 
+  // Plans overdue for review
+  const overduePlans = allPlans.filter((p) => {
+    if (p.status === 'completed' || p.status === 'archived') return false;
+    if (!p.reviewDate) return false;
+    const parsed = Date.parse(p.reviewDate.replace(/(\d{2}) (\w+) (\d{4})/, '$2 $1, $3'));
+    return !isNaN(parsed) && parsed < Date.now();
+  });
+
+  // Overall goal progress across all active plans
+  const allGoals = allPlans
+    .filter((p) => p.status === 'active' || p.status === 'under_review')
+    .flatMap((p: any) => p.goals || []);
+  const goalsCompleted = allGoals.filter((g: any) => g.status === 'completed').length;
+  const goalsInProgress = allGoals.filter((g: any) => g.status === 'in_progress').length;
+  const goalsPending = allGoals.filter((g: any) => g.status === 'pending').length;
+  const goalsPct = allGoals.length > 0 ? Math.round((goalsCompleted / allGoals.length) * 100) : 0;
+
   return (
     <div className="space-y-6">
+      {/* Overdue Review Alert */}
+      {overduePlans.length > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber/30 bg-amber/5 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber" />
+          <div>
+            <p className="text-sm font-bold text-amber">
+              {overduePlans.length} care plan{overduePlans.length !== 1 ? 's' : ''} overdue for review
+            </p>
+            <p className="mt-0.5 text-xs text-charcoal/60">
+              {overduePlans.map((p) => `${p.patient} (due ${p.reviewDate})`).join(' · ')}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Progress Summary */}
+      {allGoals.length > 0 && (
+        <div className="grid grid-cols-4 gap-3">
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+            <p className="font-heading text-2xl font-bold text-charcoal">{allGoals.length}</p>
+            <p className="text-xs text-charcoal/50">Total Goals</p>
+          </div>
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+            <p className="font-heading text-2xl font-bold text-alert-success">{goalsCompleted}</p>
+            <p className="text-xs text-charcoal/50">Completed</p>
+          </div>
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+            <p className="font-heading text-2xl font-bold text-amber">{goalsInProgress}</p>
+            <p className="text-xs text-charcoal/50">In Progress</p>
+          </div>
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 text-center">
+            <p className="font-heading text-2xl font-bold text-charcoal/40">{goalsPending}</p>
+            <p className="text-xs text-charcoal/50">Pending</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
