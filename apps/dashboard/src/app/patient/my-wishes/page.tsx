@@ -18,6 +18,7 @@ import {
   PlusCircle,
   Clock,
   AlertTriangle,
+  CalendarDays,
 } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -288,6 +289,56 @@ export default function MyWishesPage() {
           ))}
         </div>
       </div>
+
+      {/* Decision Review Timeline */}
+      {(() => {
+        const reviews = [
+          { date: '2024-02-10', event: 'Last review with care team', by: 'Dr. Nikhil Nair' },
+          { date: '2024-01-15', event: 'Living will & POA signed', by: 'Legal team' },
+          { date: '2023-11-20', event: 'Initial goals-of-care discussion', by: 'Palliative care team' },
+        ];
+        const nextReviewDate = new Date(wishes.lastReviewDate);
+        nextReviewDate.setDate(nextReviewDate.getDate() + 90);
+        const daysUntilReview = Math.ceil((nextReviewDate.getTime() - Date.now()) / 86400000);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-teal" />
+                <h3 className="text-base font-semibold text-charcoal">Review Timeline</h3>
+              </div>
+              <span className={clsx(
+                'rounded-full px-2.5 py-0.5 text-xs font-bold',
+                daysUntilReview <= 0 ? 'bg-terra/10 text-terra' : daysUntilReview <= 14 ? 'bg-amber/10 text-amber' : 'bg-sage/10 text-sage-dark',
+              )}>
+                {daysUntilReview <= 0 ? 'Review overdue' : `Next review in ${daysUntilReview}d`}
+              </span>
+            </div>
+            <div className="relative pl-4 border-l-2 border-teal/20 space-y-3">
+              <div className="relative">
+                <div className={clsx(
+                  'absolute -left-[1.3rem] top-1 h-2.5 w-2.5 rounded-full',
+                  daysUntilReview <= 0 ? 'bg-terra' : 'bg-teal/30',
+                )} />
+                <p className="text-sm font-medium text-charcoal">Next review due</p>
+                <p className="text-xs text-charcoal/40">
+                  {nextReviewDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+              {reviews.map((r, i) => (
+                <div key={i} className="relative">
+                  <div className="absolute -left-[1.3rem] top-1 h-2.5 w-2.5 rounded-full bg-teal" />
+                  <p className="text-sm font-medium text-charcoal">{r.event}</p>
+                  <p className="text-xs text-charcoal/40">
+                    {new Date(r.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {r.by}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ─── Section 1: Goals of Care ─── */}
       <SectionHeader id="goals" title="Goals of Care" icon={Heart} />

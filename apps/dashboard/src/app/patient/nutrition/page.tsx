@@ -317,6 +317,69 @@ export default function NutritionPage() {
         </div>
       </div>
 
+      {/* Sprint 47 — Week-over-Week Nutrition Comparison */}
+      {history.length >= 10 && (() => {
+        const thisWeek = history.slice(-7);
+        const lastWeek = history.slice(-14, -7);
+
+        const avg = (arr: NutritionEntry[], field: keyof NutritionEntry) =>
+          arr.length > 0 ? Math.round((arr.reduce((s, h) => s + (Number(h[field]) || 0), 0) / arr.length) * 10) / 10 : 0;
+
+        const metrics = [
+          { label: 'Appetite', thisVal: avg(thisWeek, 'appetite'), lastVal: avg(lastWeek, 'appetite'), unit: '/10', good: 'up' },
+          { label: 'Meals', thisVal: avg(thisWeek, 'meals_eaten'), lastVal: avg(lastWeek, 'meals_eaten'), unit: '/day', good: 'up' },
+          { label: 'Fluids', thisVal: avg(thisWeek, 'fluid_intake'), lastVal: avg(lastWeek, 'fluid_intake'), unit: ' glasses', good: 'up' },
+        ];
+
+        const nauseaThis = thisWeek.filter(h => h.nausea_affected).length;
+        const nauseaLast = lastWeek.filter(h => h.nausea_affected).length;
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Week-over-Week</h3>
+            </div>
+            <div className="space-y-3">
+              {metrics.map(m => {
+                const diff = m.thisVal - m.lastVal;
+                const isGood = (m.good === 'up' && diff > 0) || (m.good === 'down' && diff < 0);
+                return (
+                  <div key={m.label} className="flex items-center justify-between">
+                    <span className="text-sm text-charcoal/70 w-20">{m.label}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs text-charcoal/40 w-16 text-right">{m.lastVal}{m.unit}</span>
+                      <span className="text-xs text-charcoal/30">→</span>
+                      <span className="text-sm font-bold text-charcoal w-16">{m.thisVal}{m.unit}</span>
+                      <span className={clsx(
+                        'text-xs font-bold w-10 text-right',
+                        Math.abs(diff) < 0.3 ? 'text-charcoal/30' : isGood ? 'text-sage-dark' : 'text-terra',
+                      )}>
+                        {diff > 0 ? '+' : ''}{diff.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between pt-2 border-t border-charcoal/5">
+                <span className="text-sm text-charcoal/70">Nausea days</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-charcoal/40 w-16 text-right">{nauseaLast}/7</span>
+                  <span className="text-xs text-charcoal/30">→</span>
+                  <span className="text-sm font-bold text-charcoal w-16">{nauseaThis}/7</span>
+                  <span className={clsx(
+                    'text-xs font-bold w-10 text-right',
+                    nauseaThis < nauseaLast ? 'text-sage-dark' : nauseaThis > nauseaLast ? 'text-terra' : 'text-charcoal/30',
+                  )}>
+                    {nauseaThis < nauseaLast ? `↓ ${nauseaLast - nauseaThis}` : nauseaThis > nauseaLast ? `↑ ${nauseaThis - nauseaLast}` : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Sprint 39 — Hydration Tracker Visual */}
       {(() => {
         const todayEntry = history[history.length - 1];

@@ -212,6 +212,76 @@ export default function MoodCheckPage() {
           </Link>
         </div>
 
+        {/* Emotional Wellness Pattern */}
+        {history.length >= 2 && (() => {
+          const phq9s = history.filter(h => h.type === 'phq9');
+          const gad7s = history.filter(h => h.type === 'gad7');
+          const latestPhq9 = phq9s[0];
+          const latestGad7 = gad7s[0];
+          const prevPhq9 = phq9s[1];
+          const prevGad7 = gad7s[1];
+
+          const itemLabels: Record<string, string[]> = {
+            phq9: ['Interest', 'Mood', 'Sleep', 'Energy', 'Appetite', 'Self-image', 'Focus', 'Restlessness', 'Thoughts'],
+            gad7: ['Nervous', 'Worry Control', 'Over-worry', 'Relaxing', 'Restless', 'Irritable', 'Fearful'],
+          };
+
+          // Find the worst items from latest screenings
+          const topConcerns: { label: string; score: number; screen: string }[] = [];
+          if (latestPhq9) {
+            latestPhq9.scores.forEach((s, i) => {
+              if (s >= 2) topConcerns.push({ label: itemLabels.phq9[i], score: s, screen: 'PHQ-9' });
+            });
+          }
+          if (latestGad7) {
+            latestGad7.scores.forEach((s, i) => {
+              if (s >= 2) topConcerns.push({ label: itemLabels.gad7[i], score: s, screen: 'GAD-7' });
+            });
+          }
+          topConcerns.sort((a, b) => b.score - a.score);
+
+          return (
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-5 w-5 text-lavender" />
+                <h3 className="text-base font-semibold text-charcoal">Emotional Wellness Pattern</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="rounded-xl bg-lavender/10 p-3 text-center">
+                  <p className="text-xs text-charcoal/50 mb-1">Depression</p>
+                  <p className="font-heading text-xl font-bold text-charcoal">{latestPhq9?.total ?? '—'}/27</p>
+                  {prevPhq9 && latestPhq9 && (
+                    <p className={`text-xs font-medium mt-1 ${latestPhq9.total < prevPhq9.total ? 'text-sage-dark' : latestPhq9.total > prevPhq9.total ? 'text-terra' : 'text-charcoal/40'}`}>
+                      {latestPhq9.total < prevPhq9.total ? `↓ ${prevPhq9.total - latestPhq9.total} from last` : latestPhq9.total > prevPhq9.total ? `↑ ${latestPhq9.total - prevPhq9.total} from last` : 'Stable'}
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl bg-amber/10 p-3 text-center">
+                  <p className="text-xs text-charcoal/50 mb-1">Anxiety</p>
+                  <p className="font-heading text-xl font-bold text-charcoal">{latestGad7?.total ?? '—'}/21</p>
+                  {prevGad7 && latestGad7 && (
+                    <p className={`text-xs font-medium mt-1 ${latestGad7.total < prevGad7.total ? 'text-sage-dark' : latestGad7.total > prevGad7.total ? 'text-terra' : 'text-charcoal/40'}`}>
+                      {latestGad7.total < prevGad7.total ? `↓ ${prevGad7.total - latestGad7.total} from last` : latestGad7.total > prevGad7.total ? `↑ ${latestGad7.total - prevGad7.total} from last` : 'Stable'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {topConcerns.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-charcoal/40 uppercase mb-2">Areas Needing Attention</p>
+                  <div className="flex flex-wrap gap-2">
+                    {topConcerns.slice(0, 4).map((c, i) => (
+                      <span key={i} className="rounded-full bg-terra/10 px-2.5 py-0.5 text-xs font-medium text-terra">
+                        {c.label} ({c.score}/3)
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Full Screening Options */}
         <h2 className="text-base font-semibold text-charcoal">Full Screening</h2>
         <div className="space-y-3">
