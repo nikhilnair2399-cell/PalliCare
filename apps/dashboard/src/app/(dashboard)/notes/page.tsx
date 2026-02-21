@@ -13,6 +13,7 @@ import {
   Loader2,
   X,
   Save,
+  Grid3x3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -566,6 +567,83 @@ export default function ClinicalNotesPage() {
           <p className="text-xs text-charcoal/50">Most Common</p>
         </div>
       </div>
+
+      {/* Sprint 41 — Daily Activity Heatmap (4 weeks) */}
+      {(() => {
+        const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const weeks = 4;
+        const today = new Date();
+        const cells: { date: string; count: number; dayOfWeek: number; weekIdx: number }[] = [];
+        for (let w = weeks - 1; w >= 0; w--) {
+          for (let d = 0; d < 7; d++) {
+            const cellDate = new Date(today);
+            cellDate.setDate(today.getDate() - (w * 7 + (6 - d)));
+            const dateStr = cellDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            const count = allNotes.filter((n: any) => {
+              const nd = n.date || '';
+              return nd.includes(dateStr);
+            }).length;
+            cells.push({ date: dateStr, count, dayOfWeek: d, weekIdx: weeks - 1 - w });
+          }
+        }
+        const maxCount = Math.max(...cells.map(c => c.count), 1);
+        function heatColor(count: number): string {
+          if (count === 0) return 'bg-cream';
+          const ratio = count / maxCount;
+          if (ratio <= 0.33) return 'bg-teal/20';
+          if (ratio <= 0.66) return 'bg-teal/45';
+          return 'bg-teal/80';
+        }
+        const totalNotes28d = cells.reduce((s, c) => s + c.count, 0);
+        const activeDays = cells.filter(c => c.count > 0).length;
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Grid3x3 className="h-4 w-4 text-teal" />
+                <h3 className="text-sm font-bold text-charcoal">Activity Heatmap</h3>
+              </div>
+              <span className="text-xs text-charcoal/50">{totalNotes28d} notes in {activeDays} active days (4 weeks)</span>
+            </div>
+            <div className="flex gap-1.5">
+              {/* Day labels */}
+              <div className="flex flex-col gap-1" style={{ paddingTop: '18px' }}>
+                {dayLabels.map(d => (
+                  <div key={d} className="flex h-5 items-center">
+                    <span className="text-[9px] text-charcoal/40 w-6">{d}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Grid columns (one per week) */}
+              {Array.from({ length: weeks }, (_, wIdx) => {
+                const weekCells = cells.filter(c => c.weekIdx === wIdx);
+                const weekStart = weekCells[0]?.date?.split(',')[0] || '';
+                return (
+                  <div key={wIdx} className="flex-1 flex flex-col gap-1">
+                    <span className="text-[9px] text-charcoal/30 text-center h-3.5">{weekStart}</span>
+                    {weekCells.map((cell, i) => (
+                      <div
+                        key={i}
+                        className={cn('h-5 w-full rounded-sm transition-colors', heatColor(cell.count))}
+                        title={`${cell.date}: ${cell.count} note${cell.count !== 1 ? 's' : ''}`}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Legend */}
+            <div className="mt-3 flex items-center justify-end gap-1.5">
+              <span className="text-[9px] text-charcoal/40">Less</span>
+              <div className="h-3 w-3 rounded-sm bg-cream" />
+              <div className="h-3 w-3 rounded-sm bg-teal/20" />
+              <div className="h-3 w-3 rounded-sm bg-teal/45" />
+              <div className="h-3 w-3 rounded-sm bg-teal/80" />
+              <span className="text-[9px] text-charcoal/40">More</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Header */}
       <div className="flex items-center justify-between">

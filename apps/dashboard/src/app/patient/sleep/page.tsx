@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb, Activity } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -295,6 +295,83 @@ export default function SleepPage() {
           </p>
         </div>
       )}
+
+      {/* Sprint 41 — Sleep vs Pain Correlation Insight */}
+      {(() => {
+        const painNights = history.filter((h) => h.disturbances.includes('Pain'));
+        const noPainNights = history.filter((h) => !h.disturbances.includes('Pain'));
+        if (painNights.length === 0 || noPainNights.length === 0) return null;
+        const avgPainQ = Math.round(painNights.reduce((s, h) => s + h.quality, 0) / painNights.length * 10) / 10;
+        const avgNoPainQ = Math.round(noPainNights.reduce((s, h) => s + h.quality, 0) / noPainNights.length * 10) / 10;
+        const avgPainH = Math.round(painNights.reduce((s, h) => s + h.total_hours, 0) / painNights.length * 10) / 10;
+        const avgNoPainH = Math.round(noPainNights.reduce((s, h) => s + h.total_hours, 0) / noPainNights.length * 10) / 10;
+        const qualityDiff = Math.round((avgNoPainQ - avgPainQ) * 10) / 10;
+        const hoursDiff = Math.round((avgNoPainH - avgPainH) * 10) / 10;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="h-4 w-4 text-terra" />
+              <h2 className="text-base font-semibold text-charcoal">Pain vs Sleep Correlation</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-terra/5 p-4 text-center">
+                <p className="text-xs font-semibold text-terra uppercase mb-1">Nights with Pain</p>
+                <p className="text-lg font-bold text-charcoal">{avgPainQ}/10</p>
+                <p className="text-xs text-charcoal/50">quality · {avgPainH}h avg</p>
+                <p className="text-[10px] text-charcoal/40 mt-1">{painNights.length} nights</p>
+              </div>
+              <div className="rounded-xl bg-sage/5 p-4 text-center">
+                <p className="text-xs font-semibold text-sage-dark uppercase mb-1">Pain-Free Nights</p>
+                <p className="text-lg font-bold text-charcoal">{avgNoPainQ}/10</p>
+                <p className="text-xs text-charcoal/50">quality · {avgNoPainH}h avg</p>
+                <p className="text-[10px] text-charcoal/40 mt-1">{noPainNights.length} nights</p>
+              </div>
+            </div>
+            {/* Visual comparison bars */}
+            <div className="mt-4 space-y-2">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-charcoal/50">Quality comparison</span>
+                  <span className={clsx('font-bold', qualityDiff > 0 ? 'text-sage' : 'text-terra')}>
+                    {qualityDiff > 0 ? '+' : ''}{qualityDiff} without pain
+                  </span>
+                </div>
+                <div className="flex gap-1.5 items-center">
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-cream">
+                    <div className="h-full rounded-full bg-terra/60" style={{ width: `${avgPainQ * 10}%` }} />
+                  </div>
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-cream">
+                    <div className="h-full rounded-full bg-sage/60" style={{ width: `${avgNoPainQ * 10}%` }} />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-charcoal/50">Duration comparison</span>
+                  <span className={clsx('font-bold', hoursDiff > 0 ? 'text-sage' : 'text-terra')}>
+                    {hoursDiff > 0 ? '+' : ''}{hoursDiff}h without pain
+                  </span>
+                </div>
+                <div className="flex gap-1.5 items-center">
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-cream">
+                    <div className="h-full rounded-full bg-terra/60" style={{ width: `${Math.min(avgPainH / 10 * 100, 100)}%` }} />
+                  </div>
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-cream">
+                    <div className="h-full rounded-full bg-sage/60" style={{ width: `${Math.min(avgNoPainH / 10 * 100, 100)}%` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {qualityDiff > 1
+                ? 'Pain significantly impacts your sleep quality. Share this with your care team to discuss pain management before bed.'
+                : qualityDiff > 0
+                ? 'Pain has a moderate effect on your sleep. Pre-bedtime pain medication may help.'
+                : 'Pain does not appear to significantly affect your sleep quality — great resilience!'}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Week-over-Week Comparison */}
       <div className="rounded-2xl bg-white p-5">

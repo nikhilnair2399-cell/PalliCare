@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -228,6 +228,77 @@ export default function BreathePage() {
           </div>
         </div>
       )}
+
+      {/* Sprint 41 — Technique Usage Breakdown + Mindfulness Milestones */}
+      {!isRunning && !sessionComplete && (() => {
+        const recentSessions = (s.recent_sessions || s.sessions || [
+          { technique: '4-7-8 Breathing', duration: 300, rating: 5, date: '2026-02-21T09:00:00' },
+          { technique: 'Box Breathing', duration: 240, rating: 4, date: '2026-02-20T14:30:00' },
+          { technique: 'Deep Belly Breathing', duration: 180, rating: 4, date: '2026-02-19T20:00:00' },
+          { technique: '4-7-8 Breathing', duration: 360, rating: 5, date: '2026-02-18T08:15:00' },
+          { technique: 'Triangle Breathing', duration: 150, rating: 3, date: '2026-02-17T21:00:00' },
+          { technique: 'Box Breathing', duration: 200, rating: 4, date: '2026-02-16T10:00:00' },
+          { technique: '4-7-8 Breathing', duration: 420, rating: 5, date: '2026-02-15T08:30:00' },
+          { technique: 'Deep Belly Breathing', duration: 260, rating: 4, date: '2026-02-14T19:00:00' },
+          { technique: 'Box Breathing', duration: 180, rating: 3, date: '2026-02-13T14:00:00' },
+          { technique: '4-7-8 Breathing', duration: 300, rating: 5, date: '2026-02-12T09:00:00' },
+          { technique: 'Triangle Breathing', duration: 120, rating: 3, date: '2026-02-11T21:30:00' },
+          { technique: 'Deep Belly Breathing', duration: 240, rating: 4, date: '2026-02-10T17:00:00' },
+        ]) as any[];
+        const usageMap: Record<string, { count: number; totalMin: number; avgRating: number; ratings: number[] }> = {};
+        recentSessions.forEach((sess: any) => {
+          const name = sess.technique || 'Unknown';
+          if (!usageMap[name]) usageMap[name] = { count: 0, totalMin: 0, avgRating: 0, ratings: [] };
+          usageMap[name].count += 1;
+          usageMap[name].totalMin += Math.round((sess.duration || 0) / 60);
+          if (sess.rating) usageMap[name].ratings.push(sess.rating);
+        });
+        const usageEntries = Object.entries(usageMap).map(([name, data]) => ({
+          name,
+          count: data.count,
+          totalMin: data.totalMin,
+          avgRating: data.ratings.length > 0 ? Math.round(data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length * 10) / 10 : 0,
+        })).sort((a, b) => b.count - a.count);
+        const maxCount = Math.max(...usageEntries.map(e => e.count), 1);
+        const totalMindfulMin = s.total_minutes ?? recentSessions.reduce((a: number, sess: any) => a + Math.round((sess.duration || 0) / 60), 0);
+        const colors = ['bg-teal', 'bg-sage', 'bg-amber', 'bg-lavender'];
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-teal" />
+                <h3 className="text-sm font-bold text-charcoal">Technique Breakdown</h3>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1">
+                <Award className="h-3.5 w-3.5 text-teal" />
+                <span className="text-xs font-bold text-teal">{totalMindfulMin} min total</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {usageEntries.map((entry, i) => (
+                <div key={entry.name}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-charcoal">{entry.name}</span>
+                    <span className="text-xs text-charcoal/50">{entry.count} sessions · {entry.totalMin}m · {entry.avgRating > 0 ? `${entry.avgRating}★` : '—'}</span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-cream">
+                    <div
+                      className={`h-full rounded-full ${colors[i % colors.length]} transition-all`}
+                      style={{ width: `${(entry.count / maxCount) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {usageEntries.length > 0 && (
+              <p className="mt-3 text-xs text-charcoal/40">
+                Favourite: {usageEntries[0].name} — used {usageEntries[0].count} times with {usageEntries[0].avgRating}★ avg rating
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Recent Sessions Log */}
       {!isRunning && !sessionComplete && (
