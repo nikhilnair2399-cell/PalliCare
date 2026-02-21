@@ -565,6 +565,10 @@ export default function PatientDetailPage() {
   const [inlineMessage, setInlineMessage] = useState('');
   const [localMessages, setLocalMessages] = useState<any[]>([]);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  const msgInputRef = useRef<HTMLInputElement>(null);
+
+  // Sprint 20 — Toast feedback
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
   // Sprint 20 — Document upload
   const [localDocuments, setLocalDocuments] = useState<any[]>([]);
@@ -710,6 +714,7 @@ export default function PatientDetailPage() {
     setNoteContent('');
     setNoteType('progress');
     setShowAddNote(false);
+    showToast('Clinical note saved');
   }
 
   // Sprint 20 — Handler: Edit Patient (#2)
@@ -728,8 +733,8 @@ export default function PatientDetailPage() {
 
   function handleSavePatient() {
     // In real app, would call API to update patient
-    // For now, close modal (optimistic UI already visible from form state)
     setShowEditPatient(false);
+    showToast('Patient details updated');
   }
 
   // Sprint 20 — Handler: Send Inline Message (#3)
@@ -744,6 +749,7 @@ export default function PatientDetailPage() {
     setLocalMessages((prev) => [newMsg, ...prev]);
     sendMessageMutation.mutate({ patient_id: patientId, content: inlineMessage.trim() });
     setInlineMessage('');
+    showToast('Message sent');
   }
 
   // Sprint 20 — Handler: Upload Document (#5)
@@ -766,8 +772,9 @@ export default function PatientDetailPage() {
   // Sprint 20 — Handler: Flag for MDT (#1)
   function handleFlagMDT() {
     setMdtFlagged(true);
+    showToast('Patient flagged for MDT review');
     // In real app would create an MDT referral via API
-    setTimeout(() => setMdtFlagged(false), 3000); // Reset after 3s visual feedback
+    setTimeout(() => setMdtFlagged(false), 3000);
   }
 
   // Sprint 20 — Handler: Generate Report / Print (#8)
@@ -786,12 +793,36 @@ export default function PatientDetailPage() {
     setShowScheduleVisit(false);
     setVisitDate('');
     setVisitNotes('');
+    showToast(`Visit scheduled for ${visitDate} at ${visitTime}`);
   }
 
   // Auto-scroll messages
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [localMessages.length]);
+
+  // Focus message input when "Message Caregiver" quick action is used
+  useEffect(() => {
+    if (showNewMessage && activeTab === 'messages') {
+      setTimeout(() => {
+        msgInputRef.current?.focus();
+        setShowNewMessage(false);
+      }, 200);
+    }
+  }, [showNewMessage, activeTab]);
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+
+  // Show toast helper
+  function showToast(message: string, type: 'success' | 'info' = 'success') {
+    setToast({ message, type });
+  }
 
   return (
     <div className="space-y-6">
@@ -1386,53 +1417,53 @@ export default function PatientDetailPage() {
             <Zap className="h-5 w-5" />
             Quick Actions
           </h2>
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
               onClick={() => setShowAddNote(true)}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors bg-teal text-white hover:bg-teal/90"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-teal text-white hover:bg-teal/90 hover:shadow-md active:scale-[0.98]"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4 flex-shrink-0" />
               Add Note
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors bg-sage text-white hover:bg-sage/90"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-sage text-white hover:bg-sage/90 hover:shadow-md active:scale-[0.98]"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4 flex-shrink-0" />
               Generate Report
             </button>
             <button
               onClick={() => setShowAdjustMeds(true)}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors bg-amber text-white hover:bg-amber/90"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-amber text-white hover:bg-amber/90 hover:shadow-md active:scale-[0.98]"
             >
-              <Pill className="h-4 w-4" />
+              <Pill className="h-4 w-4 flex-shrink-0" />
               Adjust Meds
             </button>
             <button
               onClick={() => { setActiveTab('messages'); setShowNewMessage(true); }}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors bg-teal text-white hover:bg-teal/90"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-teal text-white hover:bg-teal/90 hover:shadow-md active:scale-[0.98]"
             >
-              <MessageSquare className="h-4 w-4" />
+              <MessageSquare className="h-4 w-4 flex-shrink-0" />
               Message Caregiver
             </button>
             <button
               onClick={() => setShowScheduleVisit(true)}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors bg-sage text-white hover:bg-sage/90"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-sage text-white hover:bg-sage/90 hover:shadow-md active:scale-[0.98]"
             >
-              <Calendar className="h-4 w-4" />
+              <Calendar className="h-4 w-4 flex-shrink-0" />
               Schedule Visit
             </button>
             <button
               onClick={handleFlagMDT}
               disabled={mdtFlagged}
               className={cn(
-                'flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors',
+                'flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all hover:shadow-md active:scale-[0.98]',
                 mdtFlagged
                   ? 'bg-alert-success text-white cursor-default'
                   : 'bg-alert-critical text-white hover:bg-alert-critical/90'
               )}
             >
-              <Flag className="h-4 w-4" />
+              <Flag className="h-4 w-4 flex-shrink-0" />
               {mdtFlagged ? '✓ Flagged!' : 'Flag for MDT'}
             </button>
           </div>
@@ -1441,8 +1472,8 @@ export default function PatientDetailPage() {
 
       {/* ── Tabbed Detail Section ── */}
       <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-        {/* Tab bar */}
-        <div className="flex border-b border-sage-light/20">
+        {/* Tab bar — horizontally scrollable on mobile */}
+        <div className="flex overflow-x-auto border-b border-sage-light/20 scrollbar-hide">
           {([
             { key: 'care_plan' as DetailTab, label: 'Care Plan', icon: ClipboardList },
             { key: 'caregivers' as DetailTab, label: 'Caregivers', icon: Users },
@@ -1455,7 +1486,7 @@ export default function PatientDetailPage() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                'flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition-colors border-b-2',
+                'flex items-center gap-2 px-4 py-3.5 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex-shrink-0',
                 activeTab === tab.key
                   ? 'border-teal text-teal'
                   : 'border-transparent text-charcoal/50 hover:text-charcoal/70',
@@ -1906,6 +1937,7 @@ export default function PatientDetailPage() {
               {/* Inline compose */}
               <div className="flex gap-2">
                 <input
+                  ref={msgInputRef}
                   type="text"
                   placeholder="Type a message to the care team..."
                   value={inlineMessage}
@@ -1980,8 +2012,8 @@ export default function PatientDetailPage() {
 
       {/* ── Add Note Modal (#1) ── */}
       {showAddNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAddNote(false)}>
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-lg font-bold text-teal">Add Clinical Note</h3>
               <button onClick={() => setShowAddNote(false)} className="rounded-lg p-1 hover:bg-sage/10"><X className="h-5 w-5 text-charcoal/40" /></button>
@@ -2029,8 +2061,8 @@ export default function PatientDetailPage() {
 
       {/* ── Edit Patient Modal (#2) ── */}
       {showEditPatient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowEditPatient(false)}>
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-lg font-bold text-teal">Edit Patient Details</h3>
               <button onClick={() => setShowEditPatient(false)} className="rounded-lg p-1 hover:bg-sage/10"><X className="h-5 w-5 text-charcoal/40" /></button>
@@ -2098,8 +2130,8 @@ export default function PatientDetailPage() {
 
       {/* ── Adjust Meds Modal (#1) ── */}
       {showAdjustMeds && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowAdjustMeds(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-lg font-bold text-teal">Adjust Medications</h3>
               <button onClick={() => setShowAdjustMeds(false)} className="rounded-lg p-1 hover:bg-sage/10"><X className="h-5 w-5 text-charcoal/40" /></button>
@@ -2134,10 +2166,24 @@ export default function PatientDetailPage() {
         </div>
       )}
 
+      {/* ── Toast Notification ── */}
+      {toast && (
+        <div className={cn(
+          'fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg toast-slide-in',
+          toast.type === 'success' ? 'bg-alert-success' : 'bg-teal',
+        )}>
+          <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-2 rounded p-0.5 hover:bg-white/20">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* ── Schedule Visit Modal (#1) ── */}
       {showScheduleVisit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowScheduleVisit(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-lg font-bold text-teal">Schedule Visit</h3>
               <button onClick={() => setShowScheduleVisit(false)} className="rounded-lg p-1 hover:bg-sage/10"><X className="h-5 w-5 text-charcoal/40" /></button>

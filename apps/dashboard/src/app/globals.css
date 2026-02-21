@@ -87,6 +87,24 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-sage);
 }
 
+/* ── Toast Animation ── */
+@keyframes toast-slide-in {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast-slide-in {
+  animation: toast-slide-in 0.3s ease-out forwards;
+}
+
+/* ── Scrollbar Hide (for horizontal tab bars) ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Focus Ring (Accessibility) ── */
 *:focus-visible {
   outline: 3px solid var(--color-teal);
