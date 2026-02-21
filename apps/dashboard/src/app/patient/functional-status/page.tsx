@@ -425,6 +425,44 @@ export default function FunctionalStatusPage() {
         </div>
       )}
 
+      {/* PPS Trend Mini-Chart */}
+      {history.length >= 2 && (
+        <div className="rounded-2xl bg-white p-5">
+          <h2 className="mb-3 text-base font-semibold text-charcoal">PPS Trend</h2>
+          <div className="flex items-end gap-2" style={{ height: '100px' }}>
+            {history.map((h) => {
+              const cat = getPPSCategory(h.ppsEstimate);
+              const pct = h.ppsEstimate;
+              return (
+                <div key={h.id} className="flex flex-1 flex-col items-center gap-1">
+                  <span className={clsx('text-[10px] font-bold', cat.text)}>{h.ppsEstimate}%</span>
+                  <div
+                    className={clsx('w-full rounded-t-lg transition-all', cat.bg)}
+                    style={{ height: `${pct}%`, minHeight: '4px' }}
+                  />
+                  <span className="text-[8px] text-charcoal-light">
+                    {new Date(h.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {history.length >= 3 && (() => {
+            const first = history[0].ppsEstimate;
+            const last = history[history.length - 1].ppsEstimate;
+            const diff = last - first;
+            return (
+              <p className={clsx('mt-3 text-center text-xs font-medium',
+                diff > 5 ? 'text-sage' : diff < -5 ? 'text-terra' : 'text-charcoal/50'
+              )}>
+                {diff > 5 ? `+${diff}% overall improvement` : diff < -5 ? `${diff}% overall decline` : 'Overall stable trend'}
+                {' '}across {history.length} assessments
+              </p>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Encouragement & Tips */}
       {latestEntry && (
         <div className="rounded-2xl bg-teal/5 p-5">

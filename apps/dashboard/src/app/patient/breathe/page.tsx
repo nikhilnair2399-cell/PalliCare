@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -226,6 +226,58 @@ export default function BreathePage() {
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Recent Sessions Log */}
+      {!isRunning && !sessionComplete && (
+        <div className="rounded-2xl bg-white p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="h-5 w-5 text-teal" />
+            <h2 className="font-heading text-xl font-bold text-charcoal">Recent Sessions</h2>
+          </div>
+          {(() => {
+            const recentSessions = (s.recent_sessions || s.sessions || [
+              { technique: '4-7-8 Breathing', duration: 300, rating: 5, date: '2026-02-21T09:00:00' },
+              { technique: 'Box Breathing', duration: 240, rating: 4, date: '2026-02-20T14:30:00' },
+              { technique: 'Deep Belly Breathing', duration: 180, rating: 4, date: '2026-02-19T20:00:00' },
+              { technique: '4-7-8 Breathing', duration: 360, rating: 5, date: '2026-02-18T08:15:00' },
+              { technique: 'Triangle Breathing', duration: 150, rating: 3, date: '2026-02-17T21:00:00' },
+            ]) as any[];
+            if (recentSessions.length === 0) return (
+              <p className="py-4 text-center text-sm text-charcoal/40">No sessions yet. Start your first session above!</p>
+            );
+            return (
+              <div className="space-y-2">
+                {recentSessions.slice(0, 5).map((session: any, i: number) => {
+                  const dur = session.duration || 0;
+                  const mins = Math.floor(dur / 60);
+                  const secs = dur % 60;
+                  return (
+                    <div key={i} className="flex items-center gap-3 rounded-xl bg-cream/50 px-4 py-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal/10 text-xs font-bold text-teal">
+                        {mins}m
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-charcoal">{session.technique}</p>
+                        <p className="text-xs text-charcoal/40">
+                          {session.date ? new Date(session.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                          {secs > 0 ? ` · ${mins}m ${secs}s` : ` · ${mins} min`}
+                        </p>
+                      </div>
+                      {session.rating && (
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: session.rating }, (_, j) => (
+                            <span key={j} className="text-xs text-amber">★</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

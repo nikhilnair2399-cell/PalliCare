@@ -352,6 +352,41 @@ export default function SleepPage() {
         </div>
       </div>
 
+      {/* Bedtime Consistency */}
+      {(() => {
+        const bedtimes = history.slice(-7).map((h) => {
+          const [bH, bM] = h.bedtime.split(':').map(Number);
+          return bH * 60 + bM;
+        });
+        if (bedtimes.length < 3) return null;
+        const avgBedMin = Math.round(bedtimes.reduce((s, b) => s + b, 0) / bedtimes.length);
+        const variance = Math.round(Math.sqrt(bedtimes.reduce((s, b) => s + (b - avgBedMin) ** 2, 0) / bedtimes.length));
+        const avgBedHour = Math.floor(avgBedMin / 60);
+        const avgBedMinute = avgBedMin % 60;
+        const isConsistent = variance < 45;
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <h2 className="mb-3 text-base font-semibold text-charcoal">Bedtime Consistency</h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-charcoal-light">Average bedtime</p>
+                <p className="text-xl font-bold text-charcoal">
+                  {avgBedHour > 12 ? avgBedHour - 12 : avgBedHour}:{String(avgBedMinute).padStart(2, '0')} {avgBedHour >= 12 ? 'PM' : 'AM'}
+                </p>
+              </div>
+              <div className={clsx('rounded-full px-3 py-1 text-xs font-bold', isConsistent ? 'bg-sage/10 text-sage-dark' : 'bg-amber/10 text-amber')}>
+                {isConsistent ? 'Consistent' : 'Variable'}
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-charcoal/50">
+              {isConsistent
+                ? 'Great job! A regular bedtime helps your body maintain a healthy sleep-wake cycle.'
+                : `Your bedtime varies by ~${variance} min. Try to go to bed within 30 min of the same time each night.`}
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Sleep Quality Chart */}
       <div className="rounded-2xl bg-white p-5">
         <h2 className="mb-3 text-base font-semibold text-charcoal">Sleep Quality (last 14 nights)</h2>
