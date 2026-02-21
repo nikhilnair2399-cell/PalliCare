@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb, History, Clock, TrendingDown, TrendingUp, Activity } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Send, CheckCircle2, Smile, Meh, Frown, BarChart3, Lightbulb, History, Clock, TrendingDown, TrendingUp, Activity, Grid3x3 } from 'lucide-react';
 import { useCreateSymptomLog } from '@/lib/patient-hooks';
 import { painColor } from '@/lib/utils';
 
@@ -208,6 +208,82 @@ export default function LogPage() {
             {painTrend > 0.5 && (
               <p className="mt-2 text-xs text-terra font-medium">Pain is trending up — consider reporting this to your care team</p>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 59 — Symptom Severity Heatmap */}
+      {MOCK_LOG_HISTORY.length >= 2 && (() => {
+        const SYMPTOM_MOCK_DATA: Record<string, number[]> = {
+          Pain: MOCK_LOG_HISTORY.map((l) => l.pain),
+          Fatigue: [6, 7, 4, 5, 3],
+          Nausea: [3, 5, 2, 4, 1],
+          Depression: [4, 3, 2, 3, 2],
+          Anxiety: [5, 6, 3, 5, 2],
+          Drowsiness: [4, 3, 5, 2, 3],
+          Appetite: [3, 4, 2, 3, 2],
+          Wellbeing: [5, 6, 3, 4, 2],
+          Dyspnea: [2, 3, 1, 2, 1],
+        };
+        const dateLabels = MOCK_LOG_HISTORY.map((l) =>
+          new Date(l.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+        );
+
+        const cellColor = (score: number) => {
+          if (score <= 2) return 'bg-sage/30 text-sage-dark';
+          if (score <= 4) return 'bg-amber/20 text-amber';
+          if (score <= 6) return 'bg-amber/40 text-amber';
+          if (score <= 8) return 'bg-terra/40 text-terra';
+          return 'bg-terra/70 text-white';
+        };
+
+        const symptomNames = Object.keys(SYMPTOM_MOCK_DATA);
+        const worstSymptom = symptomNames.reduce((worst, name) => {
+          const avg = SYMPTOM_MOCK_DATA[name].reduce((s, v) => s + v, 0) / SYMPTOM_MOCK_DATA[name].length;
+          const worstAvg = SYMPTOM_MOCK_DATA[worst].reduce((s, v) => s + v, 0) / SYMPTOM_MOCK_DATA[worst].length;
+          return avg > worstAvg ? name : worst;
+        }, symptomNames[0]);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Grid3x3 className="h-5 w-5 text-teal" />
+              <h3 className="text-base font-semibold text-charcoal">Symptom Severity Map</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[24rem]">
+                <div className="grid gap-1" style={{ gridTemplateColumns: `7rem repeat(${dateLabels.length}, 1fr)` }}>
+                  <div />
+                  {dateLabels.map((d, i) => (
+                    <div key={i} className="text-center text-[9px] font-semibold text-charcoal/40">{d}</div>
+                  ))}
+                  {symptomNames.map((name) => (
+                    <>
+                      <div key={`label-${name}`} className="flex items-center text-xs font-medium text-charcoal/60 truncate">{name}</div>
+                      {SYMPTOM_MOCK_DATA[name].map((score, i) => (
+                        <div
+                          key={`${name}-${i}`}
+                          className={`flex items-center justify-center rounded h-7 text-[10px] font-bold ${cellColor(score)}`}
+                          title={`${name} on ${dateLabels[i]}: ${score}/10`}
+                        >
+                          {score}
+                        </div>
+                      ))}
+                    </>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-xs text-charcoal/40">
+              <span>Low</span>
+              <div className="flex gap-0.5">
+                {['bg-sage/30', 'bg-amber/20', 'bg-amber/40', 'bg-terra/40', 'bg-terra/70'].map((c, i) => (
+                  <div key={i} className={`h-2.5 w-5 rounded ${c}`} />
+                ))}
+              </div>
+              <span>High</span>
+              <span className="ml-auto text-charcoal/50">Most burdensome: <strong className="text-terra">{worstSymptom}</strong></span>
+            </div>
           </div>
         );
       })()}

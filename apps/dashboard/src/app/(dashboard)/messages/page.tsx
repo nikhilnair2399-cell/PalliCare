@@ -20,6 +20,7 @@ import {
   X,
   Activity,
   BarChart3,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessageCount, useSendMessage } from '@/lib/hooks';
@@ -351,6 +352,74 @@ export default function MessagesPage() {
               <span>Peak: <strong className="text-teal">{peakHour.hour}:00</strong> ({peakHour.messages} msgs)</span>
               <span>Avg response: <strong className="text-teal">{avgOverall}m</strong></span>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 59 — Message Sentiment Analysis */}
+      {(() => {
+        const POSITIVE_WORDS = ['improved', 'better', 'good', 'stable', 'tolerat', 'reduced', 'confirmed', 'thank', 'well', 'resolved'];
+        const CONCERN_WORDS = ['pain', 'increased', 'escalat', 'above', 'disturbed', 'nausea', 'concerns', 'worse', 'urgent', 'critical'];
+        const CLINICAL_WORDS = ['dose', 'morphine', 'medication', 'review', 'reassess', 'care plan', 'monitor', 'schedule', 'protocol'];
+
+        let positive = 0;
+        let concern = 0;
+        let clinical = 0;
+        let neutral = 0;
+        const allMsgs = Object.values(messages).flat();
+        allMsgs.forEach((m) => {
+          const text = m.content.toLowerCase();
+          const isPos = POSITIVE_WORDS.some((w) => text.includes(w));
+          const isConcern = CONCERN_WORDS.some((w) => text.includes(w));
+          const isClinical = CLINICAL_WORDS.some((w) => text.includes(w));
+          if (isPos) positive++;
+          if (isConcern) concern++;
+          if (isClinical) clinical++;
+          if (!isPos && !isConcern && !isClinical) neutral++;
+        });
+        const total = allMsgs.length || 1;
+        const sentiments = [
+          { label: 'Positive', count: positive, color: 'bg-sage', textColor: 'text-sage-dark' },
+          { label: 'Clinical', count: clinical, color: 'bg-teal', textColor: 'text-teal' },
+          { label: 'Concern', count: concern, color: 'bg-terra', textColor: 'text-terra' },
+          { label: 'Neutral', count: neutral, color: 'bg-charcoal/20', textColor: 'text-charcoal/50' },
+        ];
+        const dominant = sentiments.reduce((max, s) => s.count > max.count ? s : max, sentiments[0]);
+
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="h-4 w-4 text-teal" />
+              <h2 className="text-sm font-bold text-teal">Message Sentiment</h2>
+              <span className="ml-auto text-[10px] text-charcoal/40">{allMsgs.length} messages analyzed</span>
+            </div>
+            <div className="flex h-3 overflow-hidden rounded-full mb-3">
+              {sentiments.filter((s) => s.count > 0).map((s) => (
+                <div
+                  key={s.label}
+                  className={s.color}
+                  style={{ width: `${(s.count / total) * 100}%` }}
+                  title={`${s.label}: ${s.count}`}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-4 flex-wrap">
+              {sentiments.map((s) => (
+                <div key={s.label} className="flex items-center gap-1.5 text-xs">
+                  <span className={cn('h-2 w-2 rounded-full', s.color)} />
+                  <span className="text-charcoal/50">{s.label}</span>
+                  <span className={cn('font-bold', s.textColor)}>{Math.round((s.count / total) * 100)}%</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] text-charcoal/40">
+              Dominant tone: <strong className={dominant.textColor}>{dominant.label.toLowerCase()}</strong> — {
+                dominant.label === 'Concern' ? 'several threads need attention' :
+                dominant.label === 'Positive' ? 'overall positive communication trend' :
+                dominant.label === 'Clinical' ? 'focused clinical discussions' :
+                'balanced communication across threads'
+              }
+            </p>
           </div>
         );
       })()}

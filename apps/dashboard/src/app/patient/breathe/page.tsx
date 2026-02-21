@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award, Calendar } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Clock, TrendingUp, Lightbulb, History, BarChart3, Award, Calendar, Zap } from 'lucide-react';
 import { BreatheCircle } from '@/components/patient/BreatheCircle';
 import { useLogBreatheSession, useBreatheStats } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
@@ -370,6 +370,90 @@ export default function BreathePage() {
             {usageEntries.length > 0 && (
               <p className="mt-3 text-xs text-charcoal/40">
                 Favourite: {usageEntries[0].name} — used {usageEntries[0].count} times with {usageEntries[0].avgRating}★ avg rating
+              </p>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 59 — Session Streak Calendar */}
+      {!isRunning && !sessionComplete && (() => {
+        const recentSessions = (s.recent_sessions || s.sessions || [
+          { technique: '4-7-8 Breathing', duration: 300, rating: 5, date: '2026-02-21T09:00:00' },
+          { technique: 'Box Breathing', duration: 240, rating: 4, date: '2026-02-20T14:30:00' },
+          { technique: 'Deep Belly Breathing', duration: 180, rating: 4, date: '2026-02-19T20:00:00' },
+          { technique: '4-7-8 Breathing', duration: 360, rating: 5, date: '2026-02-18T08:15:00' },
+          { technique: 'Triangle Breathing', duration: 150, rating: 3, date: '2026-02-17T21:00:00' },
+          { technique: 'Box Breathing', duration: 200, rating: 4, date: '2026-02-16T10:00:00' },
+          { technique: '4-7-8 Breathing', duration: 420, rating: 5, date: '2026-02-15T08:30:00' },
+        ]) as any[];
+
+        const days = 21;
+        const today = new Date();
+        const sessionDates = new Set(recentSessions.map((sess: any) => new Date(sess.date).toISOString().split('T')[0]));
+        const calendar: { date: string; label: string; active: boolean }[] = [];
+        for (let d = days - 1; d >= 0; d--) {
+          const dt = new Date(today);
+          dt.setDate(today.getDate() - d);
+          const iso = dt.toISOString().split('T')[0];
+          calendar.push({
+            date: iso,
+            label: dt.toLocaleDateString('en-IN', { day: 'numeric' }),
+            active: sessionDates.has(iso),
+          });
+        }
+
+        let currentStreak = 0;
+        for (let i = calendar.length - 1; i >= 0; i--) {
+          if (calendar[i].active) currentStreak++;
+          else break;
+        }
+        let longestStreak = 0;
+        let tempStreak = 0;
+        calendar.forEach((d) => {
+          if (d.active) { tempStreak++; longestStreak = Math.max(longestStreak, tempStreak); }
+          else tempStreak = 0;
+        });
+        const activeDays = calendar.filter((d) => d.active).length;
+        const consistencyPct = Math.round((activeDays / days) * 100);
+
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Streak Calendar</h3>
+              <span className="ml-auto text-xs text-charcoal/40">Last 3 weeks</span>
+            </div>
+            <div className="grid grid-cols-7 gap-1.5 mb-3">
+              {calendar.map((d) => (
+                <div
+                  key={d.date}
+                  className={`flex items-center justify-center rounded-lg h-9 text-xs font-bold transition-colors ${
+                    d.active ? 'bg-teal/80 text-white' : 'bg-cream text-charcoal/30'
+                  }`}
+                  title={`${d.date}: ${d.active ? 'Session done' : 'No session'}`}
+                >
+                  {d.label}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-teal/5 p-3 text-center">
+                <p className="text-xl font-bold text-teal">{currentStreak}</p>
+                <p className="text-[10px] text-charcoal/40">Current streak</p>
+              </div>
+              <div className="rounded-xl bg-amber/5 p-3 text-center">
+                <p className="text-xl font-bold text-amber">{longestStreak}</p>
+                <p className="text-[10px] text-charcoal/40">Best streak</p>
+              </div>
+              <div className="rounded-xl bg-sage/5 p-3 text-center">
+                <p className="text-xl font-bold text-sage-dark">{consistencyPct}%</p>
+                <p className="text-[10px] text-charcoal/40">Consistency</p>
+              </div>
+            </div>
+            {currentStreak >= 3 && (
+              <p className="mt-2 text-xs text-sage-dark text-center font-medium">
+                Amazing! {currentStreak}-day streak. Keep breathing mindfully!
               </p>
             )}
           </div>
