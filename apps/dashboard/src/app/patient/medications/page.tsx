@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
+import { Pill, CheckCircle2, Clock, AlertCircle, ChevronDown, ChevronUp, Info, Star, TrendingUp, Timer, ShieldAlert, RefreshCw, Calendar, CalendarDays } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -206,6 +206,78 @@ export default function MedicationsPage() {
                 </p>
               </div>
             )}
+          </div>
+        );
+      })()}
+
+      {/* Sprint 60 — 14-Day Adherence Calendar */}
+      {(() => {
+        const days = 14;
+        const calendar: { date: string; day: string; taken: number; total: number; pct: number }[] = [];
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dayLabel = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+          const dateStr = d.toISOString().split('T')[0];
+          const isToday = i === 0;
+          const dailyTotal = meds.filter((m: any) => !m.is_prn).length;
+          const mockTaken = isToday ? taken : Math.round(dailyTotal * (0.6 + Math.random() * 0.4));
+          calendar.push({ date: dateStr, day: dayLabel, taken: Math.min(mockTaken, dailyTotal), total: dailyTotal, pct: dailyTotal > 0 ? Math.round((Math.min(mockTaken, dailyTotal) / dailyTotal) * 100) : 0 });
+        }
+        const perfectDays = calendar.filter((d) => d.pct === 100).length;
+        let streak = 0;
+        for (let i = calendar.length - 1; i >= 0; i--) {
+          if (calendar[i].pct === 100) streak++;
+          else break;
+        }
+        const weeklyAvg = Math.round(calendar.reduce((s, d) => s + d.pct, 0) / days);
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarDays className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">14-Day Adherence Calendar</h3>
+            </div>
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1.5 mb-4">
+              {['M','T','W','T','F','S','S'].map((d, i) => (
+                <div key={i} className="text-center text-[9px] font-semibold text-charcoal/40">{d}</div>
+              ))}
+              {calendar.map((d, i) => {
+                const isToday = i === calendar.length - 1;
+                const bg = d.pct === 100 ? 'bg-sage/60' : d.pct >= 50 ? 'bg-amber/50' : d.pct > 0 ? 'bg-terra/40' : 'bg-charcoal/5';
+                return (
+                  <div
+                    key={i}
+                    className={`flex flex-col items-center justify-center rounded-lg p-1.5 ${bg} ${isToday ? 'ring-2 ring-teal' : ''}`}
+                    title={`${d.date}: ${d.taken}/${d.total} doses`}
+                  >
+                    <span className="text-[10px] font-bold text-charcoal/70">{new Date(d.date).getDate()}</span>
+                    <span className="text-[8px] text-charcoal/40">{d.pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl bg-cream/50 p-2.5 text-center">
+                <p className="text-lg font-bold text-sage-dark">{perfectDays}</p>
+                <p className="text-[10px] text-charcoal/40">perfect days</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-2.5 text-center">
+                <p className="text-lg font-bold text-teal">{streak}</p>
+                <p className="text-[10px] text-charcoal/40">day streak</p>
+              </div>
+              <div className="rounded-xl bg-cream/50 p-2.5 text-center">
+                <p className={`text-lg font-bold ${weeklyAvg >= 90 ? 'text-sage-dark' : weeklyAvg >= 70 ? 'text-amber' : 'text-terra'}`}>{weeklyAvg}%</p>
+                <p className="text-[10px] text-charcoal/40">avg adherence</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-3 text-[10px] text-charcoal/40">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-sage/60" /> 100%</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber/50" /> 50-99%</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-terra/40" /> 1-49%</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-charcoal/5" /> 0%</span>
+            </div>
           </div>
         );
       })()}

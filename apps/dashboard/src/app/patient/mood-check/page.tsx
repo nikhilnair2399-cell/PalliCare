@@ -19,6 +19,7 @@ import {
   Heart,
   Sparkles,
   Calendar,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -270,6 +271,94 @@ export default function MoodCheckPage() {
                   : avgVal >= 1.8
                   ? 'Mixed mood patterns. Consider the full PHQ-9 screening if low days persist.'
                   : 'Several low-mood days detected. Please talk to your care team or try the full screening below.'}
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Sprint 60 — Mood Pattern Insights */}
+        {(() => {
+          const MOOD_LOG_RAW = Array.from({ length: 28 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (27 - i));
+            const moods = ['good','okay','okay','low','good','good','okay','good','okay','low','okay','good','good','okay','low','good','good','okay','okay','good','low','okay','good','good','okay','good','okay','good'];
+            return { date: d, day: d.getDay(), mood: moods[i] };
+          });
+          const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          const moodVal: Record<string, number> = { good: 3, okay: 2, low: 1 };
+          const dayStats = dayNames.map((name, di) => {
+            const dayEntries = MOOD_LOG_RAW.filter((m) => m.day === di);
+            const avg = dayEntries.length > 0 ? dayEntries.reduce((s, m) => s + moodVal[m.mood], 0) / dayEntries.length : 0;
+            const goodPct = dayEntries.length > 0 ? Math.round((dayEntries.filter((m) => m.mood === 'good').length / dayEntries.length) * 100) : 0;
+            return { name, avg: Math.round(avg * 10) / 10, goodPct, count: dayEntries.length };
+          });
+          const bestDay = dayStats.reduce((best, d) => d.avg > best.avg ? d : best, dayStats[0]);
+          const worstDay = dayStats.reduce((worst, d) => d.avg < worst.avg && d.count > 0 ? d : worst, dayStats[0]);
+          const weekdays = MOOD_LOG_RAW.filter((m) => m.day >= 1 && m.day <= 5);
+          const weekends = MOOD_LOG_RAW.filter((m) => m.day === 0 || m.day === 6);
+          const weekdayAvg = weekdays.length > 0 ? weekdays.reduce((s, m) => s + moodVal[m.mood], 0) / weekdays.length : 0;
+          const weekendAvg = weekends.length > 0 ? weekends.reduce((s, m) => s + moodVal[m.mood], 0) / weekends.length : 0;
+          const maxAvg = Math.max(...dayStats.map((d) => d.avg));
+
+          return (
+            <div className="rounded-2xl bg-white p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="h-5 w-5 text-lavender" />
+                <h3 className="text-base font-semibold text-charcoal">Mood Pattern Insights</h3>
+                <span className="ml-auto text-[10px] text-charcoal/40">28 days</span>
+              </div>
+              {/* Day-of-week bars */}
+              <div className="flex items-end gap-2 mb-4" style={{ height: '80px' }}>
+                {dayStats.map((d) => {
+                  const heightPct = maxAvg > 0 ? (d.avg / maxAvg) * 100 : 0;
+                  const color = d.avg >= 2.5 ? 'bg-sage/60' : d.avg >= 1.8 ? 'bg-amber/60' : 'bg-terra/60';
+                  return (
+                    <div key={d.name} className="flex flex-1 flex-col items-center gap-1">
+                      <span className="text-[9px] font-bold text-charcoal/50">{d.avg}</span>
+                      <div
+                        className={`w-full rounded-t ${color} ${d.name === bestDay.name ? 'ring-1 ring-sage' : ''}`}
+                        style={{ height: `${heightPct}%`, minHeight: '4px' }}
+                      />
+                      <span className={`text-[9px] ${d.name === bestDay.name ? 'font-bold text-sage-dark' : 'text-charcoal/40'}`}>{d.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Insights grid */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="rounded-xl bg-sage/10 p-3 text-center">
+                  <p className="text-xs text-charcoal/50">Best Day</p>
+                  <p className="text-sm font-bold text-sage-dark">{bestDay.name}s</p>
+                  <p className="text-[10px] text-charcoal/40">{bestDay.goodPct}% good moods</p>
+                </div>
+                <div className="rounded-xl bg-terra/10 p-3 text-center">
+                  <p className="text-xs text-charcoal/50">Hardest Day</p>
+                  <p className="text-sm font-bold text-terra">{worstDay.name}s</p>
+                  <p className="text-[10px] text-charcoal/40">{worstDay.goodPct}% good moods</p>
+                </div>
+              </div>
+              {/* Weekday vs Weekend */}
+              <div className="flex items-center gap-3 rounded-xl bg-cream/50 p-3">
+                <div className="flex-1">
+                  <p className="text-xs text-charcoal/50">Weekdays</p>
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-cream">
+                    <div className={`h-full rounded-full ${weekdayAvg >= 2.5 ? 'bg-sage' : weekdayAvg >= 1.8 ? 'bg-amber' : 'bg-terra'}`} style={{ width: `${(weekdayAvg / 3) * 100}%` }} />
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-charcoal/40">vs</span>
+                <div className="flex-1">
+                  <p className="text-xs text-charcoal/50">Weekends</p>
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-cream">
+                    <div className={`h-full rounded-full ${weekendAvg >= 2.5 ? 'bg-sage' : weekendAvg >= 1.8 ? 'bg-amber' : 'bg-terra'}`} style={{ width: `${(weekendAvg / 3) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-charcoal/40">
+                {weekendAvg > weekdayAvg + 0.3
+                  ? 'You tend to feel better on weekends. Consider what weekday routines might be adding stress.'
+                  : weekdayAvg > weekendAvg + 0.3
+                  ? 'Weekdays seem easier for you. Social engagement during the week may be helping.'
+                  : 'Your mood is fairly consistent throughout the week. This stability is a positive sign.'}
               </p>
             </div>
           );

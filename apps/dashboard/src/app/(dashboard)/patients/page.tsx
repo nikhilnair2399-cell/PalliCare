@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Users, Search, ArrowUpRight, ArrowDownRight,
-  Minus, Clock, Loader2, Activity, Pill, AlertOctagon, BarChart3,
+  Minus, Clock, Loader2, Activity, Pill, AlertOctagon, BarChart3, ShieldAlert,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePatients } from '@/lib/hooks';
@@ -281,6 +281,72 @@ export default function PatientsPage() {
                 </div>
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 60 — Risk Stratification Matrix */}
+      {allPatients.length > 0 && (() => {
+        const riskData = allPatients.map((p: any) => ({ ...p, risk: computeRisk(p) }));
+        const high = riskData.filter((p) => p.risk.level === 'high');
+        const medium = riskData.filter((p) => p.risk.level === 'medium');
+        const low = riskData.filter((p) => p.risk.level === 'low');
+        const factorFreq: Record<string, number> = {};
+        riskData.forEach((p) => p.risk.factors.forEach((f: string) => { factorFreq[f] = (factorFreq[f] || 0) + 1; }));
+        const sortedFactors = Object.entries(factorFreq).sort((a, b) => b[1] - a[1]);
+        const avgRisk = riskData.reduce((s, p) => s + p.risk.score, 0) / riskData.length;
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldAlert className="h-4 w-4 text-terra" />
+              <h3 className="text-sm font-bold text-charcoal">Risk Stratification Matrix</h3>
+              <span className="ml-auto text-[10px] text-charcoal/40">Avg score: {avgRisk.toFixed(1)}</span>
+            </div>
+            {/* Risk level rows */}
+            <div className="space-y-2 mb-4">
+              {([
+                { label: 'High Risk', patients: high, bg: 'bg-alert-critical/5', border: 'border-alert-critical/20', dot: 'bg-alert-critical', text: 'text-alert-critical' },
+                { label: 'Medium Risk', patients: medium, bg: 'bg-amber/5', border: 'border-amber/20', dot: 'bg-amber', text: 'text-amber' },
+                { label: 'Low Risk', patients: low, bg: 'bg-sage/5', border: 'border-sage/20', dot: 'bg-sage', text: 'text-sage' },
+              ] as const).map((tier) => (
+                <div key={tier.label} className={cn('rounded-lg border p-3', tier.bg, tier.border)}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className={cn('text-xs font-bold', tier.text)}>{tier.label}</span>
+                    <span className="text-xs font-bold text-charcoal">{tier.patients.length}</span>
+                  </div>
+                  {tier.patients.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {tier.patients.map((p) => (
+                        <Link key={p.id} href={`/patients/${p.id}`} className="flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-medium text-charcoal hover:bg-white transition-colors">
+                          <span className={cn('h-1.5 w-1.5 rounded-full', tier.dot)} />
+                          {p.name.split(' ')[0]}
+                          <span className="text-charcoal/30">({p.risk.score})</span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-charcoal/30">No patients</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* Risk factor frequency */}
+            {sortedFactors.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Risk Factor Frequency</p>
+                <div className="space-y-1.5">
+                  {sortedFactors.map(([factor, count]) => (
+                    <div key={factor} className="flex items-center gap-2">
+                      <span className="w-28 text-xs text-charcoal truncate">{factor}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-cream">
+                        <div className="h-full rounded-full bg-terra/50" style={{ width: `${(count / allPatients.length) * 100}%` }} />
+                      </div>
+                      <span className="w-12 text-right text-[10px] font-bold text-charcoal/40">{count}/{allPatients.length}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       })()}
