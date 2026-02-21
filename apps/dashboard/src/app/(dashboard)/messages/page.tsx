@@ -14,6 +14,10 @@ import {
   Video,
   Loader2,
   Plus,
+  Pin,
+  PinOff,
+  Zap,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessageCount, useSendMessage } from '@/lib/hooks';
@@ -67,28 +71,37 @@ const INITIAL_THREADS = [
   },
 ];
 
-const INITIAL_MESSAGES: Record<
-  string,
-  { id: string; sender: string; role: string; content: string; time: string; isOwn: boolean }[]
-> = {
+type Msg = { id: string; sender: string; role: string; content: string; time: string; isOwn: boolean; pinned?: boolean; seenBy?: string[] };
+
+const INITIAL_MESSAGES: Record<string, Msg[]> = {
   t1: [
     { id: 'm1', sender: 'Nurse Priya', role: 'nurse', content: 'Patient Ramesh Kumar is reporting pain NRS 7/10 this morning. This is the third consecutive day above 6.', time: '09:15 AM', isOwn: false },
     { id: 'm2', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Thanks for flagging. What is his current morphine dose and when was the last breakthrough dose given?', time: '09:22 AM', isOwn: true },
     { id: 'm3', sender: 'Nurse Priya', role: 'nurse', content: 'Sustained release morphine 30mg BD. Last breakthrough dose (IR morphine 10mg) was given at 6 AM. He is also reporting disturbed sleep due to pain.', time: '09:30 AM', isOwn: false },
-    { id: 'm4', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Let\'s increase the SR morphine to 45mg BD and add a nighttime adjuvant. I\'ll update the care plan. Please reassess in 24 hours.', time: '09:35 AM', isOwn: true },
+    { id: 'm4', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Let\'s increase the SR morphine to 45mg BD and add a nighttime adjuvant. I\'ll update the care plan. Please reassess in 24 hours.', time: '09:35 AM', isOwn: true, pinned: true, seenBy: ['Nurse Priya'] },
     { id: 'm5', sender: 'Nurse Priya', role: 'nurse', content: 'Pain score has been consistently above 6 for the past 3 days. Requesting medication review.', time: '09:45 AM', isOwn: false },
   ],
   t2: [
     { id: 'm6', sender: 'Dietitian Anita', role: 'dietitian', content: 'Sunita ji has been tolerating small frequent meals better since we switched to bland diet plan. Nausea episodes reduced from 4/day to 1/day.', time: '02:00 PM', isOwn: false },
-    { id: 'm7', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Good improvement. The ondansetron switch seems to be working. Let\'s continue current regime and reassess after one week.', time: '02:15 PM', isOwn: true },
+    { id: 'm7', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'Good improvement. The ondansetron switch seems to be working. Let\'s continue current regime and reassess after one week.', time: '02:15 PM', isOwn: true, seenBy: ['Dietitian Anita'] },
     { id: 'm8', sender: 'Dietitian Anita', role: 'dietitian', content: 'Nausea subsided after switching anti-emetic. Will continue monitoring.', time: '02:30 PM', isOwn: false },
   ],
   t3: [
     { id: 'm9', sender: 'Social Worker Meena', role: 'social_worker', content: 'Arjun ji\'s family has requested a meeting to discuss goals of care. They have concerns about the transition to comfort-focused care.', time: '10:00 AM', isOwn: false },
-    { id: 'm10', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'I can be available tomorrow at 3 PM. Can we also get Chaplain Ravi to join for spiritual support? The family had expressed that as important.', time: '10:30 AM', isOwn: true },
+    { id: 'm10', sender: 'Dr. Nikhil Nair', role: 'physician', content: 'I can be available tomorrow at 3 PM. Can we also get Chaplain Ravi to join for spiritual support? The family had expressed that as important.', time: '10:30 AM', isOwn: true, pinned: true, seenBy: ['Social Worker Meena', 'Chaplain Ravi'] },
     { id: 'm11', sender: 'Social Worker Meena', role: 'social_worker', content: 'Family meeting scheduled for tomorrow at 3 PM. Chaplain confirmed.', time: '11:00 AM', isOwn: false },
   ],
 };
+
+// ── Quick-Reply Templates ──────────────────────────────────────────
+const MESSAGE_TEMPLATES = [
+  { id: 'ack', label: 'Acknowledge', text: 'Noted, thank you. Will review and respond shortly.' },
+  { id: 'pain_reassess', label: 'Pain Reassess', text: 'Please reassess pain score in 1 hour and document NRS + functional impact.' },
+  { id: 'dose_change', label: 'Dose Change', text: 'Dose adjustment has been updated in the care plan. Please administer as per revised orders and monitor for side effects.' },
+  { id: 'escalate', label: 'Escalate', text: 'Escalating to senior consultant. Please continue current management and document vitals q30min until reviewed.' },
+  { id: 'family_update', label: 'Family Update', text: 'Please update the family on current status and document their concerns/questions in the notes.' },
+  { id: 'labs', label: 'Order Labs', text: 'Please arrange for CBC, RFT, LFT, and electrolytes. Fasting sample preferred.' },
+];
 
 const ROLE_COLORS: Record<string, string> = {
   physician: 'bg-teal/10 text-teal',
@@ -109,6 +122,7 @@ export default function MessagesPage() {
   const [threads, setThreads] = useState(INITIAL_THREADS);
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [callToast, setCallToast] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // API hooks
@@ -177,6 +191,22 @@ export default function MessagesPage() {
 
     setNewMessage('');
   }
+
+  function togglePin(msgId: string) {
+    setMessages(prev => ({
+      ...prev,
+      [selectedThread]: (prev[selectedThread] || []).map(m =>
+        m.id === msgId ? { ...m, pinned: !m.pinned } : m,
+      ),
+    }));
+  }
+
+  function insertTemplate(text: string) {
+    setNewMessage(text);
+    setShowTemplates(false);
+  }
+
+  const pinnedMessages = threadMessages.filter(m => m.pinned);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -302,64 +332,142 @@ export default function MessagesPage() {
               </div>
             </div>
 
+            {/* Pinned Messages Banner */}
+            {pinnedMessages.length > 0 && (
+              <div className="border-b border-sage-light/20 bg-amber/5 px-5 py-2">
+                <div className="flex items-center gap-2">
+                  <Pin className="h-3 w-3 text-amber" />
+                  <span className="text-[10px] font-bold text-amber uppercase">Pinned ({pinnedMessages.length})</span>
+                </div>
+                {pinnedMessages.map(pm => (
+                  <div key={pm.id} className="mt-1 flex items-center gap-2">
+                    <p className="flex-1 truncate text-xs text-charcoal/60">
+                      <span className="font-semibold">{pm.sender}:</span> {pm.content}
+                    </p>
+                    <button onClick={() => togglePin(pm.id)} className="text-charcoal/30 hover:text-charcoal/60">
+                      <PinOff className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Messages */}
             <div className="flex-1 space-y-4 overflow-y-auto p-5">
               {threadMessages.map((msg) => (
                 <div
                   key={msg.id}
                   className={cn(
-                    'flex',
+                    'group flex',
                     msg.isOwn ? 'justify-end' : 'justify-start',
                   )}
                 >
-                  <div
-                    className={cn(
-                      'max-w-[75%] rounded-xl px-4 py-3',
-                      msg.isOwn
-                        ? 'bg-teal text-white'
-                        : 'bg-cream/80 text-charcoal',
-                    )}
-                  >
-                    {!msg.isOwn && (
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-xs font-bold">{msg.sender}</span>
-                        <span
-                          className={cn(
-                            'rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase',
-                            ROLE_COLORS[msg.role] || 'bg-charcoal/10 text-charcoal/50',
-                          )}
-                        >
-                          {msg.role.replace('_', ' ')}
-                        </span>
-                      </div>
-                    )}
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <div className={cn('max-w-[75%]', msg.isOwn ? 'text-right' : '')}>
                     <div
                       className={cn(
-                        'mt-1.5 flex items-center gap-1 text-[10px]',
-                        msg.isOwn ? 'justify-end text-white/60' : 'text-charcoal/40',
+                        'relative rounded-xl px-4 py-3',
+                        msg.isOwn
+                          ? 'bg-teal text-white'
+                          : 'bg-cream/80 text-charcoal',
+                        msg.pinned && 'ring-1 ring-amber/40',
                       )}
                     >
-                      <Clock className="h-3 w-3" />
-                      {msg.time}
-                      {msg.isOwn && <CheckCheck className="ml-1 h-3 w-3" />}
+                      {msg.pinned && (
+                        <Pin className="absolute -top-1.5 -right-1.5 h-3 w-3 text-amber" />
+                      )}
+                      {/* Pin action on hover */}
+                      <button
+                        onClick={() => togglePin(msg.id)}
+                        className={cn(
+                          'absolute -top-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-1 shadow-sm',
+                          msg.isOwn ? '-left-2 bg-white text-charcoal/50 hover:text-teal' : '-right-2 bg-white text-charcoal/50 hover:text-teal',
+                        )}
+                        title={msg.pinned ? 'Unpin' : 'Pin'}
+                      >
+                        {msg.pinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                      </button>
+                      {!msg.isOwn && (
+                        <div className="mb-1 flex items-center gap-2">
+                          <span className="text-xs font-bold">{msg.sender}</span>
+                          <span
+                            className={cn(
+                              'rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase',
+                              ROLE_COLORS[msg.role] || 'bg-charcoal/10 text-charcoal/50',
+                            )}
+                          >
+                            {msg.role.replace('_', ' ')}
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                      <div
+                        className={cn(
+                          'mt-1.5 flex items-center gap-1 text-[10px]',
+                          msg.isOwn ? 'justify-end text-white/60' : 'text-charcoal/40',
+                        )}
+                      >
+                        <Clock className="h-3 w-3" />
+                        {msg.time}
+                        {msg.isOwn && <CheckCheck className="ml-1 h-3 w-3" />}
+                      </div>
                     </div>
+                    {/* Read receipts */}
+                    {msg.isOwn && msg.seenBy && msg.seenBy.length > 0 && (
+                      <p className="mt-0.5 text-[9px] text-charcoal/35">
+                        Seen by {msg.seenBy.join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
 
+            {/* Quick-Reply Templates */}
+            {showTemplates && (
+              <div className="border-t border-sage-light/20 bg-cream/30 px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-charcoal/50 uppercase">Quick Replies</span>
+                  <button onClick={() => setShowTemplates(false)} className="text-charcoal/30 hover:text-charcoal/60">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {MESSAGE_TEMPLATES.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => insertTemplate(t.text)}
+                      className="rounded-lg border border-sage-light/30 bg-white px-3 py-1.5 text-xs font-medium text-charcoal/70 hover:bg-teal/5 hover:text-teal hover:border-teal/30 transition-colors"
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Message input */}
             <div className="border-t border-sage-light/20 p-4">
               <div className="flex items-end gap-3">
-                <label
-                  className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-teal cursor-pointer transition-colors"
-                  title="Attach file"
-                >
-                  <Paperclip className="h-5 w-5" />
-                  <input type="file" className="hidden" onChange={() => { setCallToast('File attached'); setTimeout(() => setCallToast(null), 3000); }} />
-                </label>
+                <div className="flex flex-shrink-0 gap-1">
+                  <button
+                    onClick={() => setShowTemplates(v => !v)}
+                    className={cn(
+                      'rounded-lg p-2 transition-colors',
+                      showTemplates ? 'bg-teal/10 text-teal' : 'text-charcoal/40 hover:bg-cream hover:text-teal',
+                    )}
+                    title="Quick replies"
+                  >
+                    <Zap className="h-5 w-5" />
+                  </button>
+                  <label
+                    className="flex-shrink-0 rounded-lg p-2 text-charcoal/40 hover:bg-cream hover:text-teal cursor-pointer transition-colors"
+                    title="Attach file"
+                  >
+                    <Paperclip className="h-5 w-5" />
+                    <input type="file" className="hidden" onChange={() => { setCallToast('File attached'); setTimeout(() => setCallToast(null), 3000); }} />
+                  </label>
+                </div>
                 <div className="flex-1">
                   <textarea
                     rows={1}

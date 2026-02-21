@@ -2,13 +2,37 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown } from 'lucide-react';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
 import { painColor } from '@/lib/utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// ── 7-Day Medication Adherence ─────────────────────────────────────
+const ADHERENCE_7DAY = [
+  { day: 'Mon', taken: 4, total: 4 },
+  { day: 'Tue', taken: 4, total: 4 },
+  { day: 'Wed', taken: 3, total: 4 },
+  { day: 'Thu', taken: 4, total: 4 },
+  { day: 'Fri', taken: 2, total: 4 },
+  { day: 'Sat', taken: 4, total: 4 },
+  { day: 'Sun', taken: 3, total: 4 },
+];
+
+// ── Recent Care Team Alerts / Updates ──────────────────────────────
+const PATIENT_ALERTS = [
+  { id: 'pa1', type: 'info' as const, text: 'Gabapentin dose increased to 300mg TDS — monitor for dizziness', time: '2h ago' },
+  { id: 'pa2', type: 'reminder' as const, text: 'Physiotherapy session at 2:30 PM today', time: '4h ago' },
+  { id: 'pa3', type: 'warning' as const, text: 'Your pain trend is rising — please log symptoms regularly', time: '1d ago' },
+];
+
+const ALERT_STYLE = {
+  info: { bg: 'bg-teal/10', text: 'text-teal', dot: 'bg-teal' },
+  reminder: { bg: 'bg-amber/10', text: 'text-amber', dot: 'bg-amber' },
+  warning: { bg: 'bg-terra/10', text: 'text-terra', dot: 'bg-terra' },
+};
 
 export default function PatientHomePage() {
   const [painScore, setPainScore] = useState(3);
@@ -165,6 +189,63 @@ export default function PatientHomePage() {
           )}
         </div>
       </div>
+
+      {/* Medication Adherence — 7-Day Chart */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-xl font-bold text-charcoal">This Week&apos;s Adherence</h2>
+          <span className="rounded-full bg-sage/10 px-3 py-1 text-sm font-semibold text-sage-dark">
+            {Math.round(ADHERENCE_7DAY.reduce((s, d) => s + d.taken, 0) / ADHERENCE_7DAY.reduce((s, d) => s + d.total, 0) * 100)}%
+          </span>
+        </div>
+        <div className="mt-4 flex items-end gap-2">
+          {ADHERENCE_7DAY.map((d) => {
+            const pct = d.total > 0 ? (d.taken / d.total) * 100 : 0;
+            const isToday = d.day === ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+            return (
+              <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                <div className="relative h-20 w-full flex items-end justify-center">
+                  <div
+                    className={`w-full max-w-[28px] rounded-t-lg transition-all ${
+                      pct === 100 ? 'bg-sage' : pct >= 50 ? 'bg-amber/70' : 'bg-terra/60'
+                    }`}
+                    style={{ height: `${Math.max(pct, 8)}%` }}
+                  />
+                </div>
+                <span className={`text-xs font-medium ${isToday ? 'text-teal font-bold' : 'text-charcoal/40'}`}>
+                  {d.day}
+                </span>
+                <span className="text-[10px] text-charcoal/30">{d.taken}/{d.total}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-center text-xs text-charcoal/40">Doses taken out of scheduled</p>
+      </div>
+
+      {/* Care Team Updates */}
+      {PATIENT_ALERTS.length > 0 && (
+        <div className="rounded-2xl bg-white p-6">
+          <div className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-teal" />
+            <h2 className="font-heading text-xl font-bold text-charcoal">From Your Care Team</h2>
+          </div>
+          <div className="mt-4 space-y-3">
+            {PATIENT_ALERTS.map((alert) => {
+              const style = ALERT_STYLE[alert.type];
+              return (
+                <div key={alert.id} className={`flex items-start gap-3 rounded-xl p-4 ${style.bg}`}>
+                  <span className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${style.dot}`} />
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${style.text}`}>{alert.text}</p>
+                    <p className="mt-0.5 text-xs text-charcoal/40">{alert.time}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Wellness Stats — 2 cards side by side */}
       <div className="grid grid-cols-2 gap-4">
