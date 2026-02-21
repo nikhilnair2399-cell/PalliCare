@@ -21,6 +21,8 @@ import {
   Heart,
   Loader2,
   X,
+  SlidersHorizontal,
+  Timer,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHealthCheck } from '@/lib/hooks';
@@ -79,6 +81,16 @@ export default function SettingsPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [legalModal, setLegalModal] = useState<string | null>(null);
 
+  // Custom alert thresholds
+  const [painThreshold, setPainThreshold] = useState(7);
+  const [meddThreshold, setMeddThreshold] = useState(200);
+  const [adherenceThreshold, setAdherenceThreshold] = useState(70);
+  const [prnMaxPerDay, setPrnMaxPerDay] = useState(3);
+
+  // Notification frequency cap
+  const [freqCapEnabled, setFreqCapEnabled] = useState(true);
+  const [freqCapMinutes, setFreqCapMinutes] = useState('15');
+
   // ── Load persisted settings from localStorage on mount ──
   useEffect(() => {
     try {
@@ -98,6 +110,12 @@ export default function SettingsPage() {
             return saved ? { ...a, enabled: saved.enabled } : a;
           }));
         }
+        if (s.painThreshold != null) setPainThreshold(s.painThreshold);
+        if (s.meddThreshold != null) setMeddThreshold(s.meddThreshold);
+        if (s.adherenceThreshold != null) setAdherenceThreshold(s.adherenceThreshold);
+        if (s.prnMaxPerDay != null) setPrnMaxPerDay(s.prnMaxPerDay);
+        if (typeof s.freqCapEnabled === 'boolean') setFreqCapEnabled(s.freqCapEnabled);
+        if (s.freqCapMinutes) setFreqCapMinutes(s.freqCapMinutes);
       }
     } catch { /* ignore parse errors */ }
   }, []);
@@ -108,11 +126,12 @@ export default function SettingsPage() {
       localStorage.setItem('pallicare_settings', JSON.stringify({
         notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage,
         alertPreferences: alertPreferences.map(a => ({ id: a.id, enabled: a.enabled })),
+        painThreshold, meddThreshold, adherenceThreshold, prnMaxPerDay, freqCapEnabled, freqCapMinutes,
       }));
       setToast('Settings saved');
       setTimeout(() => setToast(null), 2000);
     } catch { /* quota exceeded, etc */ }
-  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences]);
+  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences, painThreshold, meddThreshold, adherenceThreshold, prnMaxPerDay, freqCapEnabled, freqCapMinutes]);
 
   // Auto-save on any settings change (debounced via dependency array)
   useEffect(() => {
@@ -121,11 +140,12 @@ export default function SettingsPage() {
         localStorage.setItem('pallicare_settings', JSON.stringify({
           notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage,
           alertPreferences: alertPreferences.map(a => ({ id: a.id, enabled: a.enabled })),
+          painThreshold, meddThreshold, adherenceThreshold, prnMaxPerDay, freqCapEnabled, freqCapMinutes,
         }));
       } catch { /* ignore */ }
     }, 500);
     return () => clearTimeout(timer);
-  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences]);
+  }, [notificationMethod, escalationTimeout, quietHoursEnabled, quietStart, quietEnd, darkMode, itemsPerPage, alertPreferences, painThreshold, meddThreshold, adherenceThreshold, prnMaxPerDay, freqCapEnabled, freqCapMinutes]);
 
   // ── Dark mode: toggle class on <html> element ──
   useEffect(() => {
@@ -307,6 +327,156 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* ── Custom Alert Thresholds ── */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-6 shadow-sm">
+        <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
+          <SlidersHorizontal className="h-5 w-5" />
+          Alert Thresholds
+        </h2>
+        <p className="mt-1 text-xs text-charcoal/50">
+          Customize when alerts are triggered based on your clinical preferences
+        </p>
+
+        <div className="mt-5 space-y-5">
+          {/* Pain threshold */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-charcoal">Pain Score Threshold</p>
+                <p className="text-xs text-charcoal/50">Alert when sustained NRS above this level</p>
+              </div>
+              <span className={cn(
+                'rounded-full px-3 py-1 text-sm font-bold',
+                painThreshold >= 7 ? 'bg-red-100 text-red-700' : painThreshold >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700',
+              )}>
+                &ge; {painThreshold}/10
+              </span>
+            </div>
+            <input
+              type="range" min={3} max={10} value={painThreshold}
+              onChange={(e) => setPainThreshold(Number(e.target.value))}
+              className="mt-3 w-full accent-teal"
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-charcoal/30">
+              <span>3 (sensitive)</span><span>10 (only worst)</span>
+            </div>
+          </div>
+
+          {/* MEDD threshold */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-charcoal">MEDD Safety Threshold</p>
+                <p className="text-xs text-charcoal/50">Alert when morphine equivalent daily dose exceeds</p>
+              </div>
+              <span className={cn(
+                'rounded-full px-3 py-1 text-sm font-bold',
+                meddThreshold >= 300 ? 'bg-red-100 text-red-700' : meddThreshold >= 200 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700',
+              )}>
+                &ge; {meddThreshold}mg
+              </span>
+            </div>
+            <input
+              type="range" min={100} max={400} step={25} value={meddThreshold}
+              onChange={(e) => setMeddThreshold(Number(e.target.value))}
+              className="mt-3 w-full accent-teal"
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-charcoal/30">
+              <span>100mg (strict)</span><span>400mg (lenient)</span>
+            </div>
+          </div>
+
+          {/* Adherence threshold */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-charcoal">Adherence Drop Alert</p>
+                <p className="text-xs text-charcoal/50">Alert when medication adherence falls below</p>
+              </div>
+              <span className={cn(
+                'rounded-full px-3 py-1 text-sm font-bold',
+                adherenceThreshold <= 60 ? 'bg-red-100 text-red-700' : adherenceThreshold <= 75 ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700',
+              )}>
+                &lt; {adherenceThreshold}%
+              </span>
+            </div>
+            <input
+              type="range" min={50} max={90} step={5} value={adherenceThreshold}
+              onChange={(e) => setAdherenceThreshold(Number(e.target.value))}
+              className="mt-3 w-full accent-teal"
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-charcoal/30">
+              <span>50% (lenient)</span><span>90% (strict)</span>
+            </div>
+          </div>
+
+          {/* PRN max per day */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-charcoal">PRN Dose Limit</p>
+                <p className="text-xs text-charcoal/50">Alert when breakthrough doses exceed per day</p>
+              </div>
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-700">
+                &ge; {prnMaxPerDay}/day
+              </span>
+            </div>
+            <input
+              type="range" min={1} max={8} value={prnMaxPerDay}
+              onChange={(e) => setPrnMaxPerDay(Number(e.target.value))}
+              className="mt-3 w-full accent-teal"
+            />
+            <div className="mt-1 flex justify-between text-[10px] text-charcoal/30">
+              <span>1 (very sensitive)</span><span>8 (lenient)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Notification Frequency Cap ── */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
+            <Timer className="h-5 w-5" />
+            Notification Frequency Cap
+          </h2>
+          <button
+            onClick={() => setFreqCapEnabled(!freqCapEnabled)}
+            className={cn(
+              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+              freqCapEnabled ? 'bg-teal' : 'bg-charcoal/20'
+            )}
+          >
+            <span className={cn(
+              'inline-block h-4 w-4 rounded-full bg-white transition-transform',
+              freqCapEnabled ? 'translate-x-6' : 'translate-x-1'
+            )} />
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-charcoal/50">
+          Suppress duplicate alerts for the same patient within this time window
+        </p>
+
+        {freqCapEnabled && (
+          <div className="mt-4 flex items-center gap-4">
+            <select
+              value={freqCapMinutes}
+              onChange={(e) => setFreqCapMinutes(e.target.value)}
+              className="rounded-lg border border-sage/20 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal"
+            >
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+            <p className="text-xs text-charcoal/40">
+              Same-type alerts for the same patient will be grouped within this window
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── Quiet Hours ── */}
@@ -532,7 +702,7 @@ export default function SettingsPage() {
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Version</p>
             <p className="mt-1 text-sm font-medium text-charcoal">v1.0.0-beta</p>
-            <p className="text-xs text-charcoal/50 mt-1">Sprint 21 &middot; Built 21 Feb 2026</p>
+            <p className="text-xs text-charcoal/50 mt-1">Sprint 27 &middot; Built 21 Feb 2026</p>
           </div>
           <div className="rounded-lg bg-cream/50 p-4">
             <p className="text-xs font-semibold text-charcoal/50 uppercase">Institution</p>
