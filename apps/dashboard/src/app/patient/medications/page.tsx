@@ -1,19 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Pill, CheckCircle2, Clock, X, AlertCircle } from 'lucide-react';
+import { Pill, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { usePatientMedications, useLogMedicationAdherence } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
-import { StatCard } from '@/components/ui/StatCard';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const TIME_GROUPS = [
-  { key: 'morning', label: 'Morning', range: '6:00 AM - 12:00 PM' },
-  { key: 'afternoon', label: 'Afternoon', range: '12:00 PM - 5:00 PM' },
-  { key: 'evening', label: 'Evening', range: '5:00 PM - 9:00 PM' },
-  { key: 'night', label: 'Night', range: '9:00 PM - 6:00 AM' },
+  { key: 'morning', label: 'Morning', range: '6:00 AM – 12:00 PM' },
+  { key: 'afternoon', label: 'Afternoon', range: '12:00 PM – 5:00 PM' },
+  { key: 'evening', label: 'Evening', range: '5:00 PM – 9:00 PM' },
+  { key: 'night', label: 'Night', range: '9:00 PM – 6:00 AM' },
 ];
 
 export default function MedicationsPage() {
@@ -40,132 +39,121 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">Medications</h1>
-        <p className="text-sm text-charcoal-light">
-          Track your daily medication schedule and adherence
+        <h1 className="font-heading text-3xl font-bold text-teal">Medications</h1>
+        <p className="mt-1 text-base text-charcoal-light">
+          Track your daily medication schedule
         </p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Adherence Today"
-          value={`${adherence}%`}
-          change={`${taken} of ${total} doses taken`}
-          changeType={adherence >= 80 ? 'increase' : 'alert'}
-          icon={<CheckCircle2 className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Total Medications"
-          value={String(meds.length)}
-          change="Active prescriptions"
-          changeType="info"
-          icon={<Pill className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Pending Doses"
-          value={String(total - taken - allDoses.filter((d: any) => d.status === 'skipped').length)}
-          change="Remaining today"
-          changeType={total - taken > 0 ? 'alert' : 'increase'}
-          icon={<Clock className="h-5 w-5" />}
-        />
-        <StatCard
-          title="PRN Available"
-          value={String(prnMeds.length)}
-          change="As-needed medications"
-          changeType="info"
-          icon={<AlertCircle className="h-5 w-5" />}
-        />
+      {/* Adherence Banner */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-charcoal-light">Today&apos;s Adherence</p>
+            <p className="mt-1 font-heading text-4xl font-bold text-charcoal">{adherence}%</p>
+            <p className="mt-1 text-sm text-charcoal-light">{taken} of {total} doses taken</p>
+          </div>
+          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${adherence >= 80 ? 'bg-sage/15' : 'bg-amber/15'}`}>
+            {adherence >= 80 ? (
+              <CheckCircle2 className="h-7 w-7 text-sage-dark" />
+            ) : (
+              <Clock className="h-7 w-7 text-amber" />
+            )}
+          </div>
+        </div>
+        <div className="mt-4 h-3 overflow-hidden rounded-full bg-cream">
+          <div
+            className="h-full rounded-full bg-teal transition-all"
+            style={{ width: `${adherence}%` }}
+          />
+        </div>
       </div>
 
       {/* Medication Schedule by Time */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {TIME_GROUPS.map((group) => {
-          const groupDoses = allDoses.filter((d: any) => {
-            const hour = parseInt(d.time?.split(':')[0] || '0');
-            if (group.key === 'morning') return hour >= 6 && hour < 12;
-            if (group.key === 'afternoon') return hour >= 12 && hour < 17;
-            if (group.key === 'evening') return hour >= 17 && hour < 21;
-            return hour >= 21 || hour < 6;
-          });
+      {TIME_GROUPS.map((group) => {
+        const groupDoses = allDoses.filter((d: any) => {
+          const hour = parseInt(d.time?.split(':')[0] || '0');
+          if (group.key === 'morning') return hour >= 6 && hour < 12;
+          if (group.key === 'afternoon') return hour >= 12 && hour < 17;
+          if (group.key === 'evening') return hour >= 17 && hour < 21;
+          return hour >= 21 || hour < 6;
+        });
 
-          if (groupDoses.length === 0) return null;
+        if (groupDoses.length === 0) return null;
 
-          return (
-            <div key={group.key} className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-              <div className="border-b border-sage-light/20 px-5 py-4">
-                <h3 className="text-base font-semibold text-charcoal">{group.label}</h3>
-                <p className="text-xs text-charcoal-light">{group.range}</p>
-              </div>
-              <div className="divide-y divide-sage-light/10">
-                {groupDoses.map((dose: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                        dose.status === 'taken' ? 'bg-sage/10' : dose.status === 'skipped' ? 'bg-alert-critical/10' : 'bg-amber/10'
-                      }`}>
-                        <Pill className={`h-4 w-4 ${
-                          dose.status === 'taken' ? 'text-sage-dark' : dose.status === 'skipped' ? 'text-alert-critical' : 'text-amber'
-                        }`} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-charcoal">{dose.medName}</p>
-                        <p className="text-xs text-charcoal-light">{dose.medDose} &middot; {dose.time}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {dose.status === 'taken' ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-sage/10 px-2.5 py-0.5 text-xs font-medium text-sage-dark">
-                          <CheckCircle2 className="h-3 w-3" /> Taken
-                        </span>
-                      ) : dose.status === 'skipped' ? (
-                        <span className="rounded-full bg-alert-critical/10 px-2.5 py-0.5 text-xs font-medium text-alert-critical">
-                          Skipped
-                        </span>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleMarkTaken(dose.medId, dose.time)}
-                            className="rounded-lg bg-teal px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-teal/90"
-                          >
-                            Take
-                          </button>
-                          <button
-                            onClick={() => handleMarkSkipped(dose.medId, dose.time)}
-                            className="rounded-lg border border-sage-light/30 px-3 py-1.5 text-xs font-medium text-charcoal-light transition-colors hover:bg-cream"
-                          >
-                            Skip
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+        return (
+          <div key={group.key} className="rounded-2xl bg-white p-5">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-charcoal">{group.label}</h3>
+              <p className="text-sm text-charcoal-light">{group.range}</p>
             </div>
-          );
-        })}
-      </div>
+            <div className="space-y-3">
+              {groupDoses.map((dose: any, i: number) => (
+                <div key={i} className="flex items-center gap-4 rounded-xl bg-cream/50 p-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                    dose.status === 'taken' ? 'bg-sage/15' : dose.status === 'skipped' ? 'bg-terra/15' : 'bg-amber/15'
+                  }`}>
+                    <Pill className={`h-5 w-5 ${
+                      dose.status === 'taken' ? 'text-sage-dark' : dose.status === 'skipped' ? 'text-terra' : 'text-amber'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-charcoal">{dose.medName}</p>
+                    <p className="text-sm text-charcoal-light">{dose.medDose} &middot; {dose.time}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {dose.status === 'taken' ? (
+                      <span className="rounded-full bg-sage/10 px-3 py-1 text-sm font-medium text-sage-dark">
+                        Taken
+                      </span>
+                    ) : dose.status === 'skipped' ? (
+                      <span className="rounded-full bg-terra/10 px-3 py-1 text-sm font-medium text-terra">
+                        Skipped
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleMarkTaken(dose.medId, dose.time)}
+                          className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal/90"
+                        >
+                          Take
+                        </button>
+                        <button
+                          onClick={() => handleMarkSkipped(dose.medId, dose.time)}
+                          className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light transition-colors hover:bg-charcoal/5"
+                        >
+                          Skip
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
       {/* PRN Medications */}
       {prnMeds.length > 0 && (
-        <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-          <div className="border-b border-sage-light/20 px-5 py-4">
-            <h3 className="text-base font-semibold text-charcoal">As-Needed (PRN) Medications</h3>
+        <div className="rounded-2xl bg-white p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-amber" />
+            <h3 className="text-lg font-semibold text-charcoal">As-Needed (PRN)</h3>
           </div>
-          <div className="divide-y divide-sage-light/10">
+          <div className="space-y-3">
             {prnMeds.map((med: any) => (
-              <div key={med.id} className="flex items-center justify-between px-5 py-3">
+              <div key={med.id} className="flex items-center justify-between rounded-xl bg-cream/50 p-4">
                 <div>
-                  <p className="text-sm font-medium text-charcoal">{med.name}</p>
-                  <p className="text-xs text-charcoal-light">{med.dose} &middot; {med.instructions || 'As needed'}</p>
+                  <p className="text-base font-semibold text-charcoal">{med.name}</p>
+                  <p className="text-sm text-charcoal-light">{med.dose} &middot; {med.instructions || 'As needed'}</p>
                 </div>
                 <button
                   onClick={() => setShowPrnModal(true)}
-                  className="rounded-lg border border-teal/30 px-3 py-1.5 text-xs font-semibold text-teal transition-colors hover:bg-teal/5"
+                  className="rounded-xl border border-teal/30 px-4 py-2 text-sm font-semibold text-teal transition-colors hover:bg-teal/5"
                 >
                   Log Dose
                 </button>

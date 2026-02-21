@@ -240,6 +240,21 @@ const WHO_STEP_COLORS: Record<number, string> = {
   3: 'bg-terra/10 text-terra',
 };
 
+// -- Equianalgesic conversion table -------------------------------------------
+// Factor: multiply source dose by factor to get oral morphine equivalent (MEDD)
+const OPIOID_CONVERSIONS = [
+  { id: 'morphine_po', name: 'Morphine (Oral)', factor: 1.0, unit: 'mg/day', step: 3 },
+  { id: 'morphine_iv', name: 'Morphine (IV/SC)', factor: 3.0, unit: 'mg/day', step: 3 },
+  { id: 'oxycodone_po', name: 'Oxycodone (Oral)', factor: 1.5, unit: 'mg/day', step: 3 },
+  { id: 'hydromorphone_po', name: 'Hydromorphone (Oral)', factor: 4.0, unit: 'mg/day', step: 3 },
+  { id: 'hydromorphone_iv', name: 'Hydromorphone (IV)', factor: 20.0, unit: 'mg/day', step: 3 },
+  { id: 'fentanyl_patch', name: 'Fentanyl (Patch)', factor: 2.4, unit: 'mcg/h', step: 3 },
+  { id: 'fentanyl_iv', name: 'Fentanyl (IV)', factor: 0.3, unit: 'mcg/day', step: 3 },
+  { id: 'tramadol_po', name: 'Tramadol (Oral)', factor: 0.1, unit: 'mg/day', step: 2 },
+  { id: 'codeine_po', name: 'Codeine (Oral)', factor: 0.15, unit: 'mg/day', step: 2 },
+  { id: 'tapentadol_po', name: 'Tapentadol (Oral)', factor: 0.4, unit: 'mg/day', step: 3 },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -273,6 +288,20 @@ export default function MedicationDbPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Sprint 23 — Equianalgesic Calculator state
+  const [showCalc, setShowCalc] = useState(false);
+  const [sourceOpioid, setSourceOpioid] = useState('morphine_po');
+  const [sourceDose, setSourceDose] = useState('');
+  const [targetOpioid, setTargetOpioid] = useState('oxycodone_po');
+
+  const sourceConv = OPIOID_CONVERSIONS.find((o) => o.id === sourceOpioid)!;
+  const targetConv = OPIOID_CONVERSIONS.find((o) => o.id === targetOpioid)!;
+  const doseNum = parseFloat(sourceDose) || 0;
+  const medd = doseNum * sourceConv.factor;
+  const targetDose = targetConv.factor > 0 ? medd / targetConv.factor : 0;
+  const targetReduced75 = targetDose * 0.75;
+  const targetReduced50 = targetDose * 0.50;
 
   // Fetch from API — fallback to mock
   const palliativeQuery = usePalliativeMedications();
@@ -364,6 +393,205 @@ export default function MedicationDbPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Sprint 23 — Equianalgesic Calculator */}
+      <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
+        <button
+          onClick={() => setShowCalc(!showCalc)}
+          className="flex w-full items-center justify-between p-5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal/10">
+              <Calculator className="h-5 w-5 text-teal" />
+            </div>
+            <div className="text-left">
+              <h2 className="font-heading text-lg font-bold text-teal">Opioid Equianalgesic Calculator</h2>
+              <p className="text-xs text-charcoal/50">Convert between opioids with MEDD and cross-tolerance adjustment</p>
+            </div>
+          </div>
+          {showCalc ? <ChevronUp className="h-5 w-5 text-charcoal/30" /> : <ChevronDown className="h-5 w-5 text-charcoal/30" />}
+        </button>
+
+        {showCalc && (
+          <div className="border-t border-sage-light/20 p-5">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Input side */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-charcoal">Source Opioid</h3>
+                <div>
+                  <label className="text-xs font-semibold text-charcoal/60 uppercase">Drug & Route</label>
+                  <select
+                    value={sourceOpioid}
+                    onChange={(e) => setSourceOpioid(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-sage-light/50 px-3 py-2.5 text-sm text-charcoal focus:border-teal focus:outline-none"
+                  >
+                    {OPIOID_CONVERSIONS.map((o) => (
+                      <option key={o.id} value={o.id}>{o.name} — Step {o.step}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-charcoal/60 uppercase">
+                    Total Daily Dose ({sourceConv.unit})
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    value={sourceDose}
+                    onChange={(e) => setSourceDose(e.target.value)}
+                    placeholder={`Enter dose in ${sourceConv.unit}`}
+                    className="mt-1 w-full rounded-lg border border-sage-light/50 px-3 py-2.5 text-sm text-charcoal placeholder:text-charcoal/30 focus:border-teal focus:outline-none"
+                  />
+                </div>
+                <div className="rounded-lg bg-teal/5 p-3">
+                  <p className="text-xs text-charcoal/60">
+                    Conversion factor: <span className="font-bold text-teal">{sourceConv.factor}x</span>
+                    {' '}&rarr; MEDD = {sourceDose || '0'} &times; {sourceConv.factor} = <span className="font-bold text-teal">{medd.toFixed(1)} mg morphine PO/day</span>
+                  </p>
+                </div>
+
+                <div className="border-t border-sage/10 pt-4">
+                  <h3 className="text-sm font-bold text-charcoal">Target Opioid</h3>
+                  <div className="mt-2">
+                    <label className="text-xs font-semibold text-charcoal/60 uppercase">Convert To</label>
+                    <select
+                      value={targetOpioid}
+                      onChange={(e) => setTargetOpioid(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-sage-light/50 px-3 py-2.5 text-sm text-charcoal focus:border-teal focus:outline-none"
+                    >
+                      {OPIOID_CONVERSIONS.map((o) => (
+                        <option key={o.id} value={o.id}>{o.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Result side */}
+              <div className="space-y-4">
+                {/* MEDD result */}
+                <div className="rounded-xl bg-teal/5 border border-teal/20 p-5 text-center">
+                  <p className="text-xs font-semibold text-teal uppercase">Morphine Equivalent Daily Dose</p>
+                  <p className="mt-2 text-4xl font-bold text-teal">{medd.toFixed(1)}</p>
+                  <p className="text-sm text-charcoal/50">mg oral morphine/day</p>
+                  {medd > 200 && (
+                    <div className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-alert-critical">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      High dose (&gt;200 mg MEDD) — specialist review recommended
+                    </div>
+                  )}
+                  {medd > 90 && medd <= 200 && (
+                    <p className="mt-2 text-[10px] text-amber font-semibold">
+                      &gt;90 mg MEDD — consider naloxone co-prescription
+                    </p>
+                  )}
+                </div>
+
+                {/* Converted dose */}
+                {doseNum > 0 && (
+                  <div className="rounded-xl border border-sage-light/30 p-5">
+                    <p className="text-xs font-semibold text-charcoal/60 uppercase mb-3">
+                      Equivalent {targetConv.name} Dose
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between rounded-lg bg-amber/5 border border-amber/20 p-3">
+                        <div>
+                          <p className="text-xs text-charcoal/60">Full calculated dose</p>
+                          <p className="text-lg font-bold text-charcoal">{targetDose.toFixed(1)} <span className="text-xs font-normal text-charcoal/50">{targetConv.unit}</span></p>
+                        </div>
+                        <span className="rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-bold text-amber">100%</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-sage/5 border border-sage/20 p-3">
+                        <div>
+                          <p className="text-xs text-alert-success font-semibold">Recommended (75%)</p>
+                          <p className="text-lg font-bold text-alert-success">{targetReduced75.toFixed(1)} <span className="text-xs font-normal text-charcoal/50">{targetConv.unit}</span></p>
+                        </div>
+                        <span className="rounded-full bg-alert-success/10 px-2 py-0.5 text-[10px] font-bold text-alert-success">25% reduction</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-sage/5 border border-sage/20 p-3">
+                        <div>
+                          <p className="text-xs text-charcoal/60">Conservative (50%)</p>
+                          <p className="text-lg font-bold text-charcoal">{targetReduced50.toFixed(1)} <span className="text-xs font-normal text-charcoal/50">{targetConv.unit}</span></p>
+                        </div>
+                        <span className="rounded-full bg-sage/10 px-2 py-0.5 text-[10px] font-bold text-sage">50% reduction</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Clinical warnings */}
+                <div className="rounded-lg border border-alert-critical/10 bg-alert-critical/5 p-4">
+                  <h4 className="flex items-center gap-1.5 text-xs font-bold text-alert-critical uppercase">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Clinical Safety Notes
+                  </h4>
+                  <ul className="mt-2 space-y-1.5 text-xs text-charcoal/70">
+                    <li className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-alert-critical" />
+                      <span><b>Incomplete cross-tolerance:</b> Always reduce calculated dose by 25-50% when rotating opioids</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-alert-critical" />
+                      <span><b>Fentanyl patches:</b> Steady state takes 12-24h. Remove 12h before starting new opioid</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-alert-critical" />
+                      <span><b>Methadone:</b> Has non-linear conversion ratios — consult specialist for MEDD &gt;100 mg</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber" />
+                      <span><b>Renal impairment:</b> Avoid morphine (active metabolites). Prefer fentanyl or hydromorphone</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber" />
+                      <span>This calculator is a clinical aid only — always use clinical judgement</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Equianalgesic reference table */}
+            <div className="mt-6 border-t border-sage/10 pt-4">
+              <h4 className="text-sm font-bold text-charcoal mb-2">Quick Equianalgesic Reference</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-sage-light/20 text-left">
+                      <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Opioid</th>
+                      <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Route</th>
+                      <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">Equianalgesic Dose</th>
+                      <th className="py-2 pr-4 text-xs font-semibold text-charcoal/50">MEDD Factor</th>
+                      <th className="py-2 text-xs font-semibold text-charcoal/50">WHO Step</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {OPIOID_CONVERSIONS.map((o) => (
+                      <tr key={o.id} className="border-b border-sage-light/10">
+                        <td className="py-2 pr-4 font-medium text-charcoal">{o.name.split(' (')[0]}</td>
+                        <td className="py-2 pr-4 text-charcoal/70">{o.name.match(/\(([^)]+)\)/)?.[1] || ''}</td>
+                        <td className="py-2 pr-4 text-charcoal/70">{o.factor !== 0 ? `${(30 / o.factor).toFixed(1)} ${o.unit.replace('/day', '')}` : '—'}</td>
+                        <td className="py-2 pr-4">
+                          <span className="font-bold text-teal">{o.factor}x</span>
+                        </td>
+                        <td className="py-2">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', WHO_STEP_COLORS[o.step])}>
+                            Step {o.step}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-[10px] text-charcoal/40">
+                Equianalgesic dose = amount equivalent to 30 mg oral morphine. Based on AAHPM, Oxford Handbook of Palliative Care, and WHO guidelines.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Medication cards */}

@@ -54,6 +54,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Save,
+  Utensils,
+  ScrollText,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -315,6 +318,57 @@ const MOCK_DOCUMENTS = [
   { id: 'doc3', name: 'Lab Report - CBC + KFT', type: 'Lab Report', date: '18 Feb 2026', size: '340 KB' },
   { id: 'doc4', name: 'Discharge Summary - Oncology', type: 'Summary', date: '10 Feb 2026', size: '1.1 MB' },
 ];
+
+// Sprint 23 — Patient-Reported Outcomes (clinician view of Sprint 22 patient data)
+const MOCK_MOOD_SCREENING = {
+  phq9: { score: 14, severity: 'Moderate' as string, trend: 'worsening' as string },
+  gad7: { score: 11, severity: 'Moderate' as string, trend: 'stable' as string },
+  lastScreened: '18 Feb 2026',
+  lowMoodDays: 3,
+  riskFlags: ['Anhedonia', 'Sleep disturbance', 'Loss of interest'],
+};
+
+const MOCK_SLEEP_DETAIL = {
+  avgDuration: 4.2,
+  avgQuality: 4,
+  trend: 'declining' as const,
+  disturbances: ['Pain awakening', 'Anxiety', 'Nocturia'],
+  sleepMedication: true,
+  last7Days: [3.5, 4.0, 5.0, 4.5, 3.0, 4.8, 4.5],
+};
+
+const MOCK_NUTRITION_DETAIL = {
+  appetite: 'Poor' as const,
+  intake: 'Reduced' as const,
+  mustScore: 3,
+  mustRisk: 'High' as const,
+  weight: { current: 52.3, previous: 55.1, change: -2.8, period: '1 month' },
+  concerns: ['Dysphagia', 'Early satiety', 'Taste changes'],
+};
+
+const MOCK_FUNCTIONAL_DETAIL = {
+  ppsScore: 50,
+  ppsTrend: 'declining' as const,
+  previousPPS: 60,
+  domains: [
+    { name: 'Ambulation', level: 'Mainly sit/lie', score: 40 },
+    { name: 'Activity & Disease', level: 'Unable to do hobbies', score: 40 },
+    { name: 'Self-Care', level: 'Considerable assistance', score: 50 },
+    { name: 'Intake', level: 'Reduced', score: 50 },
+    { name: 'Conscious Level', level: 'Full', score: 100 },
+  ],
+  lastAssessed: '19 Feb 2026',
+};
+
+const MOCK_WISHES_SUMMARY = {
+  goalsOfCare: 'Comfort-focused',
+  preferredPlace: 'Home',
+  decisionMaker: 'Sunita Kumar (Wife)',
+  spiritualNeeds: 'Hindu last rites',
+  legalDocuments: ['Advance Directive', 'Power of Attorney'],
+  completeness: 85,
+  lastUpdated: '15 Feb 2026',
+};
 
 type DetailTab = 'care_plan' | 'caregivers' | 'education' | 'messages' | 'vitals' | 'documents';
 
@@ -586,6 +640,32 @@ export default function PatientDetailPage() {
 
   // Sprint 20 — Flag for MDT
   const [mdtFlagged, setMdtFlagged] = useState(false);
+
+  // Sprint 23 — PPI Calculator state
+  const [showPPI, setShowPPI] = useState(false);
+  const [ppiPPS, setPpiPPS] = useState<'10-20' | '30-50' | '>=60'>('30-50');
+  const [ppiIntake, setPpiIntake] = useState<'normal' | 'reduced' | 'mouthfuls'>('reduced');
+  const [ppiEdema, setPpiEdema] = useState(false);
+  const [ppiDyspnea, setPpiDyspnea] = useState(false);
+  const [ppiDelirium, setPpiDelirium] = useState(false);
+
+  const ppiScore = (() => {
+    let s = 0;
+    if (ppiPPS === '10-20') s += 4;
+    else if (ppiPPS === '30-50') s += 2.5;
+    if (ppiIntake === 'reduced') s += 1;
+    else if (ppiIntake === 'mouthfuls') s += 2.5;
+    if (ppiEdema) s += 1;
+    if (ppiDyspnea) s += 3.5;
+    if (ppiDelirium) s += 4;
+    return s;
+  })();
+
+  const ppiPrognosis = ppiScore > 6
+    ? { label: 'Survival likely < 3 weeks', color: 'text-alert-critical', bg: 'bg-alert-critical/10' }
+    : ppiScore > 4
+    ? { label: 'Survival likely < 6 weeks', color: 'text-amber', bg: 'bg-amber/10' }
+    : { label: 'Survival likely > 6 weeks', color: 'text-sage', bg: 'bg-sage/10' };
 
   // ── API Queries with fallback ──────────────────────────────────────
   const patientQuery = usePatient(patientId);
@@ -1264,6 +1344,441 @@ export default function PatientDetailPage() {
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PAIN_COLORS[8] }} /> Severe (7-10)
           </span>
         </div>
+      </div>
+
+      {/* ── Patient-Reported Outcomes (Sprint 23) ── */}
+      <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
+            <ClipboardList className="h-5 w-5" />
+            Patient-Reported Outcomes
+          </h2>
+          <span className="text-xs text-charcoal/40">From patient app &middot; last 7 days</span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* ─ Mood & Mental Health ─ */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="h-4 w-4 text-charcoal/50" />
+              <h3 className="text-sm font-bold text-charcoal">Mood & Mental Health</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-charcoal/60">PHQ-9</span>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    'text-sm font-bold',
+                    MOCK_MOOD_SCREENING.phq9.score >= 15 ? 'text-alert-critical' :
+                    MOCK_MOOD_SCREENING.phq9.score >= 10 ? 'text-amber' : 'text-sage'
+                  )}>
+                    {MOCK_MOOD_SCREENING.phq9.score}/27
+                  </span>
+                  <span className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                    MOCK_MOOD_SCREENING.phq9.severity === 'Severe' ? 'bg-alert-critical/10 text-alert-critical' :
+                    MOCK_MOOD_SCREENING.phq9.severity === 'Moderate' ? 'bg-amber/10 text-amber' : 'bg-sage/10 text-sage'
+                  )}>
+                    {MOCK_MOOD_SCREENING.phq9.severity}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-charcoal/60">GAD-7</span>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    'text-sm font-bold',
+                    MOCK_MOOD_SCREENING.gad7.score >= 15 ? 'text-alert-critical' :
+                    MOCK_MOOD_SCREENING.gad7.score >= 10 ? 'text-amber' : 'text-sage'
+                  )}>
+                    {MOCK_MOOD_SCREENING.gad7.score}/21
+                  </span>
+                  <span className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                    MOCK_MOOD_SCREENING.gad7.severity === 'Severe' ? 'bg-alert-critical/10 text-alert-critical' :
+                    MOCK_MOOD_SCREENING.gad7.severity === 'Moderate' ? 'bg-amber/10 text-amber' : 'bg-sage/10 text-sage'
+                  )}>
+                    {MOCK_MOOD_SCREENING.gad7.severity}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {MOCK_MOOD_SCREENING.riskFlags.map((f) => (
+                  <span key={f} className="rounded-full bg-lavender/30 px-2 py-0.5 text-[10px] font-medium text-charcoal/60">{f}</span>
+                ))}
+              </div>
+              <p className="text-[10px] text-charcoal/40 mt-1">Screened {MOCK_MOOD_SCREENING.lastScreened}</p>
+            </div>
+          </div>
+
+          {/* ─ Sleep Analysis ─ */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Moon className="h-4 w-4 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Sleep Analysis</h3>
+            </div>
+            <div className="flex items-center gap-4 mb-3">
+              <div>
+                <p className="text-2xl font-bold text-charcoal">{MOCK_SLEEP_DETAIL.avgDuration}</p>
+                <p className="text-[10px] text-charcoal/40">hrs avg</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-charcoal">
+                  {MOCK_SLEEP_DETAIL.avgQuality}<span className="text-sm font-normal text-charcoal/50">/10</span>
+                </p>
+                <p className="text-[10px] text-charcoal/40">quality</p>
+              </div>
+              <span className={cn(
+                'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                MOCK_SLEEP_DETAIL.trend === 'declining' ? 'bg-alert-critical/10 text-alert-critical' : 'bg-sage/10 text-sage'
+              )}>
+                {MOCK_SLEEP_DETAIL.trend === 'declining' ? '\u2193 Declining' : 'Stable'}
+              </span>
+            </div>
+            <div className="flex items-end gap-1 h-10 mb-2">
+              {MOCK_SLEEP_DETAIL.last7Days.map((h, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    'flex-1 rounded-t',
+                    h < 4 ? 'bg-alert-critical/60' : h < 6 ? 'bg-amber/60' : 'bg-sage/60'
+                  )}
+                  style={{ height: `${(h / 8) * 100}%`, minHeight: '4px' }}
+                  title={`${h}h`}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between text-[9px] text-charcoal/30 mb-2">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {MOCK_SLEEP_DETAIL.disturbances.map((d) => (
+                <span key={d} className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-medium text-teal">{d}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* ─ Nutrition & Risk ─ */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Utensils className="h-4 w-4 text-amber" />
+              <h3 className="text-sm font-bold text-charcoal">Nutrition & Risk</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-charcoal/60">MUST Score</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={cn(
+                    'text-sm font-bold',
+                    MOCK_NUTRITION_DETAIL.mustScore >= 2 ? 'text-alert-critical' :
+                    MOCK_NUTRITION_DETAIL.mustScore === 1 ? 'text-amber' : 'text-sage'
+                  )}>
+                    {MOCK_NUTRITION_DETAIL.mustScore}
+                  </span>
+                  <span className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                    MOCK_NUTRITION_DETAIL.mustRisk === 'High' ? 'bg-alert-critical/10 text-alert-critical' :
+                    MOCK_NUTRITION_DETAIL.mustRisk === 'Medium' ? 'bg-amber/10 text-amber' : 'bg-sage/10 text-sage'
+                  )}>
+                    {MOCK_NUTRITION_DETAIL.mustRisk} Risk
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-charcoal/60">Appetite</span>
+                <span className={cn(
+                  'font-semibold',
+                  MOCK_NUTRITION_DETAIL.appetite === 'Poor' ? 'text-alert-critical' : 'text-amber'
+                )}>
+                  {MOCK_NUTRITION_DETAIL.appetite}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-charcoal/60">Intake</span>
+                <span className={cn(
+                  'font-semibold',
+                  MOCK_NUTRITION_DETAIL.intake === 'Reduced' ? 'text-amber' : 'text-charcoal'
+                )}>
+                  {MOCK_NUTRITION_DETAIL.intake}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-charcoal/60">Weight</span>
+                <span className="font-semibold text-charcoal">
+                  {MOCK_NUTRITION_DETAIL.weight.current} kg
+                  <span className="ml-1 text-alert-critical">
+                    ({MOCK_NUTRITION_DETAIL.weight.change} kg/{MOCK_NUTRITION_DETAIL.weight.period})
+                  </span>
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {MOCK_NUTRITION_DETAIL.concerns.map((c) => (
+                  <span key={c} className="rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-medium text-amber">{c}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ─ Functional Status ─ */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-sage" />
+                <h3 className="text-sm font-bold text-charcoal">Functional Status</h3>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-bold text-teal">{MOCK_FUNCTIONAL_DETAIL.ppsScore}%</span>
+                <span className="text-[10px] text-alert-critical font-semibold">
+                  &darr; from {MOCK_FUNCTIONAL_DETAIL.previousPPS}%
+                </span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              {MOCK_FUNCTIONAL_DETAIL.domains.map((d) => (
+                <div key={d.name}>
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-charcoal/60">{d.name}</span>
+                    <span className="text-charcoal/40">{d.level}</span>
+                  </div>
+                  <div className="mt-0.5 h-1.5 w-full rounded-full bg-sage/10">
+                    <div
+                      className="h-1.5 rounded-full transition-all"
+                      style={{
+                        width: `${d.score}%`,
+                        backgroundColor: d.score >= 80 ? '#7BA68C' : d.score >= 50 ? '#E8A838' : '#C25A45',
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-charcoal/40 mt-2">Assessed {MOCK_FUNCTIONAL_DETAIL.lastAssessed}</p>
+          </div>
+
+          {/* ─ Advance Care Wishes ─ */}
+          <div className="rounded-lg border border-sage/10 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <ScrollText className="h-4 w-4 text-terra" />
+                <h3 className="text-sm font-bold text-charcoal">Advance Care Wishes</h3>
+              </div>
+              <span className="text-[10px] text-charcoal/40">{MOCK_WISHES_SUMMARY.completeness}% complete</span>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-charcoal/60">Goals</span>
+                <span className="font-semibold text-charcoal">{MOCK_WISHES_SUMMARY.goalsOfCare}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-charcoal/60">Preferred Place</span>
+                <span className="font-semibold text-charcoal">{MOCK_WISHES_SUMMARY.preferredPlace}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-charcoal/60">Decision Maker</span>
+                <span className="font-semibold text-charcoal">{MOCK_WISHES_SUMMARY.decisionMaker}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-charcoal/60">Spiritual</span>
+                <span className="font-semibold text-charcoal">{MOCK_WISHES_SUMMARY.spiritualNeeds}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {MOCK_WISHES_SUMMARY.legalDocuments.map((d) => (
+                  <span key={d} className="rounded-full bg-terra/10 px-2 py-0.5 text-[10px] font-medium text-terra">{d}</span>
+                ))}
+              </div>
+              <p className="text-[10px] text-charcoal/40">Updated {MOCK_WISHES_SUMMARY.lastUpdated}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── PPI Calculator (Sprint 23) ── */}
+      <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
+        <button
+          onClick={() => setShowPPI(!showPPI)}
+          className="flex w-full items-center justify-between p-5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal/10">
+              <Calculator className="h-5 w-5 text-teal" />
+            </div>
+            <div className="text-left">
+              <h2 className="font-heading text-lg font-bold text-teal">
+                PPI Calculator
+                {!showPPI && (
+                  <span className={cn('ml-3 text-sm font-semibold', ppiPrognosis.color)}>
+                    Score: {ppiScore.toFixed(1)} &mdash; {ppiPrognosis.label}
+                  </span>
+                )}
+              </h2>
+              <p className="text-xs text-charcoal/50">Palliative Prognostic Index &mdash; validated survival estimation</p>
+            </div>
+          </div>
+          {showPPI ? <ChevronUp className="h-5 w-5 text-charcoal/30" /> : <ChevronDown className="h-5 w-5 text-charcoal/30" />}
+        </button>
+
+        {showPPI && (
+          <div className="border-t border-sage-light/20 p-5">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Input */}
+              <div className="space-y-4">
+                {/* PPS */}
+                <div>
+                  <label className="text-xs font-semibold text-charcoal/60 uppercase">
+                    Palliative Performance Scale (PPS)
+                  </label>
+                  <div className="mt-2 flex gap-2">
+                    {([
+                      { value: '10-20' as const, label: '10-20%', pts: '4.0 pts' },
+                      { value: '30-50' as const, label: '30-50%', pts: '2.5 pts' },
+                      { value: '>=60' as const, label: '\u226560%', pts: '0 pts' },
+                    ]).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setPpiPPS(opt.value)}
+                        className={cn(
+                          'flex-1 rounded-lg border px-3 py-2.5 text-center transition-colors',
+                          ppiPPS === opt.value
+                            ? 'border-teal bg-teal/5 text-teal'
+                            : 'border-sage-light/30 text-charcoal/60 hover:border-teal/50'
+                        )}
+                      >
+                        <p className="text-sm font-bold">{opt.label}</p>
+                        <p className="text-[10px] text-charcoal/40">{opt.pts}</p>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[10px] text-charcoal/40">
+                    Patient current PPS: {PATIENT.ppsScore}% (auto-selected {PATIENT.ppsScore <= 20 ? '10-20%' : PATIENT.ppsScore <= 50 ? '30-50%' : '\u226560%'})
+                  </p>
+                </div>
+
+                {/* Oral Intake */}
+                <div>
+                  <label className="text-xs font-semibold text-charcoal/60 uppercase">Oral Intake</label>
+                  <div className="mt-2 flex gap-2">
+                    {([
+                      { value: 'normal' as const, label: 'Normal', pts: '0 pts' },
+                      { value: 'reduced' as const, label: 'Reduced', pts: '1.0 pts' },
+                      { value: 'mouthfuls' as const, label: 'Mouthfuls', pts: '2.5 pts' },
+                    ]).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setPpiIntake(opt.value)}
+                        className={cn(
+                          'flex-1 rounded-lg border px-3 py-2.5 text-center transition-colors',
+                          ppiIntake === opt.value
+                            ? 'border-teal bg-teal/5 text-teal'
+                            : 'border-sage-light/30 text-charcoal/60 hover:border-teal/50'
+                        )}
+                      >
+                        <p className="text-sm font-bold">{opt.label}</p>
+                        <p className="text-[10px] text-charcoal/40">{opt.pts}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clinical Findings */}
+                <div>
+                  <label className="text-xs font-semibold text-charcoal/60 uppercase mb-2 block">Clinical Findings</label>
+                  <div className="space-y-2">
+                    {([
+                      { label: 'Edema', value: ppiEdema, setter: setPpiEdema, pts: '1.0 pt' },
+                      { label: 'Dyspnea at rest', value: ppiDyspnea, setter: setPpiDyspnea, pts: '3.5 pts' },
+                      { label: 'Delirium', value: ppiDelirium, setter: setPpiDelirium, pts: '4.0 pts' },
+                    ]).map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => item.setter(!item.value)}
+                        className={cn(
+                          'flex w-full items-center justify-between rounded-lg border px-4 py-3 transition-colors',
+                          item.value
+                            ? 'border-teal bg-teal/5'
+                            : 'border-sage-light/30 hover:border-teal/50'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'flex h-5 w-5 items-center justify-center rounded border-2 transition-colors',
+                            item.value ? 'border-teal bg-teal text-white' : 'border-charcoal/20'
+                          )}>
+                            {item.value && <Check className="h-3 w-3" />}
+                          </div>
+                          <span className={cn('text-sm font-medium', item.value ? 'text-teal' : 'text-charcoal/70')}>
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-charcoal/40">{item.pts}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Result */}
+              <div className="space-y-4">
+                <div className={cn('rounded-xl border p-6 text-center', ppiScore > 6 ? 'border-alert-critical/30 bg-alert-critical/5' : ppiScore > 4 ? 'border-amber/30 bg-amber/5' : 'border-sage/30 bg-sage/5')}>
+                  <p className="text-xs font-semibold text-charcoal/60 uppercase">PPI Score</p>
+                  <p className={cn('mt-2 text-5xl font-bold', ppiPrognosis.color)}>{ppiScore.toFixed(1)}</p>
+                  <p className="text-sm text-charcoal/50 mt-1">out of 15.0</p>
+                  <div className={cn('mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold', ppiPrognosis.bg, ppiPrognosis.color)}>
+                    {ppiPrognosis.label}
+                  </div>
+                </div>
+
+                {/* Score breakdown */}
+                <div className="rounded-lg border border-sage/10 p-4">
+                  <h4 className="text-xs font-bold text-charcoal/60 uppercase mb-2">Score Breakdown</h4>
+                  <div className="space-y-1.5">
+                    {[
+                      { label: 'PPS', value: ppiPPS === '10-20' ? 4 : ppiPPS === '30-50' ? 2.5 : 0 },
+                      { label: 'Oral Intake', value: ppiIntake === 'mouthfuls' ? 2.5 : ppiIntake === 'reduced' ? 1 : 0 },
+                      { label: 'Edema', value: ppiEdema ? 1 : 0 },
+                      { label: 'Dyspnea at rest', value: ppiDyspnea ? 3.5 : 0 },
+                      { label: 'Delirium', value: ppiDelirium ? 4 : 0 },
+                    ].map((row) => (
+                      <div key={row.label} className="flex justify-between text-sm">
+                        <span className="text-charcoal/60">{row.label}</span>
+                        <span className={cn('font-bold', row.value > 0 ? 'text-charcoal' : 'text-charcoal/30')}>
+                          {row.value > 0 ? `+${row.value}` : '0'}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-sm border-t border-sage/10 pt-1.5 mt-1.5">
+                      <span className="font-bold text-charcoal">Total</span>
+                      <span className={cn('font-bold', ppiPrognosis.color)}>{ppiScore.toFixed(1)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interpretation guide */}
+                <div className="rounded-lg bg-cream/50 p-4">
+                  <h4 className="text-xs font-bold text-charcoal/60 uppercase mb-2">Interpretation Guide</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-alert-critical" />
+                      <span className="text-charcoal/70"><b>PPI &gt; 6.0:</b> Estimated survival &lt; 3 weeks (sensitivity 83%, specificity 85%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber" />
+                      <span className="text-charcoal/70"><b>PPI 4.1-6.0:</b> Estimated survival &lt; 6 weeks</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-sage" />
+                      <span className="text-charcoal/70"><b>PPI &le; 4.0:</b> Estimated survival &gt; 6 weeks</span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[10px] text-charcoal/40">
+                    Reference: Morita T et al. J Pain Symptom Manage. 1999;18(1):2-8.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Alerts Section ── */}

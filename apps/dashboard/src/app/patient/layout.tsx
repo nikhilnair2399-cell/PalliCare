@@ -21,7 +21,7 @@ export default function PatientLayout({
 
   return (
     <PatientAuthProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-cream">
         {/* Desktop sidebar — always visible on lg */}
         <div className="hidden lg:block">
           <PatientNav onNavigate={() => setSidebarOpen(false)} />
@@ -31,7 +31,7 @@ export default function PatientLayout({
         {sidebarOpen && (
           <>
             <div
-              className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+              className="fixed inset-0 z-40 bg-black/20 lg:hidden"
               onClick={() => setSidebarOpen(false)}
             />
             <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
@@ -42,7 +42,7 @@ export default function PatientLayout({
 
         <div className="flex flex-1 flex-col lg:pl-64">
           <PatientHeader onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+          <main className="flex-1 p-5 lg:p-8">{children}</main>
         </div>
       </div>
     </PatientAuthProvider>

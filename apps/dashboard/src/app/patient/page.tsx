@@ -1,18 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Activity, Pill, Heart, Wind, Sparkles, BookOpen, TrendingUp, MessageCircle, CheckCircle2 } from 'lucide-react';
-import { StatCard } from '@/components/ui/StatCard';
-import { usePatientProfile, useWellnessSummary, usePatientMedications } from '@/lib/patient-hooks';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown } from 'lucide-react';
+import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
+import { painColor } from '@/lib/utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function PatientHomePage() {
+  const [painScore, setPainScore] = useState(3);
+  const [mood, setMood] = useState<'good' | 'okay' | 'bad' | null>(null);
+  const [logged, setLogged] = useState(false);
+
   const profileQuery = usePatientProfile();
   const wellnessQuery = useWellnessSummary();
   const medsQuery = usePatientMedications();
+  const createLog = useCreateSymptomLog();
 
   const { data: profile } = useWithFallback(profileQuery, MOCK_PATIENT_PROFILE);
   const { data: wellness } = useWithFallback(wellnessQuery, MOCK_WELLNESS_SUMMARY);
@@ -21,198 +27,179 @@ export default function PatientHomePage() {
   const p = profile as any;
   const w = wellness as any;
   const meds: any[] = Array.isArray(rawMeds) ? rawMeds : MOCK_MEDICATIONS;
-  const pendingMeds = meds.flatMap((m: any) =>
-    (m.schedule || []).filter((s: any) => s.status === 'pending'),
-  );
+
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  function handleQuickLog() {
+    createLog.mutate(
+      { esas_scores: { pain: painScore }, mood: mood || 'okay', notes: '' },
+      {
+        onSuccess: () => setLogged(true),
+        onError: () => setLogged(true),
+      },
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">
-          Today, You Matter
+    <div className="mx-auto max-w-2xl space-y-6">
+      {/* Hero Greeting Banner */}
+      <div className="rounded-2xl bg-gradient-to-r from-teal to-sage p-8 text-white">
+        <h1 className="font-heading text-3xl font-bold">
+          {timeGreeting}, {p.name?.split(' ')[0] || 'there'}
         </h1>
-        <p className="text-sm text-charcoal-light">
-          Your daily wellness overview &mdash; track, reflect, and stay connected
+        <p className="mt-2 text-base text-white/75 italic">
+          &ldquo;{w.todays_intention || 'I will find moments of peace and gratitude today.'}&rdquo;
         </p>
       </div>
 
-      {/* Stat Cards — 4 columns on desktop */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Pain Level"
-          value={String(w.current_pain ?? w.last_pain ?? '3')}
-          change={w.pain_trend ?? 'Stable today'}
-          changeType="info"
-          icon={<Activity className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Medications Today"
-          value={`${meds.length > 0 ? meds.flatMap((m: any) => m.schedule || []).filter((s: any) => s.status === 'taken').length : 0}/${meds.flatMap((m: any) => m.schedule || []).length || 0}`}
-          change="Taken / Total doses"
-          changeType="increase"
-          icon={<Pill className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Wellness Streak"
-          value={`${w.gratitude_streak ?? w.streak ?? 5} days`}
-          change="Gratitude journal streak"
-          changeType="increase"
-          icon={<Heart className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Breathe Sessions"
-          value={String(w.breathe_sessions ?? w.total_sessions ?? 12)}
-          change={`${w.breathe_minutes ?? w.total_minutes ?? 48} minutes total`}
-          changeType="info"
-          icon={<Wind className="h-5 w-5" />}
-        />
-      </div>
+      {/* How Are You Feeling? */}
+      <div className="rounded-2xl bg-white p-6">
+        <h2 className="font-heading text-xl font-bold text-charcoal">How are you feeling?</h2>
+        <p className="mt-1 text-sm text-charcoal-light">A quick check-in helps your care team understand your comfort.</p>
 
-      {/* Main Grid — 2/3 + 1/3 */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column — 2 cols */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Today's Medications */}
-          <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-sage-light/20 px-5 py-4">
-              <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
-                <Pill className="h-5 w-5" />
-                Today&apos;s Medications
-              </h2>
-              <Link href="/patient/medications" className="text-xs font-semibold text-teal hover:underline">
-                View All &rarr;
-              </Link>
-            </div>
-            <div className="divide-y divide-sage-light/10">
-              {meds.slice(0, 4).map((med: any, i: number) => (
-                <div key={med.id || i} className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-cream/30">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal/10">
-                      <Pill className="h-4 w-4 text-teal" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-charcoal">{med.name}</p>
-                      <p className="text-xs text-charcoal-light">{med.dose} &middot; {med.frequency || 'Daily'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {(med.schedule || []).some((s: any) => s.status === 'taken') ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-sage/10 px-2.5 py-0.5 text-xs font-medium text-sage-dark">
-                        <CheckCircle2 className="h-3 w-3" /> Taken
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-amber/10 px-2.5 py-0.5 text-xs font-medium text-amber">
-                        Pending
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {meds.length === 0 && (
-                <div className="px-5 py-8 text-center">
-                  <Pill className="mx-auto h-8 w-8 text-charcoal/20" />
-                  <p className="mt-2 text-xs text-charcoal/50">No medications scheduled</p>
-                </div>
-              )}
-            </div>
+        {logged ? (
+          <div className="mt-6 flex flex-col items-center gap-3 py-4">
+            <CheckCircle2 className="h-12 w-12 text-sage" />
+            <p className="text-base font-semibold text-sage-dark">Logged! Thank you.</p>
+            <button
+              onClick={() => { setLogged(false); setMood(null); setPainScore(3); }}
+              className="text-sm text-teal hover:underline"
+            >
+              Log again
+            </button>
           </div>
-
-          {/* Recent Symptom Log */}
-          <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-sage-light/20 px-5 py-4">
-              <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-teal">
-                <Activity className="h-5 w-5" />
-                Quick Actions
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 lg:grid-cols-4">
-              {[
-                { label: 'Log Symptoms', href: '/patient/log', icon: Activity, color: 'bg-teal/10 text-teal' },
-                { label: 'Pain Diary', href: '/patient/pain-diary', icon: TrendingUp, color: 'bg-terra/10 text-terra' },
-                { label: 'Breathe', href: '/patient/breathe', icon: Wind, color: 'bg-sage/10 text-sage-dark' },
-                { label: 'Learn', href: '/patient/learn', icon: BookOpen, color: 'bg-lavender/20 text-charcoal' },
-                { label: 'Journey', href: '/patient/journey', icon: Sparkles, color: 'bg-amber/10 text-amber' },
-                { label: 'Messages', href: '/patient/messages', icon: MessageCircle, color: 'bg-teal/10 text-teal' },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="flex flex-col items-center gap-2 rounded-xl border border-sage-light/20 p-4 text-center transition-all hover:border-sage-light/40 hover:shadow-sm"
+        ) : (
+          <>
+            {/* Pain Slider */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-charcoal">Pain Level</span>
+                <span
+                  className="rounded-full px-3 py-1 text-sm font-bold text-white"
+                  style={{ backgroundColor: painColor(painScore) }}
                 >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.color}`}>
-                    <action.icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-medium text-charcoal">{action.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right column — 1 col */}
-        <div className="space-y-6">
-          {/* Profile Summary */}
-          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-bold text-charcoal">Profile</h3>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal text-lg font-bold text-white">
-                {(p.name || 'R').charAt(0)}
+                  {painScore}/10
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-charcoal">{p.name}</p>
-                <p className="text-xs text-charcoal-light">UHID: {p.uhid}</p>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                value={painScore}
+                onChange={(e) => setPainScore(Number(e.target.value))}
+                className="mt-3 w-full accent-teal"
+              />
+              <div className="mt-1 flex justify-between text-sm text-charcoal-light">
+                <span>No pain</span>
+                <span>Worst pain</span>
               </div>
             </div>
-            <div className="mt-4 space-y-2 border-t border-sage-light/10 pt-3">
-              <div className="flex justify-between text-xs">
-                <span className="text-charcoal-light">Diagnosis</span>
-                <span className="font-medium text-charcoal">{p.diagnosis || '-'}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-charcoal-light">Age</span>
-                <span className="font-medium text-charcoal">{p.age ?? '-'} years</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Today's Intention */}
-          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
-            <h3 className="flex items-center gap-2 text-sm font-bold text-charcoal">
-              <Sparkles className="h-4 w-4 text-amber" />
-              Today&apos;s Intention
-            </h3>
-            <p className="mt-3 text-sm italic leading-relaxed text-charcoal-light">
-              &ldquo;{w.todays_intention || 'I will find moments of peace and gratitude today.'}&rdquo;
-            </p>
-          </div>
-
-          {/* Pending Medications */}
-          {pendingMeds.length > 0 && (
-            <div className="rounded-xl border border-amber/30 bg-amber/5 p-5">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-charcoal">
-                <Pill className="h-4 w-4 text-amber" />
-                Upcoming Doses
-              </h3>
-              <div className="mt-3 space-y-2">
-                {pendingMeds.slice(0, 3).map((dose: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <span className="text-charcoal">{dose.time}</span>
-                    <span className="rounded-full bg-amber/10 px-2 py-0.5 font-medium text-amber">
-                      Pending
-                    </span>
-                  </div>
+            {/* Mood */}
+            <div className="mt-5">
+              <p className="text-sm font-medium text-charcoal">Mood</p>
+              <div className="mt-3 flex gap-3">
+                {[
+                  { key: 'good' as const, icon: Smile, label: 'Good', color: 'bg-sage/10 text-sage-dark border-sage/30' },
+                  { key: 'okay' as const, icon: Meh, label: 'Okay', color: 'bg-amber/10 text-amber border-amber/30' },
+                  { key: 'bad' as const, icon: Frown, label: 'Not great', color: 'bg-terra/10 text-terra border-terra/30' },
+                ].map((m) => (
+                  <button
+                    key={m.key}
+                    onClick={() => setMood(m.key)}
+                    className={`flex flex-1 flex-col items-center gap-2 rounded-2xl border p-4 transition-all ${
+                      mood === m.key ? m.color : 'border-charcoal/5 bg-cream/50 text-charcoal-light'
+                    }`}
+                  >
+                    <m.icon className="h-7 w-7" />
+                    <span className="text-sm font-medium">{m.label}</span>
+                  </button>
                 ))}
               </div>
-              <Link
-                href="/patient/medications"
-                className="mt-3 block text-center text-xs font-semibold text-teal hover:underline"
-              >
-                View All Medications &rarr;
-              </Link>
             </div>
+
+            {/* Log Button */}
+            <button
+              onClick={handleQuickLog}
+              disabled={createLog.isPending}
+              className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90 disabled:opacity-50"
+            >
+              {createLog.isPending ? 'Saving...' : 'Log How I Feel'}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Today's Medications */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-xl font-bold text-charcoal">Today&apos;s Medications</h2>
+          <Link href="/patient/medications" className="text-sm font-semibold text-teal hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="mt-4 space-y-3">
+          {meds.slice(0, 3).map((med: any, i: number) => {
+            const takenDoses = (med.schedule || []).filter((s: any) => s.status === 'taken').length;
+            const totalDoses = (med.schedule || []).length;
+            const allTaken = totalDoses > 0 && takenDoses === totalDoses;
+
+            return (
+              <div key={med.id || i} className="flex items-center gap-4 rounded-xl bg-cream/50 p-4">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${allTaken ? 'bg-sage/15' : 'bg-amber/15'}`}>
+                  {allTaken ? <CheckCircle2 className="h-5 w-5 text-sage-dark" /> : <Pill className="h-5 w-5 text-amber" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-base font-semibold text-charcoal">{med.name}</p>
+                  <p className="text-sm text-charcoal-light">{med.dose} &middot; {med.frequency || 'Daily'}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-sm font-medium ${allTaken ? 'bg-sage/10 text-sage-dark' : 'bg-amber/10 text-amber'}`}>
+                  {allTaken ? 'Taken' : 'Pending'}
+                </span>
+              </div>
+            );
+          })}
+          {meds.length === 0 && (
+            <p className="py-6 text-center text-sm text-charcoal/40">No medications scheduled today.</p>
           )}
         </div>
+      </div>
+
+      {/* Wellness Stats — 2 cards side by side */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-2xl bg-white p-6">
+          <Heart className="h-6 w-6 text-terra" />
+          <p className="mt-3 font-heading text-3xl font-bold text-charcoal">
+            {w.gratitude_streak ?? w.streak ?? 5}
+          </p>
+          <p className="mt-1 text-sm text-charcoal-light">Day gratitude streak</p>
+        </div>
+        <div className="rounded-2xl bg-white p-6">
+          <Wind className="h-6 w-6 text-sage" />
+          <p className="mt-3 font-heading text-3xl font-bold text-charcoal">
+            {w.breathe_sessions ?? w.total_sessions ?? 12}
+          </p>
+          <p className="mt-1 text-sm text-charcoal-light">Breathe sessions</p>
+        </div>
+      </div>
+
+      {/* Today's Intention (if not shown in hero) */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-amber" />
+          <h3 className="text-base font-semibold text-charcoal">Your Journey</h3>
+        </div>
+        <p className="mt-3 text-sm text-charcoal-light">
+          You&apos;ve set {(w.goals_count ?? 3)} goals and logged {(w.gratitude_count ?? w.gratitude_streak ?? 5)} gratitude entries.
+          Keep going &mdash; every moment of reflection matters.
+        </p>
+        <Link
+          href="/patient/journey"
+          className="mt-4 inline-block text-sm font-semibold text-teal hover:underline"
+        >
+          Visit your journey
+        </Link>
       </div>
     </div>
   );

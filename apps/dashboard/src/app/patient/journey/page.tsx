@@ -50,50 +50,31 @@ export default function JourneyPage() {
   const items: any[] = journey[activeTab] || [];
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-bold text-teal">Journey</h1>
-        <p className="text-sm text-charcoal-light">
+        <h1 className="font-heading text-3xl font-bold text-teal">Journey</h1>
+        <p className="mt-1 text-base text-charcoal-light">
           Reflect, set intentions, and celebrate your milestones
         </p>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-          <Target className="h-5 w-5 text-teal" />
-          <p className="mt-2 font-heading text-2xl font-bold text-charcoal">{(journey.goals || []).length}</p>
-          <p className="text-xs text-charcoal-light">Goals Set</p>
-        </div>
-        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-          <Heart className="h-5 w-5 text-terra" />
-          <p className="mt-2 font-heading text-2xl font-bold text-charcoal">{(journey.gratitude || []).length}</p>
-          <p className="text-xs text-charcoal-light">Gratitudes</p>
-        </div>
-        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-          <Sun className="h-5 w-5 text-amber" />
-          <p className="mt-2 font-heading text-2xl font-bold text-charcoal">{(journey.intentions || []).length}</p>
-          <p className="text-xs text-charcoal-light">Intentions</p>
-        </div>
-        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-          <Trophy className="h-5 w-5 text-sage" />
-          <p className="mt-2 font-heading text-2xl font-bold text-charcoal">{(journey.milestones || []).length}</p>
-          <p className="text-xs text-charcoal-light">Milestones</p>
-        </div>
-      </div>
+      {/* Summary */}
+      <p className="text-sm text-charcoal-light">
+        {(journey.goals || []).length} goals &middot; {(journey.gratitude || []).length} gratitudes &middot; {(journey.milestones || []).length} milestones
+      </p>
 
-      {/* Tabs + Content */}
-      <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
-        <div className="flex border-b border-sage-light/20">
+      {/* Tabs */}
+      <div className="rounded-2xl bg-white p-6">
+        <div className="flex gap-2">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={clsx(
-                'flex items-center gap-2 border-b-2 px-5 py-3.5 text-sm font-medium transition-colors',
+                'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',
                 activeTab === tab.key
-                  ? 'border-teal text-teal'
-                  : 'border-transparent text-charcoal-light hover:text-charcoal',
+                  ? 'bg-teal text-white'
+                  : 'bg-cream text-charcoal-light hover:text-charcoal',
               )}
             >
               <tab.icon className="h-4 w-4" />
@@ -102,8 +83,9 @@ export default function JourneyPage() {
           ))}
         </div>
 
+        {/* Add Input */}
         {activeTab !== 'milestones' && (
-          <div className="flex items-center gap-3 border-b border-sage-light/10 px-5 py-3">
+          <div className="mt-5 flex items-center gap-3">
             <input
               type="text"
               value={newItem}
@@ -114,21 +96,22 @@ export default function JourneyPage() {
                 activeTab === 'gratitude' ? 'What are you grateful for today?' :
                 'Set an intention...'
               }
-              className="flex-1 rounded-lg border border-sage-light/30 bg-cream/30 px-4 py-2 text-sm text-charcoal placeholder:text-charcoal-light/50 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
+              className="h-12 flex-1 rounded-xl border border-charcoal/10 bg-cream/30 px-4 text-base text-charcoal placeholder:text-charcoal/30 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
             />
             <button
               onClick={handleAdd}
               disabled={!newItem.trim()}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal text-white transition-colors hover:bg-teal/90 disabled:opacity-40"
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal text-white transition-colors hover:bg-teal/90 disabled:opacity-40"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
             </button>
           </div>
         )}
 
-        <div className="divide-y divide-sage-light/10">
+        {/* Items */}
+        <div className="mt-5 space-y-3">
           {items.length === 0 ? (
-            <div className="px-5 py-12 text-center">
+            <div className="py-10 text-center">
               <Sparkles className="mx-auto h-8 w-8 text-charcoal/15" />
               <p className="mt-2 text-sm text-charcoal/40">
                 {activeTab === 'milestones' ? 'No milestones yet — keep going!' : `No ${activeTab} yet. Add your first one above.`}
@@ -136,8 +119,8 @@ export default function JourneyPage() {
             </div>
           ) : (
             items.map((item: any, i: number) => (
-              <div key={item.id || i} className="flex items-start gap-3 px-5 py-3 transition-colors hover:bg-cream/20">
-                <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+              <div key={item.id || i} className="flex items-start gap-3 rounded-xl bg-cream/50 p-4">
+                <div className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   activeTab === 'goals' ? 'bg-teal/10 text-teal' :
                   activeTab === 'gratitude' ? 'bg-terra/10 text-terra' :
                   activeTab === 'intentions' ? 'bg-amber/10 text-amber' :
@@ -146,15 +129,15 @@ export default function JourneyPage() {
                   {i + 1}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-charcoal">{item.text || item.title || item.content}</p>
+                  <p className="text-base text-charcoal">{item.text || item.title || item.content}</p>
                   {item.date && (
-                    <p className="mt-0.5 text-[10px] text-charcoal/40">
+                    <p className="mt-1 text-sm text-charcoal/40">
                       {new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   )}
                 </div>
                 {item.completed && (
-                  <span className="rounded-full bg-sage/10 px-2 py-0.5 text-[10px] font-semibold text-sage">Done</span>
+                  <span className="rounded-full bg-sage/10 px-2.5 py-0.5 text-xs font-semibold text-sage">Done</span>
                 )}
               </div>
             ))
