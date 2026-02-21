@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb, Gauge } from 'lucide-react';
+import { Pill, Heart, Wind, Sparkles, CheckCircle2, Smile, Meh, Frown, AlertCircle, TrendingDown, Bell, CalendarClock, Lightbulb, Gauge, BarChart3 } from 'lucide-react';
 import { usePatientProfile, useWellnessSummary, usePatientMedications, useCreateSymptomLog } from '@/lib/patient-hooks';
 import { useWithFallback } from '@/lib/use-api-status';
 import { MOCK_PATIENT_PROFILE, MOCK_WELLNESS_SUMMARY, MOCK_MEDICATIONS } from '@/lib/patient-mock-data';
@@ -292,6 +292,86 @@ export default function PatientHomePage() {
                 : composite >= 50
                 ? 'Good progress. Focus on areas scoring lower to improve your overall comfort.'
                 : 'Your care team is here to help. Please share how you feel with them at your next visit.'}
+            </p>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 51 — Daily Wellness Score Trend (7-Day) */}
+      {(() => {
+        const WELLNESS_HISTORY = [
+          { day: 'Mon', adherence: 100, painControl: 70, mood: 90, engagement: 85 },
+          { day: 'Tue', adherence: 100, painControl: 60, mood: 60, engagement: 75 },
+          { day: 'Wed', adherence: 75, painControl: 50, mood: 60, engagement: 70 },
+          { day: 'Thu', adherence: 100, painControl: 80, mood: 90, engagement: 80 },
+          { day: 'Fri', adherence: 50, painControl: 40, mood: 30, engagement: 55 },
+          { day: 'Sat', adherence: 100, painControl: 70, mood: 60, engagement: 90 },
+          { day: 'Sun', adherence: 75, painControl: 60, mood: 70, engagement: 65 },
+        ];
+        const scores = WELLNESS_HISTORY.map((d) =>
+          Math.round(d.adherence * 0.3 + d.painControl * 0.3 + d.mood * 0.2 + d.engagement * 0.2),
+        );
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        const avgScore = Math.round(scores.reduce((s, v) => s + v, 0) / scores.length);
+        const first3 = scores.slice(0, 3);
+        const last3 = scores.slice(-3);
+        const earlyAvg = first3.reduce((s, v) => s + v, 0) / first3.length;
+        const lateAvg = last3.reduce((s, v) => s + v, 0) / last3.length;
+        const trendDir = lateAvg > earlyAvg + 3 ? 'improving' : lateAvg < earlyAvg - 3 ? 'declining' : 'stable';
+        const todayIdx = new Date().getDay();
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return (
+          <div className="rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-teal" />
+                <h2 className="font-heading text-xl font-bold text-charcoal">Wellness Trend</h2>
+              </div>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                trendDir === 'improving' ? 'bg-sage/10 text-sage-dark' : trendDir === 'declining' ? 'bg-terra/10 text-terra' : 'bg-amber/10 text-amber'
+              }`}>
+                {trendDir === 'improving' ? 'Improving' : trendDir === 'declining' ? 'Needs attention' : 'Steady'}
+              </span>
+            </div>
+            <div className="flex items-end gap-2" style={{ height: '100px' }}>
+              {WELLNESS_HISTORY.map((d, i) => {
+                const score = scores[i];
+                const pct = Math.max(score, 10);
+                const isToday = d.day === dayNames[todayIdx];
+                const barColor = score >= 75 ? 'bg-sage' : score >= 50 ? 'bg-amber' : 'bg-terra';
+                return (
+                  <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                    <span className="text-[10px] font-bold text-charcoal/50">{score}</span>
+                    <div
+                      className={`w-full max-w-[28px] rounded-t-lg transition-all ${barColor} ${isToday ? 'ring-2 ring-teal/40' : ''}`}
+                      style={{ height: `${pct}%` }}
+                    />
+                    <span className={`text-xs ${isToday ? 'font-bold text-teal' : 'text-charcoal/40'}`}>{d.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-cream/50 p-3 text-center">
+                <p className="text-[10px] text-charcoal/40">Average</p>
+                <p className="text-lg font-bold text-charcoal">{avgScore}</p>
+              </div>
+              <div className="rounded-xl bg-sage/5 p-3 text-center">
+                <p className="text-[10px] text-charcoal/40">Best Day</p>
+                <p className="text-lg font-bold text-sage-dark">{maxScore}</p>
+              </div>
+              <div className="rounded-xl bg-terra/5 p-3 text-center">
+                <p className="text-[10px] text-charcoal/40">Lowest</p>
+                <p className="text-lg font-bold text-terra">{minScore}</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {trendDir === 'improving'
+                ? 'Your wellness is trending upward this week. Keep up the great work!'
+                : trendDir === 'declining'
+                ? 'Your scores dipped recently. Focus on medication adherence and logging your symptoms.'
+                : 'Your wellness has been steady. Consistent effort is paying off.'}
             </p>
           </div>
         );

@@ -13,6 +13,7 @@ import {
   Shield,
   Info,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePalliativeMedications, useMedicationSearch } from '@/lib/hooks';
@@ -659,6 +660,98 @@ export default function MedicationDbPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Sprint 51 — Search Analytics & Usage Insights */}
+      {(() => {
+        const SEARCH_ANALYTICS = [
+          { term: 'morphine dose', count: 84, trend: '+12%' },
+          { term: 'gabapentin renal', count: 61, trend: '+8%' },
+          { term: 'fentanyl patch conversion', count: 57, trend: '+22%' },
+          { term: 'ondansetron opioid nausea', count: 43, trend: '-3%' },
+          { term: 'dexamethasone appetite', count: 38, trend: '+5%' },
+          { term: 'tramadol serotonin', count: 31, trend: '+15%' },
+        ];
+        const catCounts: Record<string, number> = {};
+        MEDICATIONS.forEach((m) => { catCounts[m.category] = (catCounts[m.category] || 0) + 1; });
+        const catEntries = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
+        const catMax = Math.max(...catEntries.map(([, c]) => c));
+        const catColor: Record<string, string> = {
+          opioid: 'bg-terra',
+          non_opioid: 'bg-sage',
+          adjuvant: 'bg-teal',
+          antiemetic: 'bg-amber',
+        };
+        const VIEW_DATA = [
+          { name: 'Morphine Sulfate', views: 312, pct: 100 },
+          { name: 'Gabapentin', views: 247, pct: 79 },
+          { name: 'Fentanyl', views: 198, pct: 63 },
+          { name: 'Ondansetron', views: 176, pct: 56 },
+          { name: 'Paracetamol', views: 153, pct: 49 },
+        ];
+        return (
+          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="h-5 w-5 text-teal" />
+              <h3 className="text-sm font-bold text-charcoal">Search Analytics & Usage</h3>
+              <span className="ml-auto rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold text-teal">Last 30 days</span>
+            </div>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+              {/* Top searches */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Top Searches</p>
+                <div className="space-y-1.5">
+                  {SEARCH_ANALYTICS.map((s, i) => (
+                    <div key={s.term} className="flex items-center gap-2">
+                      <span className="w-4 text-[10px] font-bold text-charcoal/30">{i + 1}</span>
+                      <span className="flex-1 truncate text-xs text-charcoal">{s.term}</span>
+                      <span className="text-[10px] font-medium text-charcoal/40">{s.count}</span>
+                      <span className={cn(
+                        'text-[10px] font-bold',
+                        s.trend.startsWith('+') ? 'text-alert-success' : 'text-terra',
+                      )}>{s.trend}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Category distribution */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Category Distribution</p>
+                <div className="space-y-2">
+                  {catEntries.map(([cat, count]) => (
+                    <div key={cat}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs capitalize text-charcoal">{cat.replace('_', '-')}</span>
+                        <span className="text-xs font-bold text-charcoal">{count}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-cream">
+                        <div
+                          className={cn('h-full rounded-full', catColor[cat] || 'bg-lavender')}
+                          style={{ width: `${(count / catMax) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Most viewed medications */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-2">Most Viewed</p>
+                <div className="space-y-1.5">
+                  {VIEW_DATA.map((v) => (
+                    <div key={v.name} className="flex items-center gap-2">
+                      <span className="flex-1 truncate text-xs text-charcoal">{v.name.split(' ')[0]}</span>
+                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-cream">
+                        <div className="h-full rounded-full bg-teal/60" style={{ width: `${v.pct}%` }} />
+                      </div>
+                      <span className="w-8 text-right text-[10px] font-medium text-charcoal/40">{v.views}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb, Activity } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, TrendingDown, Minus, PlusCircle, AlertCircle, CheckCircle2, Lightbulb, Activity, Layers } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -405,6 +405,88 @@ export default function SleepPage() {
           })()}
         </div>
       </div>
+
+      {/* Sprint 51 — Sleep Architecture Breakdown */}
+      {(() => {
+        const recent7 = history.slice(-7);
+        if (recent7.length < 3) return null;
+        const archData = recent7.map((h) => {
+          const total = h.total_hours;
+          const qNorm = h.quality / 10;
+          const hasPain = h.disturbances.includes('Pain');
+          const hasAnxiety = h.disturbances.includes('Anxiety');
+          const rem = Math.max(0.5, total * (0.20 + qNorm * 0.05 - (hasPain ? 0.04 : 0) - (hasAnxiety ? 0.03 : 0)));
+          const deep = Math.max(0.3, total * (0.15 + qNorm * 0.05 - (hasPain ? 0.05 : 0)));
+          const light = Math.max(0.5, total - rem - deep - 0.3);
+          const awake = Math.max(0.1, total - light - deep - rem);
+          return {
+            date: h.date,
+            day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(h.date).getDay()],
+            total,
+            rem: Math.round(rem * 10) / 10,
+            deep: Math.round(deep * 10) / 10,
+            light: Math.round(light * 10) / 10,
+            awake: Math.round(awake * 10) / 10,
+          };
+        });
+        const avgRem = Math.round(archData.reduce((s, d) => s + d.rem, 0) / archData.length * 10) / 10;
+        const avgDeep = Math.round(archData.reduce((s, d) => s + d.deep, 0) / archData.length * 10) / 10;
+        const avgLight = Math.round(archData.reduce((s, d) => s + d.light, 0) / archData.length * 10) / 10;
+        const avgAwake = Math.round(archData.reduce((s, d) => s + d.awake, 0) / archData.length * 10) / 10;
+        const maxH = Math.max(...archData.map((d) => d.total));
+        const stages = [
+          { label: 'Deep', avg: avgDeep, color: 'bg-teal', ideal: '1.5-2h', key: 'deep' as const },
+          { label: 'REM', avg: avgRem, color: 'bg-lavender', ideal: '1.5-2h', key: 'rem' as const },
+          { label: 'Light', avg: avgLight, color: 'bg-sage', ideal: '3-4h', key: 'light' as const },
+          { label: 'Awake', avg: avgAwake, color: 'bg-terra/60', ideal: '<0.5h', key: 'awake' as const },
+        ];
+        return (
+          <div className="rounded-2xl bg-white p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Layers className="h-4 w-4 text-teal" />
+              <h2 className="text-base font-semibold text-charcoal">Sleep Architecture</h2>
+              <span className="ml-auto text-[10px] text-charcoal/40">Estimated from quality & duration</span>
+            </div>
+            {/* Stacked bar chart */}
+            <div className="flex items-end gap-2" style={{ height: '110px' }}>
+              {archData.map((d) => {
+                const scale = maxH > 0 ? 100 / maxH : 1;
+                return (
+                  <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                    <span className="text-[9px] font-bold text-charcoal/40">{d.total}h</span>
+                    <div className="flex w-full max-w-[24px] flex-col overflow-hidden rounded-t-md">
+                      <div className="bg-terra/50" style={{ height: `${d.awake * scale}px` }} />
+                      <div className="bg-sage" style={{ height: `${d.light * scale}px` }} />
+                      <div className="bg-lavender" style={{ height: `${d.rem * scale}px` }} />
+                      <div className="bg-teal" style={{ height: `${d.deep * scale}px` }} />
+                    </div>
+                    <span className="text-[9px] text-charcoal-light">{d.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Legend + averages */}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {stages.map((st) => (
+                <div key={st.key} className="flex items-center gap-2 rounded-xl bg-cream/50 p-2.5">
+                  <span className={clsx('h-3 w-3 rounded-sm flex-shrink-0', st.color)} />
+                  <div>
+                    <p className="text-xs font-semibold text-charcoal">{st.label}</p>
+                    <p className="text-[10px] text-charcoal/50">{st.avg}h avg · ideal {st.ideal}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-charcoal/40">
+              {avgDeep < 1.0
+                ? 'Your deep sleep is below ideal. Pre-bed pain management and reducing screen time may help.'
+                : avgRem < 1.0
+                ? 'REM sleep appears low. Anxiety management and consistent bedtimes can improve dream sleep.'
+                : 'Your sleep stages look balanced. Keep maintaining good sleep habits!'}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Sleep Hygiene Tips */}
       <div className="rounded-2xl bg-teal/5 p-5">
