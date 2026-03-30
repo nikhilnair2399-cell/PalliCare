@@ -1,17 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
+import 'core/l10n/app_localizations.dart';
+import 'features/settings/settings_provider.dart';
+import 'services/hive/hive_adapters.dart';
+import 'services/sync_provider.dart';
+import 'services/push_notification_service.dart';
+
+/// Handle background messages (must be top-level function).
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  PushNotificationService.handleBackgroundMessage(message);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO: Initialize Firebase
-  // await Firebase.initializeApp();
+  // Initialize Hive for offline-first storage
+  await initializeHive();
 
-  // TODO: Initialize Hive for offline storage
-  // await Hive.initFlutter();
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Set up background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Initialize push notifications
+  await PushNotificationService.instance.initialize();
 
   runApp(
     const ProviderScope(
@@ -20,11 +40,18 @@ void main() async {
   );
 }
 
-class PalliCareApp extends StatelessWidget {
+class PalliCareApp extends ConsumerWidget {
   const PalliCareApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize sync service on app start
+    ref.watch(syncProvider);
+
+    // Reactive locale from settings
+    final settings = ref.watch(settingsProvider);
+    final locale = Locale(settings.language, 'IN');
+
     return MaterialApp.router(
       title: 'PalliCare',
       debugShowCheckedModeBanner: false,
@@ -37,17 +64,18 @@ class PalliCareApp extends StatelessWidget {
       // Routing
       routerConfig: appRouter,
 
-      // Localization
+      // Localization — reactive via settingsProvider.language
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('en', 'IN'), // English (India)
-        Locale('hi', 'IN'), // Hindi (India)
+        Locale('en', 'IN'),
+        Locale('hi', 'IN'),
       ],
-      locale: const Locale('en', 'IN'),
+      locale: locale,
     );
   }
 }

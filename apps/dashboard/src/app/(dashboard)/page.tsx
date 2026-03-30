@@ -9,10 +9,13 @@ import {
   Users, AlertTriangle, Activity, Pill, Loader2,
   ListChecks, ArrowRight, Clock, CalendarClock,
   ArrowUpRight, ArrowDownRight, Minus, Clipboard, ShieldCheck, BedDouble, Syringe, LayoutGrid,
+  Brain, HeartPulse, SmilePlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDepartmentSummary, useAlertCounts } from '@/lib/hooks';
 import { useWithFallback } from '@/lib/use-api-status';
+import { useAuth, useRoleConfig } from '@/lib/auth';
+import { isDashboardWidgetAllowed } from '@/lib/role-config';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -65,6 +68,31 @@ const MOCK_HANDOVER = {
   ],
 };
 
+// ── Psychologist-specific mock data ──────────────────────────────────
+const MOCK_MOOD_TRENDS = [
+  { day: 'Mon', avg: 3.2, low: 1, moderate: 5, good: 2 },
+  { day: 'Tue', avg: 3.5, low: 1, moderate: 4, good: 3 },
+  { day: 'Wed', avg: 3.1, low: 2, moderate: 4, good: 2 },
+  { day: 'Thu', avg: 3.8, low: 0, moderate: 4, good: 4 },
+  { day: 'Fri', avg: 3.4, low: 1, moderate: 5, good: 2 },
+  { day: 'Sat', avg: 3.6, low: 1, moderate: 3, good: 4 },
+  { day: 'Sun', avg: 3.3, low: 2, moderate: 4, good: 2 },
+];
+
+const MOCK_COUNSELING_SESSIONS = [
+  { time: '09:30', patient: 'Sunita Devi', type: 'Follow-up', status: 'scheduled' },
+  { time: '11:00', patient: 'Priya Patel', type: 'PHQ-9 Assessment', status: 'scheduled' },
+  { time: '14:00', patient: 'Ramesh Kumar', type: 'Grief counseling', status: 'scheduled' },
+  { time: '15:30', patient: 'Kavita Singh', type: 'Caregiver support', status: 'scheduled' },
+];
+
+const MOCK_CAREGIVER_DISTRESS = [
+  { caregiver: 'Meena Kumar', patient: 'Ramesh Kumar', distressLevel: 'high', score: 8, lastAssessed: '2 days ago' },
+  { caregiver: 'Asha Devi', patient: 'Arun Sharma', distressLevel: 'high', score: 7, lastAssessed: '3 days ago' },
+  { caregiver: 'Ravi Patel', patient: 'Priya Patel', distressLevel: 'moderate', score: 5, lastAssessed: '1 day ago' },
+  { caregiver: 'Sita Verma', patient: 'Mahesh Verma', distressLevel: 'low', score: 3, lastAssessed: 'Today' },
+];
+
 function MiniSparkline({ values, color }: { values: number[]; color: string }) {
   const max = Math.max(...values);
   const min = Math.min(...values);
@@ -84,6 +112,9 @@ export default function DashboardPage() {
   const [dismissedActions, setDismissedActions] = useState<Set<string>>(new Set());
   const summaryQuery = useDepartmentSummary();
   const alertCountsQuery = useAlertCounts();
+  const { user } = useAuth();
+  const roleConfig = useRoleConfig();
+  const clinicianRole = user?.clinicianRole;
 
   const { data: summary, isFromApi: summaryLive } = useWithFallback(summaryQuery, MOCK_SUMMARY);
   const { data: alertCounts, isFromApi: alertsLive } = useWithFallback(alertCountsQuery, MOCK_ALERT_COUNTS);
@@ -99,10 +130,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-teal">
-            Clinician Dashboard
+            {roleConfig.label} Dashboard
           </h1>
           <p className="text-sm text-charcoal-light">
-            Real-time patient monitoring and clinical decision support
+            Real-time patient monitoring, MDT coordination & clinical decision support
           </p>
         </div>
         {(!summaryLive || !alertsLive) && (
@@ -112,158 +143,201 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Stat Cards */}
+      {/* Stat Cards — physician & nurse see clinical stats, psychologist sees psych stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Active Patients"
-          value={String(s.active_patients ?? s.activePatients ?? 24)}
-          change={summaryLive ? 'Live from API' : '+3 this week'}
-          changeType="increase"
-          icon={<Users className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Critical Alerts"
-          value={String(a.critical ?? 3)}
-          change={`${a.unacknowledged ?? a.unacked ?? 2} unacknowledged`}
-          changeType="alert"
-          icon={<AlertTriangle className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Avg Pain Score"
-          value={String(s.avg_pain ?? s.avgPain ?? s.average_pain_score ?? '4.2')}
-          change={summaryLive ? 'Live from API' : '-0.8 from last week'}
-          changeType="decrease"
-          icon={<Activity className="h-5 w-5" />}
-        />
-        <StatCard
-          title="Medication Adherence"
-          value={`${s.medication_adherence ?? s.medicationAdherence ?? s.avg_adherence ?? 87}%`}
-          change={summaryLive ? 'Live from API' : '+2% from last week'}
-          changeType="increase"
-          icon={<Pill className="h-5 w-5" />}
-        />
+        {roleConfig.statCards.includes('active_patients') && (
+          <StatCard
+            title="Active Patients"
+            value={String(s.active_patients ?? s.activePatients ?? 24)}
+            change={summaryLive ? 'Live from API' : '+3 this week'}
+            changeType="increase"
+            icon={<Users className="h-5 w-5" />}
+          />
+        )}
+        {roleConfig.statCards.includes('critical_alerts') && (
+          <StatCard
+            title="Critical Alerts"
+            value={String(a.critical ?? 3)}
+            change={`${a.unacknowledged ?? a.unacked ?? 2} unacknowledged`}
+            changeType="alert"
+            icon={<AlertTriangle className="h-5 w-5" />}
+          />
+        )}
+        {roleConfig.statCards.includes('avg_pain') && (
+          <StatCard
+            title="Avg Pain Score"
+            value={String(s.avg_pain ?? s.avgPain ?? s.average_pain_score ?? '4.2')}
+            change={summaryLive ? 'Live from API' : '-0.8 from last week'}
+            changeType="decrease"
+            icon={<Activity className="h-5 w-5" />}
+          />
+        )}
+        {roleConfig.statCards.includes('medication_adherence') && (
+          <StatCard
+            title="Medication Adherence"
+            value={`${s.medication_adherence ?? s.medicationAdherence ?? s.avg_adherence ?? 87}%`}
+            change={summaryLive ? 'Live from API' : '+2% from last week'}
+            changeType="increase"
+            icon={<Pill className="h-5 w-5" />}
+          />
+        )}
+        {/* Psychologist-specific stat cards */}
+        {roleConfig.statCards.includes('mood_trends_summary') && (
+          <StatCard
+            title="Avg Mood Score"
+            value="3.4"
+            change="+0.2 from last week"
+            changeType="increase"
+            icon={<SmilePlus className="h-5 w-5" />}
+          />
+        )}
+        {roleConfig.statCards.includes('counseling_scheduled') && (
+          <StatCard
+            title="Sessions Today"
+            value={String(MOCK_COUNSELING_SESSIONS.length)}
+            change="2 follow-ups, 2 new"
+            changeType="info"
+            icon={<Brain className="h-5 w-5" />}
+          />
+        )}
+        {roleConfig.statCards.includes('caregiver_distress') && (
+          <StatCard
+            title="Caregiver Distress"
+            value={`${MOCK_CAREGIVER_DISTRESS.filter((c) => c.distressLevel === 'high').length} high`}
+            change={`${MOCK_CAREGIVER_DISTRESS.length} assessed`}
+            changeType="alert"
+            icon={<HeartPulse className="h-5 w-5" />}
+          />
+        )}
       </div>
 
-      {/* 7-Day Trend Sparklines */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {([
-          { key: 'pain', color: '#E87461', goodDir: 'down' },
-          { key: 'alerts', color: '#C67B5C', goodDir: 'down' },
-          { key: 'adherence', color: '#7BA68C', goodDir: 'up' },
-          { key: 'pps', color: '#5C9EAD', goodDir: 'up' },
-        ] as const).map(({ key, color, goodDir }) => {
-          const t = MOCK_TRENDS[key];
-          const isGood = (goodDir === 'up' && t.change > 0) || (goodDir === 'down' && t.change < 0);
-          return (
-            <div key={key} className="rounded-xl border border-sage-light/30 bg-white p-3 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-charcoal/50 uppercase">{t.label}</span>
-                <span className={cn(
-                  'flex items-center gap-0.5 text-[10px] font-bold',
-                  isGood ? 'text-alert-success' : t.change === 0 ? 'text-charcoal/40' : 'text-alert-critical',
-                )}>
-                  {t.change > 0 ? <ArrowUpRight className="h-3 w-3" /> : t.change < 0 ? <ArrowDownRight className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
-                  {Math.abs(t.change)}
-                </span>
-              </div>
-              <div className="mt-1.5 flex items-end justify-between">
-                <span className="text-lg font-bold text-charcoal">{t.values[t.values.length - 1]}{key === 'adherence' || key === 'pps' ? '%' : ''}</span>
-                <MiniSparkline values={t.values} color={color} />
-              </div>
-              <p className="mt-0.5 text-[9px] text-charcoal/30">7-day trend</p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Today's Schedule Strip */}
-      <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <CalendarClock className="h-4 w-4 text-teal" />
-          <h2 className="text-sm font-bold text-teal">Today&apos;s Schedule</h2>
-          <span className="ml-auto text-[10px] text-charcoal/40">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {[
-            { time: '09:00', event: 'Ward Round', patients: 8, type: 'round' },
-            { time: '11:00', event: 'MDT Meeting', patients: 3, type: 'mdt' },
-            { time: '14:00', event: 'Family Meeting', patients: 1, type: 'family' },
-            { time: '15:30', event: 'New Referral', patients: 1, type: 'referral' },
-            { time: '16:30', event: 'Opioid Reviews', patients: 2, type: 'review' },
-          ].map((slot) => {
-            const now = new Date();
-            const [h, m] = slot.time.split(':').map(Number);
-            const isPast = now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m);
-            const isCurrent = now.getHours() === h;
+      {/* 7-Day Trend Sparklines — physician only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'trend_sparklines') && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {([
+            { key: 'pain', color: '#E87461', goodDir: 'down' },
+            { key: 'alerts', color: '#C67B5C', goodDir: 'down' },
+            { key: 'adherence', color: '#7BA68C', goodDir: 'up' },
+            { key: 'pps', color: '#5C9EAD', goodDir: 'up' },
+          ] as const).map(({ key, color, goodDir }) => {
+            const t = MOCK_TRENDS[key];
+            const isGood = (goodDir === 'up' && t.change > 0) || (goodDir === 'down' && t.change < 0);
             return (
-              <div
-                key={slot.time}
-                className={cn(
-                  'flex-shrink-0 rounded-lg border px-3 py-2 min-w-[120px] transition-all',
-                  isCurrent ? 'border-teal bg-teal/5' : isPast ? 'border-sage-light/20 bg-cream/30 opacity-60' : 'border-sage-light/30 bg-white',
-                )}
-              >
-                <p className={cn('text-xs font-bold', isCurrent ? 'text-teal' : 'text-charcoal/50')}>{slot.time}</p>
-                <p className="text-xs font-semibold text-charcoal mt-0.5">{slot.event}</p>
-                <p className="text-[10px] text-charcoal/40">{slot.patients} patient{slot.patients !== 1 ? 's' : ''}</p>
+              <div key={key} className="rounded-xl border border-sage-light/30 bg-white p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-semibold text-charcoal/50 uppercase">{t.label}</span>
+                  <span className={cn(
+                    'flex items-center gap-0.5 text-[10px] font-bold',
+                    isGood ? 'text-alert-success' : t.change === 0 ? 'text-charcoal/40' : 'text-alert-critical',
+                  )}>
+                    {t.change > 0 ? <ArrowUpRight className="h-3 w-3" /> : t.change < 0 ? <ArrowDownRight className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+                    {Math.abs(t.change)}
+                  </span>
+                </div>
+                <div className="mt-1.5 flex items-end justify-between">
+                  <span className="text-lg font-bold text-charcoal">{t.values[t.values.length - 1]}{key === 'adherence' || key === 'pps' ? '%' : ''}</span>
+                  <MiniSparkline values={t.values} color={color} />
+                </div>
+                <p className="mt-0.5 text-[9px] text-charcoal/30">7-day trend</p>
               </div>
             );
           })}
         </div>
-      </div>
+      )}
 
-      {/* Sprint 46 — Department Bed Occupancy */}
-      <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <BedDouble className="h-4 w-4 text-teal" />
-          <h2 className="text-sm font-bold text-teal">Bed Occupancy</h2>
-          <span className="ml-auto text-[10px] text-charcoal/40">Palliative Care Unit</span>
+      {/* Today's Schedule Strip */}
+      {isDashboardWidgetAllowed(clinicianRole, 'schedule') && (
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <CalendarClock className="h-4 w-4 text-teal" />
+            <h2 className="text-sm font-bold text-teal">Today&apos;s Schedule</h2>
+            <span className="ml-auto text-[10px] text-charcoal/40">
+              {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {([
+              { time: '09:00', event: 'Ward Round', patients: 8, type: 'round' },
+              { time: '09:30', event: 'Counseling', patients: 1, type: 'session' },
+              { time: '11:00', event: 'MDT Meeting', patients: 3, type: 'mdt' },
+              { time: '14:00', event: 'Family Meeting', patients: 1, type: 'family' },
+              { time: '15:30', event: 'New Referral', patients: 1, type: 'referral' },
+              { time: '16:30', event: 'Opioid Reviews', patients: 2, type: 'review' },
+            ]).map((slot) => {
+              const now = new Date();
+              const [h, m] = slot.time.split(':').map(Number);
+              const isPast = now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m);
+              const isCurrent = now.getHours() === h;
+              return (
+                <div
+                  key={slot.time}
+                  className={cn(
+                    'flex-shrink-0 rounded-lg border px-3 py-2 min-w-[120px] transition-all',
+                    isCurrent ? 'border-teal bg-teal/5' : isPast ? 'border-sage-light/20 bg-cream/30 opacity-60' : 'border-sage-light/30 bg-white',
+                  )}
+                >
+                  <p className={cn('text-xs font-bold', isCurrent ? 'text-teal' : 'text-charcoal/50')}>{slot.time}</p>
+                  <p className="text-xs font-semibold text-charcoal mt-0.5">{slot.event}</p>
+                  <p className="text-[10px] text-charcoal/40">{slot.patients} patient{slot.patients !== 1 ? 's' : ''}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        {(() => {
-          const beds = { total: 16, occupied: 12, reserved: 2, available: 2 };
-          const occupancyPct = Math.round((beds.occupied / beds.total) * 100);
-          const rows = [
-            { label: 'Occupied', count: beds.occupied, color: 'bg-teal' },
-            { label: 'Reserved', count: beds.reserved, color: 'bg-amber' },
-            { label: 'Available', count: beds.available, color: 'bg-sage/40' },
-          ];
-          return (
-            <>
-              <div className="flex h-4 overflow-hidden rounded-full mb-3">
-                {rows.map(r => (
-                  <div
-                    key={r.label}
-                    className={r.color}
-                    style={{ width: `${(r.count / beds.total) * 100}%` }}
-                    title={`${r.label}: ${r.count}`}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
+      )}
+
+      {/* Bed Occupancy — physician & nurse */}
+      {isDashboardWidgetAllowed(clinicianRole, 'bed_occupancy') && (
+        <div className="rounded-xl border border-sage-light/30 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <BedDouble className="h-4 w-4 text-teal" />
+            <h2 className="text-sm font-bold text-teal">Bed Occupancy</h2>
+            <span className="ml-auto text-[10px] text-charcoal/40">Palliative Care Unit</span>
+          </div>
+          {(() => {
+            const beds = { total: 16, occupied: 12, reserved: 2, available: 2 };
+            const occupancyPct = Math.round((beds.occupied / beds.total) * 100);
+            const rows = [
+              { label: 'Occupied', count: beds.occupied, color: 'bg-teal' },
+              { label: 'Reserved', count: beds.reserved, color: 'bg-amber' },
+              { label: 'Available', count: beds.available, color: 'bg-sage/40' },
+            ];
+            return (
+              <>
+                <div className="flex h-4 overflow-hidden rounded-full mb-3">
                   {rows.map(r => (
-                    <div key={r.label} className="flex items-center gap-1.5 text-xs text-charcoal/60">
-                      <span className={`h-2 w-2 rounded-full ${r.color}`} />
-                      {r.label}: <strong className="text-charcoal">{r.count}</strong>
-                    </div>
+                    <div
+                      key={r.label}
+                      className={r.color}
+                      style={{ width: `${(r.count / beds.total) * 100}%` }}
+                      title={`${r.label}: ${r.count}`}
+                    />
                   ))}
                 </div>
-                <span className={cn(
-                  'text-xs font-bold',
-                  occupancyPct >= 90 ? 'text-terra' : occupancyPct >= 75 ? 'text-amber' : 'text-sage',
-                )}>
-                  {occupancyPct}% occupied
-                </span>
-              </div>
-            </>
-          );
-        })()}
-      </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4">
+                    {rows.map(r => (
+                      <div key={r.label} className="flex items-center gap-1.5 text-xs text-charcoal/60">
+                        <span className={`h-2 w-2 rounded-full ${r.color}`} />
+                        {r.label}: <strong className="text-charcoal">{r.count}</strong>
+                      </div>
+                    ))}
+                  </div>
+                  <span className={cn(
+                    'text-xs font-bold',
+                    occupancyPct >= 90 ? 'text-terra' : occupancyPct >= 75 ? 'text-amber' : 'text-sage',
+                  )}>
+                    {occupancyPct}% occupied
+                  </span>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
-      {/* Sprint 42 — Clinical Quality Compliance */}
-      {(() => {
+      {/* Clinical Quality Compliance — physician only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'quality_compliance') && (() => {
         const metrics = [
           { label: 'Pain assessed <4h', compliant: 21, total: 24, threshold: 85 },
           { label: 'MEDD review current', compliant: 18, total: 22, threshold: 90 },
@@ -313,8 +387,8 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* Sprint 57 — Opioid Census Summary */}
-      {(() => {
+      {/* Opioid Census — physician only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'opioid_census') && (() => {
         const OPIOID_CENSUS = [
           { patient: 'Ramesh Kumar', opioid: 'Morphine SR', medd: 220, route: 'Oral', breakthrough: 'Morphine IR 15mg' },
           { patient: 'Sunita Devi', opioid: 'Oxycodone CR', medd: 120, route: 'Oral', breakthrough: 'Oxycodone IR 10mg' },
@@ -406,18 +480,18 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* Sprint 64 — Department Workload Heatmap */}
-      {(() => {
+      {/* Workload Heatmap — physician only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'workload_heatmap') && (() => {
         const TIME_SLOTS = ['06–09', '09–12', '12–15', '15–18', '18–21', '21–00'];
         const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const WORKLOAD: number[][] = [
-          [2, 5, 4, 3, 2, 1], // Mon
-          [3, 5, 3, 4, 2, 1], // Tue
-          [2, 4, 5, 4, 3, 1], // Wed
-          [3, 5, 4, 5, 2, 2], // Thu
-          [2, 4, 3, 3, 2, 1], // Fri
-          [1, 3, 2, 2, 1, 1], // Sat
-          [1, 2, 2, 1, 1, 0], // Sun
+          [2, 5, 4, 3, 2, 1],
+          [3, 5, 3, 4, 2, 1],
+          [2, 4, 5, 4, 3, 1],
+          [3, 5, 4, 5, 2, 2],
+          [2, 4, 3, 3, 2, 1],
+          [1, 3, 2, 2, 1, 1],
+          [1, 2, 2, 1, 1, 0],
         ];
         const heatColor = (v: number) =>
           v >= 5 ? 'bg-alert-critical text-white' :
@@ -440,14 +514,12 @@ export default function DashboardPage() {
             </div>
             <div className="overflow-x-auto">
               <div className="min-w-[420px]">
-                {/* Time header */}
                 <div className="flex">
                   <div className="w-10" />
                   {TIME_SLOTS.map((t) => (
                     <div key={t} className="flex-1 text-center text-[9px] font-semibold text-charcoal/40 pb-1">{t}</div>
                   ))}
                 </div>
-                {/* Grid rows */}
                 {DAYS.map((day, di) => (
                   <div key={day} className="flex items-center gap-0.5 mb-0.5">
                     <span className="w-10 text-[10px] font-semibold text-charcoal/50">{day}</span>
@@ -480,8 +552,116 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* Critical Next Steps */}
-      {visibleActions.length > 0 && (
+      {/* ══════════════════════════════════════════════════════════════════
+         Psychologist-specific Widgets
+         ══════════════════════════════════════════════════════════════════ */}
+
+      {/* Mood Trends — psychologist only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'mood_trends') && (
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+              <SmilePlus className="h-4 w-4" />
+              Patient Mood Trends — 7 Day
+            </h2>
+            <span className="text-[10px] text-charcoal/40">Avg across all patients</span>
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {MOCK_MOOD_TRENDS.map((day) => (
+              <div key={day.day} className="text-center">
+                <p className="text-[10px] font-semibold text-charcoal/40 mb-1">{day.day}</p>
+                <div className="mx-auto h-16 w-6 rounded-full bg-cream relative overflow-hidden">
+                  <div
+                    className="absolute bottom-0 w-full rounded-full bg-teal/60"
+                    style={{ height: `${(day.avg / 5) * 100}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-xs font-bold text-charcoal">{day.avg}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-[10px] text-charcoal/40">
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-alert-critical" /> Low mood: {MOCK_MOOD_TRENDS.reduce((s, d) => s + d.low, 0)} patients
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-amber" /> Moderate: {MOCK_MOOD_TRENDS.reduce((s, d) => s + d.moderate, 0)} patients
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-sage" /> Good: {MOCK_MOOD_TRENDS.reduce((s, d) => s + d.good, 0)} patients
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Counseling Sessions — psychologist only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'counseling_sessions') && (
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+              <Brain className="h-4 w-4" />
+              Today&apos;s Counseling Sessions
+            </h2>
+            <span className="text-[10px] text-charcoal/40">{MOCK_COUNSELING_SESSIONS.length} sessions</span>
+          </div>
+          <div className="space-y-2">
+            {MOCK_COUNSELING_SESSIONS.map((session) => (
+              <div key={session.time} className="flex items-center gap-3 rounded-lg border border-sage-light/20 p-3">
+                <div className="text-center min-w-[48px]">
+                  <p className="text-xs font-bold text-teal">{session.time}</p>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-charcoal">{session.patient}</p>
+                  <p className="text-xs text-charcoal/50">{session.type}</p>
+                </div>
+                <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold text-teal">
+                  {session.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Caregiver Distress Overview — psychologist only */}
+      {isDashboardWidgetAllowed(clinicianRole, 'caregiver_distress_overview') && (
+        <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="flex items-center gap-2 text-sm font-bold text-teal">
+              <HeartPulse className="h-4 w-4" />
+              Caregiver Distress Overview
+            </h2>
+            <span className="text-[10px] text-charcoal/40">{MOCK_CAREGIVER_DISTRESS.length} caregivers assessed</span>
+          </div>
+          <div className="space-y-2">
+            {MOCK_CAREGIVER_DISTRESS.map((cg) => (
+              <div key={cg.caregiver} className="flex items-center gap-3 rounded-lg border border-sage-light/20 p-3">
+                <span className={cn(
+                  'h-2.5 w-2.5 rounded-full flex-shrink-0',
+                  cg.distressLevel === 'high' ? 'bg-alert-critical' : cg.distressLevel === 'moderate' ? 'bg-amber' : 'bg-sage',
+                )} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-charcoal truncate">{cg.caregiver}</p>
+                    <span className={cn(
+                      'rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase',
+                      cg.distressLevel === 'high' ? 'bg-alert-critical/10 text-alert-critical' :
+                      cg.distressLevel === 'moderate' ? 'bg-amber/10 text-amber' :
+                      'bg-sage/10 text-sage',
+                    )}>
+                      {cg.distressLevel}
+                    </span>
+                  </div>
+                  <p className="text-xs text-charcoal/50">Caring for {cg.patient} · Score: {cg.score}/10 · {cg.lastAssessed}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Critical Next Steps — physician & nurse */}
+      {isDashboardWidgetAllowed(clinicianRole, 'critical_next_steps') && visibleActions.length > 0 && (
         <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-heading text-base font-bold text-teal">
@@ -526,45 +706,51 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Main Grid */}
+      {/* Main Grid — Patient List + Right Column */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Patient List — 2 cols */}
-        <div className="lg:col-span-2">
-          <PatientListPreview />
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-6">
-          <AlertsPreview />
-
-          {/* Shift Handover Snapshot */}
-          <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h3 className="flex items-center gap-2 font-heading text-sm font-bold text-teal">
-                <Clipboard className="h-4 w-4" />
-                Shift Snapshot
-              </h3>
-              <span className="text-[10px] text-charcoal/40">Since {MOCK_HANDOVER.shiftStart}</span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {MOCK_HANDOVER.highlights.map((h, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className={cn(
-                    'mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0',
-                    h.type === 'alert' ? 'bg-alert-critical' :
-                    h.type === 'med_change' ? 'bg-amber' :
-                    h.type === 'task' ? 'bg-teal' :
-                    'bg-sage',
-                  )} />
-                  <p className="text-xs text-charcoal/70 leading-relaxed">{h.text}</p>
-                </div>
-              ))}
-            </div>
-            <Link href="/mdt" className="mt-3 flex items-center gap-1 text-xs font-semibold text-teal hover:underline">
-              Open full MDT view <ArrowRight className="h-3 w-3" />
-            </Link>
+        {isDashboardWidgetAllowed(clinicianRole, 'patient_list') && (
+          <div className={isDashboardWidgetAllowed(clinicianRole, 'alerts_preview') ? 'lg:col-span-2' : 'lg:col-span-3'}>
+            <PatientListPreview />
           </div>
-        </div>
+        )}
+
+        {/* Right Column — alerts & shift snapshot */}
+        {(isDashboardWidgetAllowed(clinicianRole, 'alerts_preview') || isDashboardWidgetAllowed(clinicianRole, 'shift_snapshot')) && (
+          <div className="space-y-6">
+            {isDashboardWidgetAllowed(clinicianRole, 'alerts_preview') && <AlertsPreview />}
+
+            {/* Shift Handover Snapshot */}
+            {isDashboardWidgetAllowed(clinicianRole, 'shift_snapshot') && (
+              <div className="rounded-xl border border-sage-light/30 bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-heading text-sm font-bold text-teal">
+                    <Clipboard className="h-4 w-4" />
+                    Shift Snapshot
+                  </h3>
+                  <span className="text-[10px] text-charcoal/40">Since {MOCK_HANDOVER.shiftStart}</span>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {MOCK_HANDOVER.highlights.map((h, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className={cn(
+                        'mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0',
+                        h.type === 'alert' ? 'bg-alert-critical' :
+                        h.type === 'med_change' ? 'bg-amber' :
+                        h.type === 'task' ? 'bg-teal' :
+                        'bg-sage',
+                      )} />
+                      <p className="text-xs text-charcoal/70 leading-relaxed">{h.text}</p>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/mdt" className="mt-3 flex items-center gap-1 text-xs font-semibold text-teal hover:underline">
+                  Open full MDT view <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

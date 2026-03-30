@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/sync_provider.dart';
 
 /// Log mode determines the card sequence.
 enum LogMode { quick, full, breakthrough }
@@ -76,7 +77,9 @@ class SymptomLogEntry {
 }
 
 class SymptomLogNotifier extends StateNotifier<SymptomLogEntry> {
-  SymptomLogNotifier() : super(const SymptomLogEntry());
+  final Ref _ref;
+
+  SymptomLogNotifier(this._ref) : super(const SymptomLogEntry());
 
   void startLog(LogMode mode) =>
       state = SymptomLogEntry(mode: mode);
@@ -136,9 +139,32 @@ class SymptomLogNotifier extends StateNotifier<SymptomLogEntry> {
   }
 
   void reset() => state = const SymptomLogEntry();
+
+  /// Submit the current log entry — saves locally first, then queues sync.
+  /// Returns the local ID for tracking.
+  Future<String> submitLog() async {
+    final logData = <String, dynamic>{
+      'mode': state.mode.name,
+      'pain_intensity': state.painIntensity,
+      'pain_locations': state.painLocations,
+      'pain_qualities': state.painQualities,
+      'aggravators': state.aggravators,
+      'relievers': state.relievers,
+      'esas_scores': state.esasScores,
+      'mood': state.mood,
+      'sleep_quality': state.sleepQuality,
+      'sleep_hours': state.sleepHours,
+      'notes': state.notes,
+    };
+
+    final localId =
+        await _ref.read(syncProvider.notifier).queueSymptomLog(logData);
+    reset();
+    return localId;
+  }
 }
 
 final symptomLogProvider =
     StateNotifierProvider<SymptomLogNotifier, SymptomLogEntry>(
-  (ref) => SymptomLogNotifier(),
+  (ref) => SymptomLogNotifier(ref),
 );

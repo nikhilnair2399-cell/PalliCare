@@ -154,16 +154,16 @@ export default function MoodCheckPage() {
   /* ─── HOME ─── */
   if (mode === 'home') {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-teal">Mood Check</h1>
+          <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Mood Check</h1>
           <p className="mt-1 text-base text-charcoal-light">
             Validated screenings for depression &amp; anxiety — recommended every 2 weeks
           </p>
         </div>
 
         {/* Quick Daily Mood Check */}
-        <div className="rounded-2xl bg-white p-6">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
           <h2 className="text-base font-semibold text-charcoal">How are you feeling right now?</h2>
           <p className="mt-1 text-sm text-charcoal-light">A quick check-in — no quiz needed</p>
           <div className="mt-4 flex gap-3">
@@ -234,7 +234,7 @@ export default function MoodCheckPage() {
           const lastAvg = last7.reduce((s, m) => s + moodValue[m.mood], 0) / last7.length;
           const trendDir = lastAvg > firstAvg + 0.2 ? 'improving' : lastAvg < firstAvg - 0.2 ? 'declining' : 'stable';
           return (
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="h-5 w-5 text-lavender" />
                 <h3 className="text-base font-semibold text-charcoal">14-Day Mood Pattern</h3>
@@ -301,7 +301,7 @@ export default function MoodCheckPage() {
           const maxAvg = Math.max(...dayStats.map((d) => d.avg));
 
           return (
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <BarChart3 className="h-5 w-5 text-lavender" />
                 <h3 className="text-base font-semibold text-charcoal">Mood Pattern Insights</h3>
@@ -393,7 +393,7 @@ export default function MoodCheckPage() {
           topConcerns.sort((a, b) => b.score - a.score);
 
           return (
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="h-5 w-5 text-lavender" />
                 <h3 className="text-base font-semibold text-charcoal">Emotional Wellness Pattern</h3>
@@ -401,7 +401,7 @@ export default function MoodCheckPage() {
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="rounded-xl bg-lavender/10 p-3 text-center">
                   <p className="text-xs text-charcoal/50 mb-1">Depression</p>
-                  <p className="font-heading text-xl font-bold text-charcoal">{latestPhq9?.total ?? '—'}/27</p>
+                  <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{latestPhq9?.total ?? '—'}/27</p>
                   {prevPhq9 && latestPhq9 && (
                     <p className={`text-xs font-medium mt-1 ${latestPhq9.total < prevPhq9.total ? 'text-sage-dark' : latestPhq9.total > prevPhq9.total ? 'text-terra' : 'text-charcoal/40'}`}>
                       {latestPhq9.total < prevPhq9.total ? `↓ ${prevPhq9.total - latestPhq9.total} from last` : latestPhq9.total > prevPhq9.total ? `↑ ${latestPhq9.total - prevPhq9.total} from last` : 'Stable'}
@@ -410,7 +410,7 @@ export default function MoodCheckPage() {
                 </div>
                 <div className="rounded-xl bg-amber/10 p-3 text-center">
                   <p className="text-xs text-charcoal/50 mb-1">Anxiety</p>
-                  <p className="font-heading text-xl font-bold text-charcoal">{latestGad7?.total ?? '—'}/21</p>
+                  <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{latestGad7?.total ?? '—'}/21</p>
                   {prevGad7 && latestGad7 && (
                     <p className={`text-xs font-medium mt-1 ${latestGad7.total < prevGad7.total ? 'text-sage-dark' : latestGad7.total > prevGad7.total ? 'text-terra' : 'text-charcoal/40'}`}>
                       {latestGad7.total < prevGad7.total ? `↓ ${prevGad7.total - latestGad7.total} from last` : latestGad7.total > prevGad7.total ? `↑ ${latestGad7.total - prevGad7.total} from last` : 'Stable'}
@@ -492,7 +492,7 @@ export default function MoodCheckPage() {
           const gad7History = history.filter(h => h.type === 'gad7');
           const maxScore = 27;
           return (
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-bold text-teal">
                 <TrendingDown className="h-5 w-5" /> Score Trend
               </h2>
@@ -543,7 +543,7 @@ export default function MoodCheckPage() {
     const screenLabel = activeScreen === 'phq9' ? 'Depression Screen (PHQ-9)' : 'Anxiety Screen (GAD-7)';
 
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         {/* Safety Alert */}
         {showSafetyAlert && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -582,7 +582,7 @@ export default function MoodCheckPage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-teal">{screenLabel}</h1>
+            <h1 className="font-heading text-lg sm:text-2xl font-bold text-teal">{screenLabel}</h1>
             <p className="mt-1 text-sm text-charcoal-light">Over the last 2 weeks, how often have you been bothered by:</p>
           </div>
           <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">
@@ -606,7 +606,7 @@ export default function MoodCheckPage() {
         </div>
 
         {/* Question */}
-        <div className="rounded-2xl bg-white p-6">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
           <p className="mb-6 text-base font-medium leading-relaxed text-charcoal">
             {items[currentQ]}
             {activeScreen === 'phq9' && currentQ === 8 && (
@@ -655,9 +655,9 @@ export default function MoodCheckPage() {
 
   /* ─── RESULTS ─── */
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Your Results</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Your Results</h1>
         <p className="text-base text-charcoal-light">Screening completed on {new Date().toLocaleDateString()}</p>
       </div>
 
@@ -668,7 +668,7 @@ export default function MoodCheckPage() {
         const pct = (r.total / maxScore) * 100;
 
         return (
-          <div key={r.type} className="rounded-2xl bg-white p-6">
+          <div key={r.type} className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-charcoal">
                 <Brain className={`h-5 w-5 ${sev.cls}`} />

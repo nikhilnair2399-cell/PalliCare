@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { useAuth } from '@/lib/auth';
+import { isRouteAllowed } from '@/lib/role-config';
+import { DevRoleSwitcher } from '@/components/layout/DevRoleSwitcher';
 
 export default function DashboardLayout({
   children,
@@ -10,6 +14,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect to home if the current route is not allowed for this role
+  useEffect(() => {
+    if (!isAuthenticated || !pathname) return;
+    if (!isRouteAllowed(user?.clinicianRole, pathname)) {
+      router.replace('/');
+    }
+  }, [pathname, user?.clinicianRole, isAuthenticated, router]);
 
   return (
     <div className="flex min-h-screen">
@@ -35,6 +50,9 @@ export default function DashboardLayout({
         <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
+
+      {/* Dev-only role switcher */}
+      <DevRoleSwitcher />
     </div>
   );
 }

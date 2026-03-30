@@ -36,9 +36,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Settings</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Settings</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Manage your profile, preferences, and notifications
         </p>
@@ -60,7 +60,7 @@ export default function SettingsPage() {
         const pct = Math.round((completed / checks.length) * 100);
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-teal" />
@@ -120,7 +120,7 @@ export default function SettingsPage() {
         const maxVisits = Math.max(...ACTIVITY_LOG.map((a) => a.visits));
         const activeStreak = ACTIVITY_LOG.filter((a) => a.streak > 0).length;
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-teal" />
@@ -159,7 +159,7 @@ export default function SettingsPage() {
       })()}
 
       {/* Profile */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <User className="h-5 w-5 text-teal" />
           Profile
@@ -195,7 +195,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Language */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <Globe className="h-5 w-5 text-teal" />
           Language
@@ -224,7 +224,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Notifications */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <Bell className="h-5 w-5 text-teal" />
           Notifications
@@ -262,7 +262,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Accessibility */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <Accessibility className="h-5 w-5 text-teal" />
           Accessibility
@@ -311,7 +311,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Emergency Contact */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <Phone className="h-5 w-5 text-teal" />
           Emergency Contacts
@@ -341,7 +341,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Privacy */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-charcoal">
           <Shield className="h-5 w-5 text-teal" />
           Privacy &amp; Data
@@ -378,7 +378,7 @@ export default function SettingsPage() {
         const totalEntries = DATA_CATEGORIES.reduce((s, d) => s + d.entries, 0);
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Share2 className="h-5 w-5 text-teal" />
@@ -430,7 +430,7 @@ export default function SettingsPage() {
         const syncStatus = 'Synced';
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Smartphone className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Device & Security</h3>
@@ -486,7 +486,7 @@ export default function SettingsPage() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90 disabled:opacity-50"
+        className="flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90 disabled:opacity-50"
       >
         {saving ? (
           <Loader2 className="h-5 w-5 animate-spin" />

@@ -42,6 +42,25 @@ export interface PaginatedResponse<T> {
 /** User role within the PalliCare system */
 export type UserRole = 'patient' | 'caregiver' | 'clinician';
 
+/** Clinician sub-role within the care team */
+export type ClinicianRole =
+  | 'physician'
+  | 'nurse'
+  | 'psychologist'
+  | 'social_worker'
+  | 'physiotherapist'
+  | 'spiritual_care'
+  | 'dietitian'
+  | 'research_coordinator'
+  | 'admin';
+
+/** Permission flags from the clinicians table */
+export interface ClinicianPermissions {
+  canPrescribe: boolean;
+  canExportResearch: boolean;
+  canManageUsers: boolean;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Auth
 // ═══════════════════════════════════════════════════════════════════════════
@@ -73,6 +92,14 @@ export interface AuthUser {
   name: string;
 }
 
+/** Extended auth user with clinician-specific fields */
+export interface AuthUserExtended extends AuthUser {
+  clinicianRole?: ClinicianRole;
+  permissions?: ClinicianPermissions;
+  department?: string;
+  designation?: string;
+}
+
 /** POST /auth/otp/verify | POST /auth/token/refresh - Response */
 export interface TokenResponse {
   access_token: string;
@@ -80,7 +107,7 @@ export interface TokenResponse {
   token_type: 'bearer';
   /** Access token expiry in seconds */
   expires_in: number;
-  user: AuthUser;
+  user: AuthUserExtended;
 }
 
 /** POST /auth/token/refresh - Request body */

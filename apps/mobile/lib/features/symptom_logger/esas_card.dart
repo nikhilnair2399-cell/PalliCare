@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'symptom_log_provider.dart';
@@ -22,6 +23,7 @@ class EsasCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final scores = ref.watch(symptomLogProvider).esasScores;
 
     return SingleChildScrollView(
@@ -29,9 +31,9 @@ class EsasCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'How are these symptoms?',
-            style: TextStyle(
+          Text(
+            l.esasQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,

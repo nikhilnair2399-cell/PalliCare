@@ -159,8 +159,22 @@ export const medicationDbApi = {
   opioidReference: () => api.get('/medication-db/opioid-reference'),
 };
 
+/** Consent */
+export const consentApi = {
+  verifyPatientConsent: (patientId: string) =>
+    api.get(`/clinician/patients/${patientId}/assignment-status`),
+  requestAssignment: (patientId: string) =>
+    api.post(`/clinician/patients/${patientId}/assign`),
+};
+
 /** Health */
 export const healthApi = {
   check: () => api.get('/health'),
   ready: () => api.get('/health/ready'),
+};
+
+/** Verification (dev-only) */
+export const verificationApi = {
+  run: () => api.post('/verification/run'),
+  status: () => api.get('/verification/status'),
 };

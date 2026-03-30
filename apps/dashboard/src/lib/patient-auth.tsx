@@ -28,12 +28,14 @@ interface PatientAuthState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isOnboarded: boolean;
 }
 
 interface PatientAuthContextValue extends PatientAuthState {
   login: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
   requestOtp: (phone: string) => Promise<void>;
+  completeOnboarding: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -45,6 +47,7 @@ const PatientAuthContext = createContext<PatientAuthContextValue | null>(null);
 const TOKEN_KEY = 'patient_token';
 const REFRESH_KEY = 'patient_refresh';
 const USER_KEY = 'patient_user';
+const ONBOARDING_KEY = 'patient_onboarding_complete';
 
 /* ------------------------------------------------------------------ */
 /*  Provider                                                            */
@@ -57,6 +60,7 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
     token: null,
     isLoading: true,
     isAuthenticated: false,
+    isOnboarded: false,
   });
 
   // Restore session from localStorage on mount
@@ -67,11 +71,13 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
     if (token && userJson) {
       try {
         const user = JSON.parse(userJson) as PatientUser;
+        const onboarded = localStorage.getItem(ONBOARDING_KEY) === 'true';
         setState({
           user,
           token,
           isLoading: false,
           isAuthenticated: true,
+          isOnboarded: onboarded,
         });
       } catch {
         clearStorage();
@@ -117,11 +123,13 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(TOKEN_KEY, devToken);
         localStorage.setItem(USER_KEY, JSON.stringify(devUser));
 
+        const onboarded = localStorage.getItem(ONBOARDING_KEY) === 'true';
         setState({
           user: devUser,
           token: devToken,
           isLoading: false,
           isAuthenticated: true,
+          isOnboarded: onboarded,
         });
         return;
       }
@@ -134,15 +142,22 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(REFRESH_KEY, refresh_token);
       localStorage.setItem(USER_KEY, JSON.stringify(user));
 
+      const onboarded = localStorage.getItem(ONBOARDING_KEY) === 'true';
       setState({
         user,
         token: access_token,
         isLoading: false,
         isAuthenticated: true,
+        isOnboarded: onboarded,
       });
     },
     [],
   );
+
+  const completeOnboarding = useCallback(() => {
+    localStorage.setItem(ONBOARDING_KEY, 'true');
+    setState((s) => ({ ...s, isOnboarded: true }));
+  }, []);
 
   const logout = useCallback(() => {
     clearStorage();
@@ -151,6 +166,7 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
       token: null,
       isLoading: false,
       isAuthenticated: false,
+      isOnboarded: false,
     });
     router.push('/patient/login');
   }, [router]);
@@ -162,6 +178,7 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         requestOtp,
+        completeOnboarding,
       }}
     >
       {children}

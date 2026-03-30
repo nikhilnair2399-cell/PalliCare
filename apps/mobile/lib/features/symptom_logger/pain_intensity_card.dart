@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/pain_badge.dart';
@@ -12,6 +13,7 @@ class PainIntensityCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final intensity = ref.watch(symptomLogProvider).painIntensity;
 
     return SingleChildScrollView(
@@ -19,9 +21,9 @@ class PainIntensityCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'How is your pain right now?',
-            style: TextStyle(
+          Text(
+            l.painIntensityQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -91,9 +93,9 @@ class PainIntensityCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('0 — No pain',
+              Text(l.painScaleMin,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-              Text('10 — Worst possible',
+              Text(l.painScaleMax,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
             ],
           ),

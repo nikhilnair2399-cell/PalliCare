@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'symptom_log_provider.dart';
@@ -25,6 +26,7 @@ class MoodSleepCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final entry = ref.watch(symptomLogProvider);
 
     return SingleChildScrollView(
@@ -33,9 +35,9 @@ class MoodSleepCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Mood section
-          const Text(
-            'How are you feeling?',
-            style: TextStyle(
+          Text(
+            l.moodQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -99,9 +101,9 @@ class MoodSleepCard extends ConsumerWidget {
           const SizedBox(height: 32),
 
           // Sleep quality
-          const Text(
-            'How did you sleep last night?',
-            style: TextStyle(
+          Text(
+            l.sleepQualityQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -166,9 +168,9 @@ class MoodSleepCard extends ConsumerWidget {
           const SizedBox(height: 28),
 
           // Sleep hours
-          const Text(
-            'Hours of sleep',
-            style: TextStyle(
+          Text(
+            l.sleepHoursLabel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,

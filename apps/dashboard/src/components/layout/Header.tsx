@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Search, Menu, X, AlertTriangle, AlertCircle, Info, Clock } from 'lucide-react';
+import { Bell, Search, Menu, X, AlertTriangle, AlertCircle, Info, Clock, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlerts, useAlertCounts } from '@/lib/hooks';
 
@@ -18,6 +18,19 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const [isDark, setIsDark] = useState(false);
+
+  // Sync dark state on mount
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const nowDark = html.classList.toggle('dark');
+    localStorage.setItem('theme', nowDark ? 'dark' : 'light');
+    setIsDark(nowDark);
+  }
 
   // Live alert data
   const alertCountsQuery = useAlertCounts();
@@ -114,6 +127,15 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
       {/* Right Actions */}
       <div className="flex items-center gap-3 lg:gap-4">
+        {/* Dark / Light Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="rounded-lg p-2 text-charcoal-light hover:bg-cream hover:text-teal transition-colors"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+
         {/* Notification Bell with Dropdown */}
         <div ref={notifRef} className="relative">
           <button

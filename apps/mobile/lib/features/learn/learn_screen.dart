@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/routing/app_router.dart';
 import 'learn_provider.dart';
 import 'learn_module_card.dart';
 import 'learn_path_card.dart';
@@ -24,6 +26,7 @@ class LearnScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final learnState = ref.watch(learnProvider);
 
     return Scaffold(
@@ -36,7 +39,7 @@ class LearnScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Learn / \u0938\u0940\u0916\u0947\u0902',
+          l.learnTitle,
           style: AppTypography.heading3.copyWith(color: AppColors.teal),
         ),
         centerTitle: true,
@@ -47,6 +50,35 @@ class LearnScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // [NEW] Disease Library Hero Card
+              _DiseaseLibraryHeroCard(
+                onTap: () => context.push(AppRoutes.learnLibrary),
+                onSearchTap: () => context.push(AppRoutes.learnSearch),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              // [NEW] Quick links row (FAQ + Library)
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickLinkChip(
+                      icon: Icons.question_answer_outlined,
+                      label: l.learnFaqCorner,
+                      onTap: () => context.push(AppRoutes.learnFaq),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _QuickLinkChip(
+                      icon: Icons.search,
+                      label: l.learnSearchTopics,
+                      onTap: () => context.push(AppRoutes.learnSearch),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
               // [A] Continue Where You Left Off
               if (learnState.continueModule != null)
                 ContinueModuleCard(
@@ -61,16 +93,9 @@ class LearnScreen extends ConsumerWidget {
               // [B] Recommended For You
               if (learnState.recommendedModules.isNotEmpty) ...[
                 Text(
-                  'Recommended For You',
+                  l.learnRecommended,
                   style: AppTypography.heading3.copyWith(
                     color: AppColors.teal,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '\u0906\u092A\u0915\u0947 \u0932\u093F\u090F \u0938\u0941\u091D\u093E\u0935',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.charcoalLight,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -99,34 +124,25 @@ class LearnScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Learning Paths',
+                    l.learnPaths,
                     style: AppTypography.heading3.copyWith(
                       color: AppColors.teal,
                     ),
                   ),
                   Text(
-                    '${learnState.completedCount} / ${learnState.totalCount} done',
+                    l.learnPathsDone(learnState.completedCount, learnState.totalCount),
                     style: AppTypography.labelSmall.copyWith(
                       color: AppColors.charcoalLight,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                '\u0938\u0940\u0916\u0928\u0947 \u0915\u093E \u0915\u094D\u0930\u092E',
-                style: AppTypography.caption.copyWith(
-                  color: AppColors.charcoalLight,
-                ),
-              ),
               const SizedBox(height: AppSpacing.sm),
 
               // Phase 1
               LearnPathCard(
                 phaseLabel: 'Phase 1',
-                titleEn: 'Understanding Your Pain',
-                titleHi:
-                    '\u0926\u0930\u094D\u0926 \u0915\u094B \u0938\u092E\u091D\u0928\u093E',
+                titleEn: l.learnPhase1Title,
                 modules: learnState.phase1Modules,
                 accentColor: AppColors.sage,
                 isUnlocked: learnState.isPhase1Unlocked,
@@ -138,9 +154,7 @@ class LearnScreen extends ConsumerWidget {
               // Phase 2
               LearnPathCard(
                 phaseLabel: 'Phase 2',
-                titleEn: 'Tools for Your Journey',
-                titleHi:
-                    '\u0906\u092A\u0915\u0940 \u092F\u093E\u0924\u094D\u0930\u093E \u0915\u0947 \u0938\u093E\u0927\u0928',
+                titleEn: l.learnPhase2Title,
                 modules: learnState.phase2Modules,
                 accentColor: AppColors.teal,
                 isUnlocked: learnState.isPhase2Unlocked,
@@ -152,9 +166,7 @@ class LearnScreen extends ConsumerWidget {
               // Phase 3
               LearnPathCard(
                 phaseLabel: 'Phase 3',
-                titleEn: 'Living with Purpose',
-                titleHi:
-                    '\u0909\u0926\u094D\u0926\u0947\u0936\u094D\u092F \u0915\u0947 \u0938\u093E\u0925 \u091C\u0940\u0928\u093E',
+                titleEn: l.learnPhase3Title,
                 modules: learnState.phase3Modules,
                 accentColor: AppColors.lavender,
                 isSensitive: true,
@@ -173,7 +185,7 @@ class LearnScreen extends ConsumerWidget {
                           .where((m) => m.status != ModuleStatus.locked)
                           .toList()),
                   icon: const Icon(Icons.grid_view, size: 18),
-                  label: const Text('Browse All Topics'),
+                  label: Text(l.learnBrowseAll),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.teal,
                     side: const BorderSide(color: AppColors.teal),
@@ -251,16 +263,9 @@ class LearnScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'All Topics',
+                  AppLocalizations.of(context).learnAllTopics,
                   style: AppTypography.heading3.copyWith(
                     color: AppColors.teal,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '\u0938\u092D\u0940 \u0935\u093F\u0937\u092F',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.charcoalLight,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -294,6 +299,134 @@ class LearnScreen extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
+// DISEASE LIBRARY HERO CARD
+// ---------------------------------------------------------------------------
+
+class _DiseaseLibraryHeroCard extends StatelessWidget {
+  final VoidCallback onTap;
+  final VoidCallback onSearchTap;
+
+  const _DiseaseLibraryHeroCard({
+    required this.onTap,
+    required this.onSearchTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.teal.withValues(alpha: 0.12),
+              AppColors.sage.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusHero),
+          border: Border.all(
+            color: AppColors.teal.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              alignment: Alignment.center,
+              child: const Text('\ud83d\udcda',
+                  style: TextStyle(fontSize: 28)),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l.learnLibrary,
+                    style: AppTypography.heading3.copyWith(
+                      color: AppColors.teal,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l.learnLibraryDesc,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.charcoalLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.teal.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// QUICK LINK CHIP
+// ---------------------------------------------------------------------------
+
+class _QuickLinkChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickLinkChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceCard,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.teal, size: 18),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.teal,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // HELPERS
 // ---------------------------------------------------------------------------
 
@@ -312,6 +445,7 @@ void _openModule(BuildContext context, WidgetRef ref, LearnModule module) {
 /// Shows a compassionate dialog before opening sensitive Phase 3 content.
 void _showSensitiveDialog(
     BuildContext context, WidgetRef ref, LearnModule module) {
+  final l = AppLocalizations.of(context);
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -325,16 +459,14 @@ void _showSensitiveDialog(
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'A Gentle Note',
+              l.learnSensitiveTitle,
               style: AppTypography.heading3.copyWith(color: AppColors.teal),
             ),
           ),
         ],
       ),
       content: Text(
-        'This topic covers sensitive themes. You can come back '
-        'to this any time you feel ready.\n\n'
-        'Would you like to continue?',
+        l.learnSensitiveBody,
         style: AppTypography.bodyLarge.copyWith(
           color: AppColors.charcoalLight,
           height: 1.6,
@@ -344,7 +476,7 @@ void _showSensitiveDialog(
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(),
           child: Text(
-            'Not right now',
+            l.learnNotRightNow,
             style: AppTypography.label.copyWith(
               color: AppColors.charcoalLight,
             ),
@@ -362,7 +494,7 @@ void _showSensitiveDialog(
               borderRadius: BorderRadius.circular(AppSpacing.radiusButton),
             ),
           ),
-          child: const Text("Yes, I'm ready"),
+          child: Text(l.learnImReady),
         ),
       ],
     ),

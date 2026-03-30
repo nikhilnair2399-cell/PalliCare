@@ -13,6 +13,25 @@ class ApiEndpoints {
   static const String staging = 'https://staging-api.pallicare.aiims.edu/v1';
   static const String local = 'http://localhost:3001/api/v1';
 
+  /// Environment from build flag: --dart-define=ENV=production
+  static const String _env = String.fromEnvironment('ENV', defaultValue: 'local');
+
+  /// Current base URL — selected automatically from build flag.
+  /// Build commands:
+  ///   Local:      flutter run
+  ///   Staging:    flutter run --dart-define=ENV=staging
+  ///   Production: flutter build apk --dart-define=ENV=production
+  static String get baseUrl {
+    switch (_env) {
+      case 'production':
+        return production;
+      case 'staging':
+        return staging;
+      default:
+        return local;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // AUTH
   // ---------------------------------------------------------------------------
@@ -80,6 +99,38 @@ class ApiEndpoints {
   /// Update progress for a specific module.
   static String educationModuleProgress(String moduleId) =>
       '/patients/me/learn/$moduleId/progress';
+
+  // ---------------------------------------------------------------------------
+  // DISEASE LIBRARY (Psychoeducation)
+  // ---------------------------------------------------------------------------
+
+  /// Get all disease categories/classes.
+  static const String diseaseLibraryCategories = '/learn/library/categories';
+
+  /// Get diseases in a specific class.
+  static String diseasesByClass(String className) =>
+      '/learn/library/diseases?class=$className';
+
+  /// Get a specific disease entry.
+  static String diseaseById(String diseaseId) =>
+      '/learn/library/diseases/$diseaseId';
+
+  /// Search diseases across all content.
+  static const String diseaseSearch = '/learn/library/search';
+
+  /// Get patient bookmarks.
+  static const String diseaseBookmarks = '/patients/me/learn/bookmarks';
+
+  /// Toggle bookmark for a disease.
+  static String diseaseBookmarkToggle(String diseaseId) =>
+      '/patients/me/learn/bookmarks/$diseaseId';
+
+  /// Get FAQs (optionally filtered by category).
+  static const String faqs = '/learn/faqs';
+
+  /// Get FAQs by category.
+  static String faqsByCategory(String category) =>
+      '/learn/faqs?category=$category';
 
   // ---------------------------------------------------------------------------
   // BREATHE
@@ -205,6 +256,56 @@ class ApiEndpoints {
   static const String medicationDbSearch = '/medication-db/search';
   static const String medicationDbPalliative = '/medication-db/palliative';
   static const String medicationDbOpioidRef = '/medication-db/opioid-reference';
+
+  // ---------------------------------------------------------------------------
+  // COMMUNITY FORUM
+  // ---------------------------------------------------------------------------
+
+  static const String communityChannels = '/community/channels';
+
+  /// Get a specific channel's details.
+  static String communityChannelById(String channelId) =>
+      '/community/channels/$channelId';
+
+  /// Posts within a channel.
+  static String communityChannelPosts(String channelId) =>
+      '/community/channels/$channelId/posts';
+
+  /// Create a post in a channel.
+  static String communityCreatePost(String channelId) =>
+      '/community/channels/$channelId/posts';
+
+  /// Single post detail.
+  static String communityPostById(String postId) =>
+      '/community/posts/$postId';
+
+  /// Replies on a post.
+  static String communityPostReplies(String postId) =>
+      '/community/posts/$postId/replies';
+
+  /// Toggle support reaction on a post.
+  static String communityPostSupport(String postId) =>
+      '/community/posts/$postId/support';
+
+  /// Report a post.
+  static String communityPostReport(String postId) =>
+      '/community/posts/$postId/report';
+
+  /// Comfort cards catalog.
+  static const String communityComfortCards = '/community/comfort-cards';
+
+  /// Moderation queue (clinician dashboard).
+  static const String communityModerationQueue = '/community/moderation/queue';
+
+  /// Approve / reject a flagged post.
+  static String communityModeratePost(String postId) =>
+      '/community/moderation/posts/$postId';
+
+  /// Join / leave a channel.
+  static String communityJoinChannel(String channelId) =>
+      '/community/channels/$channelId/join';
+  static String communityLeaveChannel(String channelId) =>
+      '/community/channels/$channelId/leave';
 
   // ---------------------------------------------------------------------------
   // SYNC

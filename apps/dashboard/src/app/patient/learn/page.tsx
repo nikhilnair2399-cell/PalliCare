@@ -21,9 +21,9 @@ export default function LearnPage() {
   const filteredModules = categoryFilter === 'All' ? modules : modules.filter((m: any) => m.category === categoryFilter);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Learn</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Learn</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Understand and manage your care with these modules
         </p>
@@ -67,11 +67,11 @@ export default function LearnPage() {
       })()}
 
       {/* Progress Banner */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-charcoal-light">Your Progress</p>
-            <p className="mt-1 font-heading text-3xl font-bold text-charcoal">
+            <p className="mt-1 font-heading text-xl sm:text-3xl font-bold text-charcoal">
               {completed} <span className="text-lg font-normal text-charcoal-light">of {total}</span>
             </p>
             <p className="text-sm text-charcoal-light">modules completed</p>
@@ -108,26 +108,30 @@ export default function LearnPage() {
 
         const catColors: Record<string, string> = {
           'Pain Management': 'bg-terra', 'Medication': 'bg-teal', 'Comfort': 'bg-sage',
-          'Nutrition': 'bg-amber', 'Emotional': 'bg-lavender', 'General': 'bg-charcoal/30',
+          'Nutrition': 'bg-amber', 'Emotional': 'bg-lavender', 'Emotional Wellness': 'bg-lavender',
+          'Symptom Management': 'bg-terra/70', 'Safety': 'bg-alert-critical/70',
+          'Wellness': 'bg-sage', 'Life & Meaning': 'bg-dusty-rose',
+          'Communication': 'bg-teal-light', 'Spiritual Care': 'bg-lavender-light',
+          'Family & Caregiving': 'bg-amber/70', 'General': 'bg-charcoal/30',
         };
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Learning Overview</h3>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{totalMins}m</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{totalMins}m</p>
                 <p className="text-xs text-charcoal/50">Total content</p>
               </div>
               <div className="rounded-xl bg-sage/10 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-sage-dark">{completedMins}m</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-sage-dark">{completedMins}m</p>
                 <p className="text-xs text-charcoal/50">Completed</p>
               </div>
               <div className="rounded-xl bg-teal/10 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-teal">{remainingMins}m</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-teal">{remainingMins}m</p>
                 <p className="text-xs text-charcoal/50">Remaining</p>
               </div>
             </div>
@@ -154,17 +158,20 @@ export default function LearnPage() {
       {/* Sprint 54 — Knowledge Check Summary */}
       {modules.length >= 3 && (() => {
         const QUIZ_DATA = [
-          { module: 'Understanding Pain', score: 4, total: 5, passed: true },
-          { module: 'Your Medications', score: 3, total: 5, passed: true },
-          { module: 'Breathing for Comfort', score: 5, total: 5, passed: true },
+          { module: 'Pain Medications', score: 4, total: 5, passed: true },
+          { module: 'Nausea Management', score: 3, total: 5, passed: true },
+          { module: 'Breathing Exercises', score: 5, total: 5, passed: true },
           { module: 'Nutrition Tips', score: 2, total: 5, passed: false },
+          { module: 'Your Emotions', score: 4, total: 5, passed: true },
+          { module: 'Pain & Mind', score: 3, total: 5, passed: true },
+          { module: 'Family Talks', score: 4, total: 5, passed: true },
         ];
         const totalCorrect = QUIZ_DATA.reduce((s, q) => s + q.score, 0);
         const totalQuestions = QUIZ_DATA.reduce((s, q) => s + q.total, 0);
         const overallPct = Math.round((totalCorrect / totalQuestions) * 100);
         const passedCount = QUIZ_DATA.filter((q) => q.passed).length;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Timer className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Knowledge Checks</h3>

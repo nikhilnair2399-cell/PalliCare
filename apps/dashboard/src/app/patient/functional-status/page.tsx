@@ -196,10 +196,10 @@ export default function FunctionalStatusPage() {
     const progress = ((currentDomain + 1) / DOMAINS.length) * 100;
 
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-teal">How Are You Doing?</h1>
+            <h1 className="font-heading text-lg sm:text-2xl font-bold text-teal">How Are You Doing?</h1>
             <p className="mt-1 text-sm text-charcoal-light">Tell us about your abilities this week</p>
           </div>
           <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">Cancel</button>
@@ -221,7 +221,7 @@ export default function FunctionalStatusPage() {
         </div>
 
         {/* Domain Question */}
-        <div className="rounded-2xl bg-white p-6">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal/10">
               <domain.icon className="h-5 w-5 text-teal" />
@@ -298,7 +298,7 @@ export default function FunctionalStatusPage() {
         {/* Submit when all answered */}
         {allAnswered && (
           <div className="space-y-4">
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <label className="mb-1.5 block text-sm font-semibold text-charcoal-light">Anything else? (optional)</label>
               <textarea
                 value={notes}
@@ -321,7 +321,7 @@ export default function FunctionalStatusPage() {
 
             <button
               onClick={handleSave}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
+              className="flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
             >
               <CheckCircle2 className="h-5 w-5" /> Save Assessment
             </button>
@@ -333,10 +333,10 @@ export default function FunctionalStatusPage() {
 
   /* ─────── HOME ─────── */
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-teal">Functional Status</h1>
+          <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Functional Status</h1>
           <p className="mt-1 text-base text-charcoal-light">Track how you are doing with daily activities</p>
         </div>
         <div className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export default function FunctionalStatusPage() {
 
       {/* Domain Breakdown (latest) */}
       {latestEntry && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-charcoal">Domain Breakdown</h2>
           <div className="space-y-3">
             {DOMAINS.map((d) => {
@@ -430,7 +430,7 @@ export default function FunctionalStatusPage() {
 
       {/* Sprint 43 — Domain Change Comparison (latest vs previous) */}
       {latestEntry && prevEntry && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-charcoal">Week-over-Week Change</h2>
           <div className="space-y-2.5">
             {DOMAINS.map((d) => {
@@ -475,7 +475,7 @@ export default function FunctionalStatusPage() {
 
       {/* PPS Trend Mini-Chart */}
       {history.length >= 2 && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-charcoal">PPS Trend</h2>
           <div className="flex items-end gap-2" style={{ height: '100px' }}>
             {history.map((h) => {
@@ -513,7 +513,7 @@ export default function FunctionalStatusPage() {
 
       {/* Sprint 50 — Domain-Level Trend Analysis */}
       {history.length >= 2 && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-4 w-4 text-teal" />
             <h2 className="text-base font-semibold text-charcoal">Domain Trends</h2>
@@ -613,7 +613,7 @@ export default function FunctionalStatusPage() {
         const improvingCount = goals.filter((g) => g.improving).length;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4 text-teal" />
@@ -689,7 +689,7 @@ export default function FunctionalStatusPage() {
         const strokeDash = (fisPercent / 100) * circumference;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <Award className={clsx('h-4 w-4', level.color)} />
               <h2 className="text-base font-semibold text-charcoal">Functional Independence Score</h2>

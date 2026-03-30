@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/routing/app_router.dart';
 import 'breathe_provider.dart';
 import 'breathe_exercise_card.dart';
 import 'sound_selector.dart';
+import 'animation_style_selector.dart';
 
 /// Breathe & Comfort home screen — Screen 07.
 ///
 /// Sections:
 /// 1. Quick Start
+/// 1b. Programs & History quick links
 /// 2. Breathing Exercises (horizontal scroll)
 /// 3. Pranayama (horizontal scroll)
 /// 4. Guided Meditations (horizontal scroll)
 /// 5. Relaxation (horizontal scroll)
-/// 6. Ambient Sounds (horizontal pills)
-/// 7. Practice Stats
+/// 6. Animation Style selector
+/// 7. Ambient Sounds (horizontal pills)
+/// 8. Practice Stats
 class BreatheScreen extends ConsumerWidget {
   const BreatheScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final breatheState = ref.watch(breatheProvider);
 
     return Scaffold(
@@ -33,24 +39,13 @@ class BreatheScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.teal),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          children: [
-            const Text(
-              'Breathe & Comfort',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.teal,
-              ),
-            ),
-            Text(
-              '\u0938\u093E\u0901\u0938 \u0914\u0930 \u0906\u0930\u093E\u092E',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.charcoalLight,
-              ),
-            ),
-          ],
+        title: Text(
+          l.breatheTitle,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.teal,
+          ),
         ),
         centerTitle: true,
       ),
@@ -69,12 +64,15 @@ class BreatheScreen extends ConsumerWidget {
                   context.push('/breathe/player');
                 },
               ),
+              const SizedBox(height: AppSpacing.space4),
+
+              // 1b. Programs & History quick links
+              _ProgramsHistoryRow(),
               const SizedBox(height: AppSpacing.space6),
 
               // 2. Breathing Exercises
               _SectionHeader(
-                titleEn: 'Breathing Exercises',
-                titleHi: '\u0936\u094D\u0935\u093E\u0938 \u0905\u092D\u094D\u092F\u093E\u0938',
+                title: l.breatheBreathingExercises,
               ),
               const SizedBox(height: AppSpacing.space3),
               _ExerciseRow(
@@ -85,8 +83,7 @@ class BreatheScreen extends ConsumerWidget {
 
               // 3. Pranayama
               _SectionHeader(
-                titleEn: 'Pranayama',
-                titleHi: '\u092A\u094D\u0930\u093E\u0923\u093E\u092F\u093E\u092E',
+                title: l.breathePranayama,
               ),
               const SizedBox(height: AppSpacing.space3),
               _ExerciseRow(
@@ -97,8 +94,7 @@ class BreatheScreen extends ConsumerWidget {
 
               // 4. Guided Meditations
               _SectionHeader(
-                titleEn: 'Guided Meditations',
-                titleHi: '\u0928\u093F\u0930\u094D\u0926\u0947\u0936\u093F\u0924 \u0927\u094D\u092F\u093E\u0928',
+                title: l.breatheGuidedMeditations,
               ),
               const SizedBox(height: AppSpacing.space3),
               _ExerciseRow(
@@ -109,8 +105,7 @@ class BreatheScreen extends ConsumerWidget {
 
               // 5. Relaxation
               _SectionHeader(
-                titleEn: 'Relaxation',
-                titleHi: '\u0935\u093F\u0936\u094D\u0930\u093E\u092E',
+                title: l.breatheRelaxation,
               ),
               const SizedBox(height: AppSpacing.space3),
               _ExerciseRow(
@@ -119,10 +114,27 @@ class BreatheScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.space6),
 
-              // 6. Ambient Sounds
+              // 6. Animation Style
               _SectionHeader(
-                titleEn: 'Ambient Sounds',
-                titleHi: '\u092A\u0930\u093F\u0935\u0947\u0936 \u0927\u094D\u0935\u0928\u093F',
+                title: l.breatheAnimationStyle,
+              ),
+              const SizedBox(height: AppSpacing.space3),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screenPaddingHorizontal,
+                ),
+                child: AnimationStyleSelector(
+                  selected: breatheState.animationStyle,
+                  onChanged: (style) {
+                    ref.read(breatheProvider.notifier).setBreathAnimationStyle(style);
+                  },
+                ),
+              ),
+              const SizedBox(height: AppSpacing.space6),
+
+              // 7. Ambient Sounds
+              _SectionHeader(
+                title: l.breatheAmbientSounds,
               ),
               const SizedBox(height: AppSpacing.space3),
               SoundSelector(
@@ -133,7 +145,7 @@ class BreatheScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.space6),
 
-              // 7. Practice Stats
+              // 8. Practice Stats
               _PracticeStatsCard(stats: breatheState.stats),
             ],
           ),
@@ -158,6 +170,7 @@ class _QuickStartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.screenPaddingHorizontal,
@@ -188,25 +201,17 @@ class _QuickStartCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '1-Minute Calm',
-                      style: TextStyle(
+                    Text(
+                      l.breatheQuickStartTitle,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '\u090F\u0915 \u092E\u093F\u0928\u091F \u0915\u0940 \u0936\u093E\u0902\u0924\u093F',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 13,
-                      ),
-                    ),
                     const SizedBox(height: 8),
                     Text(
-                      'Tap to start',
+                      l.breatheQuickStartTap,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12,
@@ -241,9 +246,8 @@ class _QuickStartCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _SectionHeader extends StatelessWidget {
-  final String titleEn;
-  final String titleHi;
-  const _SectionHeader({required this.titleEn, required this.titleHi});
+  final String title;
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -251,25 +255,13 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.screenPaddingHorizontal,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            titleEn,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.charcoal,
-            ),
-          ),
-          Text(
-            titleHi,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.charcoalLight,
-            ),
-          ),
-        ],
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.charcoal,
+        ),
       ),
     );
   }
@@ -309,7 +301,101 @@ class _ExerciseRow extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Practice Stats Card
+// 1b. Programs & History Quick Links
+// ---------------------------------------------------------------------------
+
+class _ProgramsHistoryRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenPaddingHorizontal,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _QuickLinkCard(
+              icon: Icons.auto_awesome,
+              label: l.breathePrograms,
+              color: AppColors.lavender,
+              onTap: () => context.push(AppRoutes.breathePrograms),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.space3),
+          Expanded(
+            child: _QuickLinkCard(
+              icon: Icons.history,
+              label: l.breatheHistory,
+              color: AppColors.sage,
+              onTap: () => context.push(AppRoutes.breatheHistory),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickLinkCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickLinkCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.space3,
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.space2),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.teal,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: color, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 8. Practice Stats Card
 // ---------------------------------------------------------------------------
 
 class _PracticeStatsCard extends StatelessWidget {
@@ -318,6 +404,7 @@ class _PracticeStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.screenPaddingHorizontal,
@@ -339,7 +426,7 @@ class _PracticeStatsCard extends StatelessWidget {
             const Icon(Icons.self_improvement, size: 20, color: AppColors.sage),
             const SizedBox(width: AppSpacing.space2),
             Text(
-              '${stats.sessionsThisWeek} sessions this week',
+              l.breatheStatsWeek(stats.sessionsThisWeek),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -357,7 +444,7 @@ class _PracticeStatsCard extends StatelessWidget {
               ),
             ),
             Text(
-              '${stats.totalMinutesThisWeek} min total',
+              l.breatheStatsMinutes(stats.totalMinutesThisWeek),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,

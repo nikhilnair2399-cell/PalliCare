@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../widgets/progress_dots.dart';
 import 'symptom_log_provider.dart';
 import 'pain_intensity_card.dart';
@@ -89,8 +90,8 @@ class _SymptomLoggerScreenState extends ConsumerState<SymptomLoggerScreen> {
     // TODO: Save to local DB, queue for sync
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Log saved! Thank you.'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).symptomLogSaved),
         backgroundColor: AppColors.sageGreen,
       ),
     );
@@ -111,9 +112,9 @@ class _SymptomLoggerScreenState extends ConsumerState<SymptomLoggerScreen> {
           icon: const Icon(Icons.arrow_back, color: AppColors.deepTeal),
           onPressed: entry.currentCard > 0 ? _prev : () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Check-in · चेक-इन',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
+        title: Text(
+          AppLocalizations.of(context).symptomCheckinTitle,
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
         centerTitle: true,
         actions: [
@@ -151,8 +152,8 @@ class _SymptomLoggerScreenState extends ConsumerState<SymptomLoggerScreen> {
                 if (entry.currentCard > 0)
                   TextButton(
                     onPressed: _prev,
-                    child: const Text('← Back',
-                        style: TextStyle(color: Colors.grey)),
+                    child: Text('\u2190 ${AppLocalizations.of(context).commonBack}',
+                        style: const TextStyle(color: Colors.grey)),
                   ),
                 const Spacer(),
                 ElevatedButton(
@@ -168,8 +169,8 @@ class _SymptomLoggerScreenState extends ConsumerState<SymptomLoggerScreen> {
                   ),
                   child: Text(
                     entry.currentCard < entry.totalCards - 1
-                        ? 'Next →'
-                        : 'Done ✓',
+                        ? '${AppLocalizations.of(context).commonNext} \u2192'
+                        : '${AppLocalizations.of(context).commonDone} \u2713',
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w600),
                   ),
@@ -189,6 +190,7 @@ class _QuickSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final entry = ref.watch(symptomLogProvider);
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -199,7 +201,7 @@ class _QuickSummaryCard extends ConsumerWidget {
               size: 56, color: AppColors.sageGreen),
           const SizedBox(height: 16),
           Text(
-            'Pain: ${entry.painIntensity ?? 0}/10',
+            l.symptomPainLabel(entry.painIntensity ?? 0),
             style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -207,12 +209,12 @@ class _QuickSummaryCard extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${entry.painLocations.length} location(s) marked',
+            l.symptomLocationsMarked(entry.painLocations.length),
             style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
           Text(
-            'Tap Done to save your quick log',
+            l.symptomQuickSaveTip,
             style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],

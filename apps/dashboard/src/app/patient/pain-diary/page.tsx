@@ -32,21 +32,21 @@ export default function PainDiaryPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Pain Diary</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Pain Diary</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Track your pain trends to help your care team manage your comfort
         </p>
       </div>
 
       {/* Hero: Pain Trend Chart */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-charcoal">Pain Trend (Last 30 Days)</h2>
         <div className="mt-4 h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(168,203,181,0.15)" />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#4A4A4A' }} />
-              <YAxis domain={[0, 10]} tick={{ fontSize: 12, fill: '#4A4A4A' }} />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#948883' }} />
+              <YAxis domain={[0, 10]} tick={{ fontSize: 12, fill: '#948883' }} />
               <Tooltip
                 contentStyle={{
                   borderRadius: '12px',
@@ -100,11 +100,11 @@ export default function PainDiaryPage() {
         if (thisAvg === null) return null;
         return (
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase text-charcoal/40">
                 <Calendar className="h-3.5 w-3.5" /> This Week
               </div>
-              <p className="mt-2 font-heading text-3xl font-bold text-charcoal">{thisAvg.toFixed(1)}</p>
+              <p className="mt-2 font-heading text-xl sm:text-3xl font-bold text-charcoal">{thisAvg.toFixed(1)}</p>
               <p className="text-sm text-charcoal-light">avg pain &middot; {thisBt} breakthrough{thisBt !== 1 ? 's' : ''}</p>
               {diff !== null && (
                 <div className={`mt-3 flex items-center gap-1.5 text-sm font-medium ${diff < -0.5 ? 'text-sage-dark' : diff > 0.5 ? 'text-terra' : 'text-charcoal/50'}`}>
@@ -113,11 +113,11 @@ export default function PainDiaryPage() {
                 </div>
               )}
             </div>
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase text-charcoal/40">
                 <Calendar className="h-3.5 w-3.5" /> Last Week
               </div>
-              <p className="mt-2 font-heading text-3xl font-bold text-charcoal">{lastAvg !== null ? lastAvg.toFixed(1) : '—'}</p>
+              <p className="mt-2 font-heading text-xl sm:text-3xl font-bold text-charcoal">{lastAvg !== null ? lastAvg.toFixed(1) : '—'}</p>
               <p className="text-sm text-charcoal-light">{lastAvg !== null ? `avg pain · ${lastBt} breakthrough${lastBt !== 1 ? 's' : ''}` : 'No data recorded'}</p>
               {lastAvg !== null && (
                 <p className="mt-3 text-sm text-charcoal/40">{lastWeek.length} entries logged</p>
@@ -177,7 +177,7 @@ export default function PainDiaryPage() {
         const maxTrigger = Math.max(...TRIGGERS.map(t => t.count));
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Triggers &amp; Relievers</h3>
@@ -250,7 +250,7 @@ export default function PainDiaryPage() {
         };
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Pain Score Distribution</h3>
@@ -344,7 +344,7 @@ export default function PainDiaryPage() {
         };
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Pain Quality Frequency</h3>
@@ -434,7 +434,7 @@ export default function PainDiaryPage() {
           .sort((a, b) => (a[1].sum / a[1].count) - (b[1].sum / b[1].count))[0];
 
         return (
-          <div className="rounded-2xl bg-white p-6">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Pain Pattern Heatmap</h3>
@@ -507,7 +507,7 @@ export default function PainDiaryPage() {
             const score = entry.pain_score ?? entry.score ?? 0;
             const qualities = (entry.qualities || entry.pain_qualities || []).join(', ');
             return (
-              <div key={i} className="rounded-2xl bg-white p-5">
+              <div key={i} className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
                 <div className="flex items-center gap-4">
                   <span
                     className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-white"

@@ -19,8 +19,32 @@ export default function PatientLayout({
     setSidebarOpen(false);
   }, [pathname]);
 
-  // Login page gets its own full-screen layout — no sidebar/header
-  if (pathname === '/patient/login') {
+  // Register Service Worker for PWA offline support
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((reg) => console.log('SW registered:', reg.scope))
+        .catch((err) => console.warn('SW registration failed:', err));
+    }
+  }, []);
+
+  // Set theme-color meta tag for mobile browsers
+  useEffect(() => {
+    let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    }
+    meta.content = '#2A6B6B';
+    return () => {
+      if (meta) meta.content = '';
+    };
+  }, []);
+
+  // Login & onboarding pages get their own full-screen layout — no sidebar/header
+  if (pathname === '/patient/login' || pathname === '/patient/onboarding') {
     return <>{children}</>;
   }
 
@@ -49,7 +73,7 @@ export default function PatientLayout({
 
         <div className="flex flex-1 flex-col lg:pl-64">
           <PatientHeader onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <main className="flex-1 p-5 lg:p-8">
+          <main className="flex-1 px-3 py-4 sm:px-5 sm:py-5 lg:p-8">
             <div className="animate-in fade-in duration-300">
               {children}
             </div>

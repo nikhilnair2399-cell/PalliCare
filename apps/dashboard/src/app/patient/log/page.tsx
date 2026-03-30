@@ -90,10 +90,10 @@ export default function LogPage() {
     const highSymptoms = ESAS_SYMPTOMS.filter(s => scores[s.key] >= 7);
     const totalBurden = ESAS_SYMPTOMS.reduce((sum, s) => sum + scores[s.key], 0);
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         <div className="flex flex-col items-center rounded-2xl bg-white p-12 text-center">
           <CheckCircle2 className="h-16 w-16 text-sage" />
-          <h2 className="mt-4 font-heading text-2xl font-bold text-charcoal">Symptoms Logged</h2>
+          <h2 className="mt-4 font-heading text-lg sm:text-2xl font-bold text-charcoal">Symptoms Logged</h2>
           <p className="mt-2 text-base text-charcoal-light">
             Your care team can now see how you&apos;re feeling today. Thank you for sharing.
           </p>
@@ -106,7 +106,7 @@ export default function LogPage() {
         </div>
 
         {/* ESAS Summary */}
-        <div className="rounded-2xl bg-white p-6">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-5 w-5 text-teal" />
             <h3 className="text-base font-bold text-charcoal">Your Symptom Snapshot</h3>
@@ -140,10 +140,10 @@ export default function LogPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Log Symptoms</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Log Symptoms</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Tell us how you&apos;re feeling today
         </p>
@@ -170,7 +170,7 @@ export default function LogPage() {
         const topQualities = Object.entries(qualityCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Activity className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Your 5-Day Trend</h3>
@@ -179,16 +179,16 @@ export default function LogPage() {
               <div className="rounded-xl bg-cream/50 p-3 text-center">
                 <div className="flex items-center justify-center gap-1">
                   {painTrend < -0.5 ? <TrendingDown className="h-4 w-4 text-sage-dark" /> : painTrend > 0.5 ? <TrendingUp className="h-4 w-4 text-terra" /> : null}
-                  <p className="font-heading text-xl font-bold text-charcoal">{recentAvg.toFixed(1)}</p>
+                  <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{recentAvg.toFixed(1)}</p>
                 </div>
                 <p className="text-xs text-charcoal/50">Recent pain</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{avgBurden}/90</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{avgBurden}/90</p>
                 <p className="text-xs text-charcoal/50">Avg burden</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal capitalize">{topMood[0]}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal capitalize">{topMood[0]}</p>
                 <p className="text-xs text-charcoal/50">Common mood</p>
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function LogPage() {
         }, symptomNames[0]);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Grid3x3 className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Symptom Severity Map</h3>
@@ -300,8 +300,8 @@ export default function LogPage() {
 
       {/* Step 1: Quick Check */}
       {step === 1 && (
-        <div className="rounded-2xl bg-white p-6">
-          <h2 className="font-heading text-xl font-bold text-charcoal">Quick Check</h2>
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
+          <h2 className="font-heading text-base sm:text-xl font-bold text-charcoal">Quick Check</h2>
           <p className="mt-1 text-sm text-charcoal-light">Rate your overall pain and mood right now.</p>
 
           {/* Pain Slider */}
@@ -354,7 +354,7 @@ export default function LogPage() {
 
           <button
             onClick={() => setStep(2)}
-            className="mt-8 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
+            className="mt-8 flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
           >
             Next: Detailed Symptoms
             <ArrowRight className="h-5 w-5" />
@@ -364,8 +364,8 @@ export default function LogPage() {
 
       {/* Step 2: ESAS-r Symptoms */}
       {step === 2 && (
-        <div className="rounded-2xl bg-white p-6">
-          <h2 className="font-heading text-xl font-bold text-charcoal">ESAS-r Assessment</h2>
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
+          <h2 className="font-heading text-base sm:text-xl font-bold text-charcoal">ESAS-r Assessment</h2>
           <p className="mt-1 text-sm text-charcoal-light">Rate each symptom from 0 (none) to 10 (worst).</p>
 
           <div className="mt-6 space-y-6">
@@ -399,7 +399,7 @@ export default function LogPage() {
           <div className="mt-8 flex gap-3">
             <button
               onClick={() => setStep(1)}
-              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-cream text-base font-medium text-charcoal transition-colors hover:bg-charcoal/5"
+              className="flex h-12 sm:h-14 flex-1 items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-cream text-base font-medium text-charcoal transition-colors hover:bg-charcoal/5"
             >
               <ArrowLeft className="h-5 w-5" />
               Back
@@ -417,8 +417,8 @@ export default function LogPage() {
 
       {/* Step 3: Pain Qualities + Notes */}
       {step === 3 && (
-        <div className="rounded-2xl bg-white p-6">
-          <h2 className="font-heading text-xl font-bold text-charcoal">Pain Details &amp; Notes</h2>
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
+          <h2 className="font-heading text-base sm:text-xl font-bold text-charcoal">Pain Details &amp; Notes</h2>
           <p className="mt-1 text-sm text-charcoal-light">Describe your pain quality and add any notes for your care team.</p>
 
           {/* Pain Qualities */}
@@ -467,7 +467,7 @@ export default function LogPage() {
           <div className="mt-8 flex gap-3">
             <button
               onClick={() => setStep(2)}
-              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-cream text-base font-medium text-charcoal transition-colors hover:bg-charcoal/5"
+              className="flex h-12 sm:h-14 flex-1 items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-cream text-base font-medium text-charcoal transition-colors hover:bg-charcoal/5"
             >
               <ArrowLeft className="h-5 w-5" />
               Back

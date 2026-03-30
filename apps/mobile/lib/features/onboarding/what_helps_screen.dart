@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/progress_dots.dart';
@@ -11,16 +12,17 @@ class WhatHelpsScreen extends ConsumerWidget {
   const WhatHelpsScreen({super.key});
 
   static const _topics = [
-    {'id': 'track_pain', 'emoji': '📊', 'en': 'Track my pain', 'hi': 'दर्द की निगरानी'},
-    {'id': 'manage_meds', 'emoji': '💊', 'en': 'Manage medications', 'hi': 'दवाइयों का हिसाब'},
-    {'id': 'talk_team', 'emoji': '🩺', 'en': 'Talk to care team', 'hi': 'डॉक्टर से बात'},
-    {'id': 'relief', 'emoji': '🧘', 'en': 'Relief techniques', 'hi': 'राहत के तरीक़े'},
-    {'id': 'help_family', 'emoji': '👨‍👩‍👧', 'en': 'Help my family', 'hi': 'परिवार को समझाना'},
-    {'id': 'understand', 'emoji': '📖', 'en': 'Understand condition', 'hi': 'बीमारी को समझना'},
+    {'id': 'track_pain', 'emoji': '📊', 'en': 'Track my pain'},
+    {'id': 'manage_meds', 'emoji': '💊', 'en': 'Manage medications'},
+    {'id': 'talk_team', 'emoji': '🩺', 'en': 'Talk to care team'},
+    {'id': 'relief', 'emoji': '🧘', 'en': 'Relief techniques'},
+    {'id': 'help_family', 'emoji': '👨‍👩‍👧', 'en': 'Help my family'},
+    {'id': 'understand', 'emoji': '📖', 'en': 'Understand condition'},
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -38,10 +40,10 @@ class WhatHelpsScreen extends ConsumerWidget {
                 label: 'Step 3 of ${state.totalSteps}',
               ),
               const SizedBox(height: 32),
-              const Text(
-                'What would help you most?',
+              Text(
+                l.onboardingHelpTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -50,7 +52,7 @@ class WhatHelpsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Choose one or more · You can always change later',
+                l.onboardingHelpSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
@@ -99,15 +101,6 @@ class WhatHelpsScreen extends ConsumerWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              topic['hi']!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
                             if (selected) ...[
                               const SizedBox(height: 6),
                               const Icon(Icons.check_circle,
@@ -121,8 +114,7 @@ class WhatHelpsScreen extends ConsumerWidget {
                 ),
               ),
               PalliCareButton(
-                label:
-                    'Continue (${state.helpTopics.length} selected)',
+                label: l.onboardingHelpContinue(state.helpTopics.length),
                 onPressed: state.helpTopics.isNotEmpty
                     ? () {
                         ref.read(onboardingProvider.notifier).nextStep();

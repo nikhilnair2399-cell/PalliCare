@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for development
   reactStrictMode: true,
 
+  // Standalone output for Docker deployment
+  output: 'standalone',
+
   // Transpile shared packages from monorepo
   transpilePackages: ['@pallicare/shared-types'],
 

@@ -117,6 +117,49 @@ export class EducationRepository extends BaseRepository {
     );
   }
 
+  // ─── Content Attributions ─────────────────────────────────
+
+  async findAttributionsByModule(moduleId: string) {
+    const result = await this.query(
+      `SELECT * FROM content_attributions
+       WHERE content_id = $1 AND content_type = 'learn_module'
+       ORDER BY created_at`,
+      [moduleId],
+    );
+    return result.rows;
+  }
+
+  async addAttribution(data: {
+    contentType: string;
+    contentId: string;
+    sourceName: string;
+    sourceAuthors?: string;
+    sourceYear?: number;
+    sourceUrl?: string;
+    licenseSpdx?: string;
+    usageType: string;
+    notes?: string;
+  }) {
+    return this.queryOne(
+      `INSERT INTO content_attributions
+       (content_type, content_id, source_name, source_authors, source_year,
+        source_url, license_spdx, usage_type, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        data.contentType,
+        data.contentId,
+        data.sourceName,
+        data.sourceAuthors || null,
+        data.sourceYear || null,
+        data.sourceUrl || null,
+        data.licenseSpdx || null,
+        data.usageType,
+        data.notes || null,
+      ],
+    );
+  }
+
   // ─── Breathe Sessions ─────────────────────────────────────
 
   async createBreatheSession(patientId: string, data: Record<string, any>) {

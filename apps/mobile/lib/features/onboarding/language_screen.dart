@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/pallicare_button.dart';
@@ -20,6 +21,7 @@ class LanguageScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -31,21 +33,15 @@ class LanguageScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
-              const Text(
-                'Choose your language',
+              Text(
+                l.onboardingLanguageTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppColors.deepTeal,
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'अपनी भाषा चुनें',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: AppColors.deepTeal),
               ),
               const SizedBox(height: 32),
               Expanded(
@@ -119,7 +115,7 @@ class LanguageScreen extends ConsumerWidget {
                 ),
               ),
               PalliCareButton(
-                label: 'Continue →',
+                label: l.commonContinue,
                 onPressed: () {
                   ref.read(onboardingProvider.notifier).nextStep();
                   context.push('/onboarding/who');

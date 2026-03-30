@@ -144,6 +144,29 @@ export class NotificationsRepository extends BaseRepository {
     );
   }
 
+  /** Create a notification record */
+  async create(userId: string, data: {
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, string>;
+    priority?: string;
+  }) {
+    return this.queryOne(
+      `INSERT INTO notifications (user_id, type, title_en, body_en, priority, payload, channel, is_sent, sent_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'push', TRUE, NOW())
+       RETURNING *`,
+      [
+        userId,
+        data.type,
+        data.title,
+        data.body,
+        data.priority ?? 'normal',
+        JSON.stringify(data.data ?? {}),
+      ],
+    );
+  }
+
   /** Unread count */
   async unreadCount(userId: string): Promise<number> {
     const result = await this.queryOne<{ count: number }>(

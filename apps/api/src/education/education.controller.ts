@@ -55,6 +55,13 @@ export class EducationController {
     return this.educationService.getModuleById(id);
   }
 
+  @Get('learn/modules/:id/attributions')
+  @Roles('patient', 'caregiver', 'clinician')
+  @ApiOperation({ summary: 'Get content attributions for a module' })
+  async getModuleAttributions(@Param('id', ParseUUIDPipe) id: string) {
+    return this.educationService.getModuleAttributions(id);
+  }
+
   // ─── Patient Progress ─────────────────────────────────────
 
   @Get('patients/me/learn')

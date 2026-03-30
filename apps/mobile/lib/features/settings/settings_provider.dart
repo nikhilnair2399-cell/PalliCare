@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/local_storage_service.dart';
 
 // ---------------------------------------------------------------------------
 // USER PROFILE MODEL
@@ -214,12 +215,24 @@ class SettingsState {
 // ---------------------------------------------------------------------------
 
 class SettingsNotifier extends StateNotifier<SettingsState> {
-  SettingsNotifier() : super(const SettingsState());
+  final LocalStorageService _storage = LocalStorageService();
+
+  SettingsNotifier() : super(const SettingsState()) {
+    _loadPersistedSettings();
+  }
+
+  void _loadPersistedSettings() {
+    final lang = _storage.language;
+    if (lang != state.language) {
+      state = state.copyWith(language: lang);
+    }
+  }
 
   // -- Language ---------------------------------------------------------------
 
   void setLanguage(String lang) {
     state = state.copyWith(language: lang, hasChanges: true);
+    _storage.setLanguage(lang);
   }
 
   void toggleDualLanguage(bool value) {

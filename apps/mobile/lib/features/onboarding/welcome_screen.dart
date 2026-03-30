@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'onboarding_provider.dart';
@@ -10,6 +11,7 @@ class WelcomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
     final name = state.patientFirstName.isNotEmpty
         ? state.patientFirstName
@@ -44,7 +46,7 @@ class WelcomeScreen extends ConsumerWidget {
               const SizedBox(height: 32),
 
               Text(
-                'Welcome, $name',
+                l.welcomeGreeting(name),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: 'Georgia',
@@ -53,17 +55,9 @@ class WelcomeScreen extends ConsumerWidget {
                   color: AppColors.deepTeal,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'स्वागत है, $name 🙏',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 18, color: AppColors.deepTeal.withAlpha(180)),
-              ),
               const SizedBox(height: 20),
               Text(
-                "We're glad you're here. This app is your companion "
-                "on this journey — at your pace, on your terms.",
+                l.welcomeSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -74,7 +68,7 @@ class WelcomeScreen extends ConsumerWidget {
               if (state.emotionalState == EmotionalState.toughDay) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Today, just one small step is enough.',
+                  l.welcomeToughDayMessage,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -102,22 +96,22 @@ class WelcomeScreen extends ConsumerWidget {
                         BorderRadius.circular(AppSpacing.radiusHero),
                   ),
                   padding: const EdgeInsets.all(20),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Tell us about your pain today →',
-                        style: TextStyle(
+                        l.welcomePrimaryAction,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'It takes less than 2 minutes',
-                        style: TextStyle(fontSize: 14, color: Colors.white70),
+                        l.welcomePrimaryActionHint,
+                        style: const TextStyle(fontSize: 14, color: Colors.white70),
                       ),
                     ],
                   ),
@@ -131,13 +125,12 @@ class WelcomeScreen extends ConsumerWidget {
                   Expanded(
                     child: _secondaryCard(
                       '🧘',
-                      'Take a deep breath',
+                      l.welcomeSecondaryBreath,
                       () {
                         ref
                             .read(onboardingProvider.notifier)
                             .completeOnboarding();
-                        Navigator.of(context)
-                            .pushNamedAndRemoveUntil('/home', (_) => false);
+                        context.go('/home');
                       },
                     ),
                   ),
@@ -145,13 +138,12 @@ class WelcomeScreen extends ConsumerWidget {
                   Expanded(
                     child: _secondaryCard(
                       '📖',
-                      'Explore the app',
+                      l.welcomeSecondaryExplore,
                       () {
                         ref
                             .read(onboardingProvider.notifier)
                             .completeOnboarding();
-                        Navigator.of(context)
-                            .pushNamedAndRemoveUntil('/home', (_) => false);
+                        context.go('/home');
                       },
                     ),
                   ),
@@ -166,11 +158,10 @@ class WelcomeScreen extends ConsumerWidget {
                     ref
                         .read(onboardingProvider.notifier)
                         .completeOnboarding();
-                    Navigator.of(context)
-                        .pushNamedAndRemoveUntil('/home', (_) => false);
+                    context.go('/home');
                   },
                   child: Text(
-                    "I'll do this later / बाद में करूँगा",
+                    l.welcomeSkip,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,

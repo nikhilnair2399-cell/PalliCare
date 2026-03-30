@@ -33,6 +33,12 @@ enum PostSessionMood { better, same, skip }
 /// Player screen sub-view.
 enum PlayerView { config, playing, complete }
 
+/// Animation visualization style.
+enum BreathAnimationStyle { circle, wave, lungs, nature }
+
+/// Condition-specific program type.
+enum ProgramCondition { pain, anxiety, sleep, breathlessness }
+
 // ---------------------------------------------------------------------------
 // DATA MODELS
 // ---------------------------------------------------------------------------
@@ -89,6 +95,75 @@ class AmbientSound {
     required this.sound,
     required this.label,
     required this.emoji,
+  });
+}
+
+/// A multi-session breathing program for a specific condition.
+class BreatheProgram {
+  final String id;
+  final ProgramCondition condition;
+  final String nameEn;
+  final String nameHi;
+  final String descriptionEn;
+  final String descriptionHi;
+  final String emoji;
+  final List<String> sessionExerciseIds; // 3 exercise IDs per program
+  final List<String> sessionLabelsEn;
+  final List<String> sessionLabelsHi;
+  final int completedSessions;
+
+  const BreatheProgram({
+    required this.id,
+    required this.condition,
+    required this.nameEn,
+    required this.nameHi,
+    required this.descriptionEn,
+    required this.descriptionHi,
+    required this.emoji,
+    required this.sessionExerciseIds,
+    required this.sessionLabelsEn,
+    required this.sessionLabelsHi,
+    this.completedSessions = 0,
+  });
+
+  int get totalSessions => sessionExerciseIds.length;
+  bool get isComplete => completedSessions >= totalSessions;
+  double get progress =>
+      totalSessions > 0 ? completedSessions / totalSessions : 0;
+
+  BreatheProgram copyWith({int? completedSessions}) {
+    return BreatheProgram(
+      id: id,
+      condition: condition,
+      nameEn: nameEn,
+      nameHi: nameHi,
+      descriptionEn: descriptionEn,
+      descriptionHi: descriptionHi,
+      emoji: emoji,
+      sessionExerciseIds: sessionExerciseIds,
+      sessionLabelsEn: sessionLabelsEn,
+      sessionLabelsHi: sessionLabelsHi,
+      completedSessions: completedSessions ?? this.completedSessions,
+    );
+  }
+}
+
+/// A completed session history entry.
+class SessionHistoryEntry {
+  final String id;
+  final String exerciseId;
+  final String exerciseNameEn;
+  final DateTime completedAt;
+  final int durationSeconds;
+  final PostSessionMood mood;
+
+  const SessionHistoryEntry({
+    required this.id,
+    required this.exerciseId,
+    required this.exerciseNameEn,
+    required this.completedAt,
+    required this.durationSeconds,
+    required this.mood,
   });
 }
 
@@ -209,22 +284,38 @@ class BreatheState {
   final List<BreatheExercise> exercises;
   final BreatheSessionState session;
   final PracticeStats stats;
+  final BreathAnimationStyle animationStyle;
+  final bool hapticEnabled;
+  final List<BreatheProgram> programs;
+  final List<SessionHistoryEntry> history;
 
   const BreatheState({
     this.exercises = const [],
     this.session = const BreatheSessionState(),
     this.stats = const PracticeStats(),
+    this.animationStyle = BreathAnimationStyle.circle,
+    this.hapticEnabled = true,
+    this.programs = const [],
+    this.history = const [],
   });
 
   BreatheState copyWith({
     List<BreatheExercise>? exercises,
     BreatheSessionState? session,
     PracticeStats? stats,
+    BreathAnimationStyle? animationStyle,
+    bool? hapticEnabled,
+    List<BreatheProgram>? programs,
+    List<SessionHistoryEntry>? history,
   }) {
     return BreatheState(
       exercises: exercises ?? this.exercises,
       session: session ?? this.session,
       stats: stats ?? this.stats,
+      animationStyle: animationStyle ?? this.animationStyle,
+      hapticEnabled: hapticEnabled ?? this.hapticEnabled,
+      programs: programs ?? this.programs,
+      history: history ?? this.history,
     );
   }
 
@@ -248,6 +339,23 @@ class BreatheState {
       return exercises.isNotEmpty ? exercises.first : null;
     }
   }
+
+  /// Sessions completed today.
+  int get todaySessionCount {
+    final now = DateTime.now();
+    return history.where((h) =>
+        h.completedAt.year == now.year &&
+        h.completedAt.month == now.month &&
+        h.completedAt.day == now.day).length;
+  }
+
+  /// Mood trend: percentage of "better" moods in last 7 entries.
+  double get moodTrendBetter {
+    if (history.isEmpty) return 0;
+    final recent = history.take(7).toList();
+    final betterCount = recent.where((h) => h.mood == PostSessionMood.better).length;
+    return betterCount / recent.length;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -260,6 +368,8 @@ class BreatheNotifier extends StateNotifier<BreatheState> {
   BreatheNotifier() : super(const BreatheState()) {
     _loadExercises();
     _loadStats();
+    _loadPrograms();
+    _loadHistory();
   }
 
   @override
@@ -405,6 +515,115 @@ class BreatheNotifier extends StateNotifier<BreatheState> {
     _timer?.cancel();
     state = state.copyWith(
       session: const BreatheSessionState(),
+    );
+  }
+
+  // ---- Animation style ----
+
+  void setBreathAnimationStyle(BreathAnimationStyle style) {
+    state = state.copyWith(animationStyle: style);
+  }
+
+  void toggleHaptic() {
+    state = state.copyWith(hapticEnabled: !state.hapticEnabled);
+  }
+
+  // ---- Programs ----
+
+  void _loadPrograms() {
+    state = state.copyWith(programs: _programCatalog);
+  }
+
+  void startProgramSession(String programId, int sessionIndex) {
+    final program = state.programs.firstWhere(
+      (p) => p.id == programId,
+      orElse: () => state.programs.first,
+    );
+    if (sessionIndex >= program.sessionExerciseIds.length) return;
+
+    final exerciseId = program.sessionExerciseIds[sessionIndex];
+    final exercise = state.exercises.firstWhere(
+      (e) => e.id == exerciseId,
+      orElse: () => state.exercises.first,
+    );
+    selectExercise(exercise);
+    setDuration(180); // 3 minutes for program sessions
+  }
+
+  void completeProgramSession(String programId) {
+    final updated = state.programs.map((p) {
+      if (p.id == programId && !p.isComplete) {
+        return p.copyWith(completedSessions: p.completedSessions + 1);
+      }
+      return p;
+    }).toList();
+    state = state.copyWith(programs: updated);
+  }
+
+  // ---- History ----
+
+  void _loadHistory() {
+    // Mock history — will be replaced with local DB
+    final now = DateTime.now();
+    state = state.copyWith(history: [
+      SessionHistoryEntry(
+        id: 'h1',
+        exerciseId: 'breathing_478',
+        exerciseNameEn: '4-7-8 Breathing',
+        completedAt: now.subtract(const Duration(hours: 3)),
+        durationSeconds: 120,
+        mood: PostSessionMood.better,
+      ),
+      SessionHistoryEntry(
+        id: 'h2',
+        exerciseId: 'pranayama_bhramari',
+        exerciseNameEn: 'Bhramari',
+        completedAt: now.subtract(const Duration(days: 1)),
+        durationSeconds: 180,
+        mood: PostSessionMood.better,
+      ),
+      SessionHistoryEntry(
+        id: 'h3',
+        exerciseId: 'breathing_box',
+        exerciseNameEn: 'Box Breathing',
+        completedAt: now.subtract(const Duration(days: 1, hours: 8)),
+        durationSeconds: 60,
+        mood: PostSessionMood.same,
+      ),
+      SessionHistoryEntry(
+        id: 'h4',
+        exerciseId: 'meditation_bodyscan',
+        exerciseNameEn: 'Body Scan',
+        completedAt: now.subtract(const Duration(days: 2)),
+        durationSeconds: 300,
+        mood: PostSessionMood.better,
+      ),
+      SessionHistoryEntry(
+        id: 'h5',
+        exerciseId: 'breathing_belly',
+        exerciseNameEn: 'Deep Belly Breathing',
+        completedAt: now.subtract(const Duration(days: 3)),
+        durationSeconds: 120,
+        mood: PostSessionMood.same,
+      ),
+    ]);
+  }
+
+  void recordSession(PostSessionMood mood) {
+    final exercise = state.session.exercise;
+    if (exercise == null) return;
+
+    final entry = SessionHistoryEntry(
+      id: 'h_${DateTime.now().millisecondsSinceEpoch}',
+      exerciseId: exercise.id,
+      exerciseNameEn: exercise.nameEn,
+      completedAt: DateTime.now(),
+      durationSeconds: state.session.totalElapsed,
+      mood: mood,
+    );
+
+    state = state.copyWith(
+      history: [entry, ...state.history],
     );
   }
 
@@ -831,6 +1050,130 @@ class BreatheNotifier extends StateNotifier<BreatheState> {
         ),
       ],
     ),
+
+    // ---- NEW: 9 Additional Breathing Exercises ----
+
+    BreatheExercise(
+      id: 'breathing_pursedlip',
+      nameEn: 'Pursed-Lip Breathing',
+      nameHi: '\u0938\u093F\u0915\u0941\u0921\u093C\u0947 \u0939\u094B\u0902\u0920 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83d\udca8',
+      descriptionEn: 'Inhale 2s, Exhale 4s through pursed lips. Ideal for COPD patients.',
+      descriptionHi: 'COPD \u0930\u094B\u0917\u093F\u092F\u094B\u0902 \u0915\u0947 \u0932\u093F\u090F \u0906\u0926\u0930\u094D\u0936',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 2, labelEn: 'Breathe In (Nose)', labelHi: '\u0928\u093E\u0915 \u0938\u0947 \u0938\u093E\u0901\u0938'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 4, labelEn: 'Purse Lips Out', labelHi: '\u0939\u094B\u0902\u0920 \u0938\u093F\u0915\u094B\u0921\u093C\u0947\u0902'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_diaphragmatic',
+      nameEn: 'Diaphragmatic Breathing',
+      nameHi: '\u0921\u093E\u092F\u093E\u092B\u094D\u0930\u093E\u092E\u0948\u091F\u093F\u0915 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83e\udec3',
+      descriptionEn: 'Inhale 4s, Hold 2s, Exhale 6s. Engages the diaphragm for deep body awareness.',
+      descriptionHi: '\u0921\u093E\u092F\u093E\u092B\u094D\u0930\u093E\u092E \u0915\u094B \u0938\u0915\u094D\u0930\u093F\u092F \u0915\u0930\u0924\u093E \u0939\u0948',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 4, labelEn: 'Belly Rise', labelHi: '\u092A\u0947\u091F \u092B\u0942\u0932\u0947'),
+        ExercisePhase(phase: BreathPhase.hold, durationSeconds: 2, labelEn: 'Hold', labelHi: '\u0930\u094B\u0915\u0947\u0902'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 6, labelEn: 'Belly Fall', labelHi: '\u092A\u0947\u091F \u0938\u093F\u0915\u0941\u0921\u093C\u0947'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_coherent',
+      nameEn: 'Coherent Breathing',
+      nameHi: '\u0938\u0902\u0917\u0924 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83d\udc9a',
+      descriptionEn: 'Inhale 5s, Exhale 6s (~5.5 breaths/min). Optimizes heart rate variability.',
+      descriptionHi: 'HRV \u0905\u0928\u0941\u0915\u0942\u0932\u0928 \u0915\u0947 \u0932\u093F\u090F',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 5, labelEn: 'Breathe In', labelHi: '\u0938\u093E\u0901\u0938 \u0905\u0902\u0926\u0930'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 6, labelEn: 'Breathe Out', labelHi: '\u0938\u093E\u0901\u0938 \u092C\u093E\u0939\u0930'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'pranayama_sitali',
+      nameEn: 'Sitali (Cooling Breath)',
+      nameHi: '\u0936\u0940\u0924\u0932\u0940 \u092A\u094D\u0930\u093E\u0923\u093E\u092F\u093E\u092E',
+      type: ExerciseType.pranayama,
+      emoji: '\u2744\ufe0f',
+      descriptionEn: 'Inhale through curled tongue 4s, Hold 2s, Exhale 4s. Cooling, helps with nausea.',
+      descriptionHi: '\u0936\u0940\u0924\u0932 \u0914\u0930 \u092E\u093F\u091A\u0932\u0940 \u092E\u0947\u0902 \u0938\u0939\u093E\u092F\u0915',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 4, labelEn: 'Cool Inhale', labelHi: '\u0920\u0902\u0921\u0940 \u0938\u093E\u0901\u0938'),
+        ExercisePhase(phase: BreathPhase.hold, durationSeconds: 2, labelEn: 'Hold', labelHi: '\u0930\u094B\u0915\u0947\u0902'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 4, labelEn: 'Exhale Nose', labelHi: '\u0928\u093E\u0915 \u0938\u0947 \u091B\u094B\u0921\u093C\u0947\u0902'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'pranayama_kapalbhati',
+      nameEn: 'Kapalbhati (Skull Shine)',
+      nameHi: '\u0915\u092A\u093E\u0932\u092D\u093E\u0924\u093F',
+      type: ExerciseType.pranayama,
+      emoji: '\u2728',
+      descriptionEn: 'Quick exhale 1s, Passive inhale 2s. Energizing. Avoid if pregnant or post-surgery.',
+      descriptionHi: '\u090A\u0930\u094D\u091C\u093E\u0926\u093E\u092F\u0915\u0964 \u0917\u0930\u094D\u092D\u093E\u0935\u0938\u094D\u0925\u093E/\u0938\u0930\u094D\u091C\u0930\u0940 \u0915\u0947 \u092C\u093E\u0926 \u0928 \u0915\u0930\u0947\u0902',
+      phases: [
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 1, labelEn: 'Sharp Exhale', labelHi: '\u0924\u0947\u091C\u093C \u091B\u094B\u0921\u093C\u0947\u0902'),
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 2, labelEn: 'Passive Inhale', labelHi: '\u0938\u0939\u091C \u0938\u093E\u0901\u0938'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_straw',
+      nameEn: 'Straw Breathing',
+      nameHi: '\u0938\u094D\u091F\u094D\u0930\u0949 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83e\uddcb',
+      descriptionEn: 'Inhale 3s, Exhale through imaginary straw 6s. Builds lung capacity.',
+      descriptionHi: '\u092B\u0947\u092B\u0921\u093C\u094B\u0902 \u0915\u0940 \u0915\u094D\u0937\u092E\u0924\u093E \u092C\u0922\u093C\u093E\u0924\u093E \u0939\u0948',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 3, labelEn: 'Breathe In', labelHi: '\u0938\u093E\u0901\u0938 \u0905\u0902\u0926\u0930'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 6, labelEn: 'Straw Exhale', labelHi: '\u0938\u094D\u091F\u094D\u0930\u0949 \u0938\u0947 \u091B\u094B\u0921\u093C\u0947\u0902'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_buteyko',
+      nameEn: 'Buteyko Breathing',
+      nameHi: '\u092C\u094D\u092F\u0942\u091F\u0947\u0915\u094B \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83d\udc43',
+      descriptionEn: 'Inhale 3s, Exhale 3s, Hold 3s, Rest 3s. Nasal breathing focus.',
+      descriptionHi: '\u0928\u093E\u0915 \u0938\u0947 \u0936\u094D\u0935\u093E\u0938 \u092A\u0930 \u0915\u0947\u0902\u0926\u094D\u0930\u093F\u0924',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 3, labelEn: 'Nose Inhale', labelHi: '\u0928\u093E\u0915 \u0938\u0947 \u0938\u093E\u0901\u0938'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 3, labelEn: 'Nose Exhale', labelHi: '\u0928\u093E\u0915 \u0938\u0947 \u091B\u094B\u0921\u093C\u0947\u0902'),
+        ExercisePhase(phase: BreathPhase.holdOut, durationSeconds: 3, labelEn: 'Pause', labelHi: '\u0920\u0939\u0930\u0947\u0902'),
+        ExercisePhase(phase: BreathPhase.hold, durationSeconds: 3, labelEn: 'Rest', labelHi: '\u0906\u0930\u093E\u092E'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_extended_exhale',
+      nameEn: '2:1 Extended Exhale',
+      nameHi: '2:1 \u0926\u0940\u0930\u094D\u0918 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\ud83c\udf19',
+      descriptionEn: 'Inhale 4s, Exhale 8s. Activates the parasympathetic nervous system.',
+      descriptionHi: '\u0917\u0939\u0930\u0940 \u0936\u093E\u0902\u0924\u093F \u0915\u0947 \u0932\u093F\u090F',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 4, labelEn: 'Breathe In', labelHi: '\u0938\u093E\u0901\u0938 \u0905\u0902\u0926\u0930'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 8, labelEn: 'Long Exhale', labelHi: '\u0932\u0902\u092C\u0940 \u0938\u093E\u0901\u0938 \u092C\u093E\u0939\u0930'),
+      ],
+    ),
+    BreatheExercise(
+      id: 'breathing_power',
+      nameEn: 'Power Breathing',
+      nameHi: '\u092A\u093E\u0935\u0930 \u0936\u094D\u0935\u093E\u0938',
+      type: ExerciseType.breathing,
+      emoji: '\u26a1',
+      descriptionEn: 'Inhale 2s, Exhale 2s (rapid). Energizing. Only when feeling low energy.',
+      descriptionHi: '\u090A\u0930\u094D\u091C\u093E\u0926\u093E\u092F\u0915\u0964 \u0915\u092E \u090A\u0930\u094D\u091C\u093E \u0939\u094B\u0928\u0947 \u092A\u0930 \u0939\u0940 \u0915\u0930\u0947\u0902',
+      phases: [
+        ExercisePhase(phase: BreathPhase.inhale, durationSeconds: 2, labelEn: 'Power In', labelHi: '\u0924\u0947\u091C\u093C \u0938\u093E\u0901\u0938'),
+        ExercisePhase(phase: BreathPhase.exhale, durationSeconds: 2, labelEn: 'Power Out', labelHi: '\u0924\u0947\u091C\u093C \u091B\u094B\u0921\u093C\u0947\u0902'),
+      ],
+    ),
   ];
 }
 
@@ -848,6 +1191,61 @@ const List<AmbientSound> ambientSounds = [
   AmbientSound(sound: BgSound.night, label: 'Night', emoji: '\u{1F319}'),
   AmbientSound(sound: BgSound.flute, label: 'Flute', emoji: '\u{1F3B6}'),
   AmbientSound(sound: BgSound.whiteNoise, label: 'White', emoji: '\u{26C1}'),
+];
+
+// ---------------------------------------------------------------------------
+// PROGRAM CATALOG (4 condition-specific programs, 3 sessions each)
+// ---------------------------------------------------------------------------
+
+const List<BreatheProgram> _programCatalog = [
+  BreatheProgram(
+    id: 'program_pain',
+    condition: ProgramCondition.pain,
+    nameEn: 'Breathe for Pain',
+    nameHi: '\u0926\u0930\u094D\u0926 \u0915\u0947 \u0932\u093F\u090F \u0936\u094D\u0935\u093E\u0938',
+    descriptionEn: 'A 3-session journey to manage pain through breath.',
+    descriptionHi: '\u0938\u093E\u0901\u0938 \u0938\u0947 \u0926\u0930\u094D\u0926 \u092A\u094D\u0930\u092C\u0902\u0927\u0928 \u0915\u0940 3 \u0938\u0924\u094D\u0930 \u092F\u093E\u0924\u094D\u0930\u093E',
+    emoji: '\ud83d\udc9c',
+    sessionExerciseIds: ['breathing_pain', 'breathing_belly', 'relaxation_lettinggo'],
+    sessionLabelsEn: ['Pain-Breath Integration', 'Deep Belly', 'Body Letting Go'],
+    sessionLabelsHi: ['\u0926\u0930\u094D\u0926-\u0936\u094D\u0935\u093E\u0938', '\u0917\u0939\u0930\u0940 \u092A\u0947\u091F', '\u0936\u0930\u0940\u0930 \u0922\u0940\u0932\u093E'],
+  ),
+  BreatheProgram(
+    id: 'program_anxiety',
+    condition: ProgramCondition.anxiety,
+    nameEn: 'Breathe for Anxiety',
+    nameHi: '\u091A\u093F\u0902\u0924\u093E \u0915\u0947 \u0932\u093F\u090F \u0936\u094D\u0935\u093E\u0938',
+    descriptionEn: 'Calm your nervous system in 3 guided sessions.',
+    descriptionHi: '\u0924\u0940\u0928 \u0938\u0924\u094D\u0930\u094B\u0902 \u092E\u0947\u0902 \u0924\u0902\u0924\u094D\u0930\u093F\u0915\u093E \u0924\u0902\u0924\u094D\u0930 \u0915\u094B \u0936\u093E\u0902\u0924 \u0915\u0930\u0947\u0902',
+    emoji: '\ud83e\udde1',
+    sessionExerciseIds: ['breathing_478', 'breathing_box', 'pranayama_bhramari'],
+    sessionLabelsEn: ['4-7-8 Calming', 'Box Breathing', 'Bhramari Humming'],
+    sessionLabelsHi: ['4-7-8 \u0936\u093E\u0902\u0924\u093F', '\u092C\u0949\u0915\u094D\u0938 \u0936\u094D\u0935\u093E\u0938', '\u092D\u094D\u0930\u093E\u092E\u0930\u0940'],
+  ),
+  BreatheProgram(
+    id: 'program_sleep',
+    condition: ProgramCondition.sleep,
+    nameEn: 'Breathe for Sleep',
+    nameHi: '\u0928\u0940\u0902\u0926 \u0915\u0947 \u0932\u093F\u090F \u0936\u094D\u0935\u093E\u0938',
+    descriptionEn: 'Wind down with 3 evening breathing sessions.',
+    descriptionHi: '\u0924\u0940\u0928 \u0936\u093E\u092E \u0915\u0947 \u0938\u0924\u094D\u0930\u094B\u0902 \u0938\u0947 \u0906\u0930\u093E\u092E \u092A\u093E\u090F\u0902',
+    emoji: '\ud83c\udf19',
+    sessionExerciseIds: ['breathing_extended_exhale', 'pranayama_ujjayi', 'relaxation_lettinggo'],
+    sessionLabelsEn: ['Extended Exhale', 'Ujjayi Ocean', 'Body Letting Go'],
+    sessionLabelsHi: ['\u0926\u0940\u0930\u094D\u0918 \u0936\u094D\u0935\u093E\u0938', '\u0909\u091C\u094D\u091C\u093E\u092F\u0940', '\u0936\u0930\u0940\u0930 \u0922\u0940\u0932\u093E'],
+  ),
+  BreatheProgram(
+    id: 'program_breathlessness',
+    condition: ProgramCondition.breathlessness,
+    nameEn: 'Breathe for Breathlessness',
+    nameHi: '\u0938\u093E\u0901\u0938 \u0915\u0940 \u0924\u0915\u0932\u0940\u092B \u0915\u0947 \u0932\u093F\u090F',
+    descriptionEn: 'Build lung capacity and manage dyspnea in 3 sessions.',
+    descriptionHi: '\u0924\u0940\u0928 \u0938\u0924\u094D\u0930\u094B\u0902 \u092E\u0947\u0902 \u092B\u0947\u092B\u0921\u093C\u094B\u0902 \u0915\u0940 \u0915\u094D\u0937\u092E\u0924\u093E \u092C\u0922\u093C\u093E\u090F\u0902',
+    emoji: '\ud83e\udec1',
+    sessionExerciseIds: ['breathing_pursedlip', 'breathing_diaphragmatic', 'breathing_straw'],
+    sessionLabelsEn: ['Pursed-Lip', 'Diaphragmatic', 'Straw Breathing'],
+    sessionLabelsHi: ['\u0938\u093F\u0915\u0941\u0921\u093C\u0947 \u0939\u094B\u0902\u0920', '\u0921\u093E\u092F\u093E\u092B\u094D\u0930\u093E\u092E', '\u0938\u094D\u091F\u094D\u0930\u0949 \u0936\u094D\u0935\u093E\u0938'],
+  ),
 ];
 
 // ---------------------------------------------------------------------------

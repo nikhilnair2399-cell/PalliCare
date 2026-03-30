@@ -143,17 +143,17 @@ export default function NutritionPage() {
   /* ─────── LOG ─────── */
   if (mode === 'log') {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-teal">Log Nutrition</h1>
+            <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Log Nutrition</h1>
             <p className="mt-1 text-base text-charcoal-light">How was your eating and drinking today?</p>
           </div>
           <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">Cancel</button>
         </div>
 
         {/* Weight (optional) */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
             <Scale className="h-4 w-4 text-sage" /> Weight (optional, kg)
           </label>
@@ -168,7 +168,7 @@ export default function NutritionPage() {
         </div>
 
         {/* Appetite */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <label className="mb-3 block text-base font-semibold text-charcoal">
             Appetite: <span className={appetiteText(appetite)}>{appetite}/10</span>
           </label>
@@ -180,7 +180,7 @@ export default function NutritionPage() {
         </div>
 
         {/* Oral Intake */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <p className="mb-3 text-base font-semibold text-charcoal">Food Intake Today</p>
           <div className="grid grid-cols-2 gap-2">
             {INTAKE_OPTIONS.map((opt) => {
@@ -204,7 +204,7 @@ export default function NutritionPage() {
 
         {/* Meals & Fluids */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
               <Utensils className="h-3.5 w-3.5 text-amber" /> Meals Eaten
             </label>
@@ -214,7 +214,7 @@ export default function NutritionPage() {
               <button onClick={() => setMealsEaten(Math.min(6, mealsEaten + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-cream text-lg font-bold text-charcoal-light">+</button>
             </div>
           </div>
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
               <Droplets className="h-3.5 w-3.5 text-teal" /> Glasses of Water
             </label>
@@ -239,7 +239,7 @@ export default function NutritionPage() {
               <span className="text-base font-semibold text-charcoal">{item.label}</span>
               <button
                 onClick={() => item.set(!item.value)}
-                className={clsx('relative h-7 w-12 rounded-full transition-colors', item.value ? 'bg-terra' : 'bg-charcoal/20')}
+                className={clsx('relative h-6 w-10 sm:h-7 sm:w-12 rounded-full transition-colors', item.value ? 'bg-terra' : 'bg-charcoal/20')}
               >
                 <span
                   className={clsx(
@@ -253,7 +253,7 @@ export default function NutritionPage() {
         </div>
 
         {/* Notes */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <label className="mb-1.5 block text-sm font-semibold text-charcoal-light">Notes (optional)</label>
           <textarea
             value={notes}
@@ -264,7 +264,7 @@ export default function NutritionPage() {
           />
         </div>
 
-        <button onClick={handleSave} className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90">
+        <button onClick={handleSave} className="flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90">
           <CheckCircle2 className="h-5 w-5" /> Save Nutrition Log
         </button>
       </div>
@@ -273,10 +273,10 @@ export default function NutritionPage() {
 
   /* ─────── HOME ─────── */
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-teal">Nutrition</h1>
+          <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Nutrition</h1>
           <p className="mt-1 text-base text-charcoal-light">Track your eating, drinking, and weight</p>
         </div>
         <button onClick={() => setMode('log')} className="flex items-center gap-1.5 rounded-2xl bg-teal px-5 py-3 text-base font-semibold text-white">
@@ -336,7 +336,7 @@ export default function NutritionPage() {
         const nauseaLast = lastWeek.filter(h => h.nausea_affected).length;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Week-over-Week</h3>
@@ -413,7 +413,7 @@ export default function NutritionPage() {
         const mouthDays = history.filter((h) => h.mouth_problems).length;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <Timer className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Intake Quality Pattern</h3>
@@ -486,7 +486,7 @@ export default function NutritionPage() {
         const glasses = todayEntry?.fluid_intake ?? 0;
         const target = 8;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Droplets className="h-5 w-5 text-teal" />
@@ -521,7 +521,7 @@ export default function NutritionPage() {
         const target = 1500;
         const pct = Math.min(100, Math.round((estCal / target) * 100));
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Utensils className="h-5 w-5 text-amber" />
@@ -567,7 +567,7 @@ export default function NutritionPage() {
 
       {/* Weight Trend (dots) */}
       {weightsRecorded.length > 1 && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-charcoal">Weight Trend</h2>
           <div className="flex items-end gap-2" style={{ height: '80px' }}>
             {weightsRecorded.map((w) => {
@@ -589,7 +589,7 @@ export default function NutritionPage() {
       )}
 
       {/* Appetite Chart */}
-      <div className="rounded-2xl bg-white p-5">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
         <h2 className="mb-3 text-base font-semibold text-charcoal">Appetite (last 14 days)</h2>
         <div className="flex items-end gap-1.5" style={{ height: '100px' }}>
           {history.slice(-14).map((h) => {

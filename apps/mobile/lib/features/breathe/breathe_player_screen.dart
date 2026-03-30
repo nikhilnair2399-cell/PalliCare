@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'breathe_provider.dart';
 import 'breathing_circle.dart';
+import 'wave_animation.dart';
+import 'lungs_animation.dart';
+import 'nature_scene_animation.dart';
+import 'animation_style_selector.dart';
 import 'sound_selector.dart';
 
 /// Breathe player screen — handles config, playing, and post-session views.
 ///
 /// Immersive: no app bar during playing. Dark background (#1A3A3A).
+/// Enhanced: animation style switching, haptic feedback on phase transitions,
+/// and landscape mode support via OrientationBuilder.
 class BreathePlayerScreen extends ConsumerStatefulWidget {
   const BreathePlayerScreen({super.key});
 
@@ -32,7 +39,7 @@ class _BreathePlayerScreenState extends ConsumerState<BreathePlayerScreen> {
 }
 
 // ==========================================================================
-// CONFIG VIEW — Duration, Guidance, Sound, Start
+// CONFIG VIEW — Duration, Guidance, Animation, Sound, Start
 // ==========================================================================
 
 class _ConfigView extends ConsumerWidget {
@@ -42,6 +49,8 @@ class _ConfigView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final exercise = session.exercise;
+    final breatheState = ref.watch(breatheProvider);
+
     if (exercise == null) {
       return const Scaffold(
         body: Center(child: Text('No exercise selected')),
@@ -104,7 +113,7 @@ class _ConfigView extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.space7),
+              const SizedBox(height: AppSpacing.space6),
 
               // Duration chips
               _ConfigSection(
@@ -121,7 +130,7 @@ class _ConfigView extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: AppSpacing.space5),
+              const SizedBox(height: AppSpacing.space4),
 
               // Guidance chips
               _ConfigSection(
@@ -133,17 +142,82 @@ class _ConfigView extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: AppSpacing.space5),
+              const SizedBox(height: AppSpacing.space4),
 
-              // Sound selector
+              // Animation style
               _ConfigSection(
-                label: 'Sound',
-                child: SoundSelector(
-                  selected: session.bgSound,
-                  onChanged: (sound) {
-                    ref.read(breatheProvider.notifier).setBgSound(sound);
+                label: 'Visual Style',
+                child: AnimationStyleSelector(
+                  selected: breatheState.animationStyle,
+                  onChanged: (style) {
+                    ref.read(breatheProvider.notifier).setBreathAnimationStyle(style);
                   },
                 ),
+              ),
+              const SizedBox(height: AppSpacing.space4),
+
+              // Haptic toggle + Sound
+              Row(
+                children: [
+                  // Haptic toggle
+                  GestureDetector(
+                    onTap: () {
+                      ref.read(breatheProvider.notifier).toggleHaptic();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: breatheState.hapticEnabled
+                            ? AppColors.sage.withValues(alpha: 0.12)
+                            : AppColors.surfaceCard,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusChip),
+                        border: Border.all(
+                          color: breatheState.hapticEnabled
+                              ? AppColors.sage.withValues(alpha: 0.4)
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.vibration,
+                            size: 16,
+                            color: breatheState.hapticEnabled
+                                ? AppColors.teal
+                                : AppColors.charcoalLight,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Haptic',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: breatheState.hapticEnabled
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: breatheState.hapticEnabled
+                                  ? AppColors.teal
+                                  : AppColors.charcoalLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.space3),
+                  Expanded(
+                    child: SoundSelector(
+                      selected: session.bgSound,
+                      onChanged: (sound) {
+                        ref.read(breatheProvider.notifier).setBgSound(sound);
+                      },
+                    ),
+                  ),
+                ],
               ),
 
               const Spacer(),
@@ -305,7 +379,7 @@ class _GuidanceChipRow extends StatelessWidget {
 }
 
 // ==========================================================================
-// PLAYING VIEW — Immersive dark background, breathing circle, controls
+// PLAYING VIEW — Immersive dark background, animation, controls
 // ==========================================================================
 
 class _PlayingView extends ConsumerStatefulWidget {
@@ -347,6 +421,12 @@ class _PlayingViewState extends ConsumerState<_PlayingView>
         CurvedAnimation(parent: _circleController, curve: Curves.easeInOut),
       );
       _startPhaseAnimation();
+
+      // Haptic feedback on phase transition
+      final hapticEnabled = ref.read(breatheProvider).hapticEnabled;
+      if (hapticEnabled) {
+        HapticFeedback.lightImpact();
+      }
     }
 
     if (widget.session.isPaused && _circleController.isAnimating) {
@@ -388,132 +468,279 @@ class _PlayingViewState extends ConsumerState<_PlayingView>
     super.dispose();
   }
 
+  /// Build the correct animation widget based on the selected style.
+  Widget _buildAnimationWidget(double progress, ExercisePhase? phase,
+      bool isPaused, BreathAnimationStyle style) {
+    return switch (style) {
+      BreathAnimationStyle.circle => BreathingCircle(
+          progress: progress,
+          phase: phase,
+          isPaused: isPaused,
+        ),
+      BreathAnimationStyle.wave => WaveAnimation(
+          progress: progress,
+          phase: phase,
+          isPaused: isPaused,
+        ),
+      BreathAnimationStyle.lungs => LungsAnimation(
+          progress: progress,
+          phase: phase,
+          isPaused: isPaused,
+        ),
+      BreathAnimationStyle.nature => NatureSceneAnimation(
+          progress: progress,
+          phase: phase,
+          isPaused: isPaused,
+        ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(breatheProvider).session;
+    final breatheState = ref.watch(breatheProvider);
+    final session = breatheState.session;
     final exercise = session.exercise;
+    final animStyle = breatheState.animationStyle;
 
     return Scaffold(
       backgroundColor: AppColors.breatheBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: AppSpacing.space4),
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            if (orientation == Orientation.landscape) {
+              return _buildLandscapeLayout(session, exercise, animStyle);
+            }
+            return _buildPortraitLayout(session, exercise, animStyle);
+          },
+        ),
+      ),
+    );
+  }
 
-            // Exercise name
-            if (exercise != null) ...[
-              Text(
-                exercise.nameEn,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                exercise.nameHi,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.space4),
+  Widget _buildPortraitLayout(BreatheSessionState session,
+      BreatheExercise? exercise, BreathAnimationStyle animStyle) {
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.space4),
 
-            // Cycle counter
-            Text(
-              'Cycle ${session.currentCycle} of ${session.totalCycles}',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
+        // Exercise name
+        if (exercise != null) ...[
+          Text(
+            exercise.nameEn,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.7),
             ),
-            const SizedBox(height: AppSpacing.space2),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            exercise.nameHi,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.4),
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.space4),
 
-            // Timer
-            Text(
-              session.remainingFormatted,
+        // Cycle counter
+        Text(
+          'Cycle ${session.currentCycle} of ${session.totalCycles}',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space2),
+
+        // Timer
+        Text(
+          session.remainingFormatted,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.6),
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+
+        // Breathing animation — centered
+        Expanded(
+          child: Center(
+            child: AnimatedBuilder(
+              animation: _circleAnimation,
+              builder: (context, _) {
+                return _buildAnimationWidget(
+                  _circleAnimation.value,
+                  session.currentPhase,
+                  session.isPaused,
+                  animStyle,
+                );
+              },
+            ),
+          ),
+        ),
+
+        // Guidance text
+        if (session.guidance != GuidanceLevel.silent &&
+            session.currentPhase != null) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              _guidanceText(session),
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.6),
-                fontFeatures: const [FontFeature.tabularFigures()],
+                color: Colors.white.withValues(alpha: 0.5),
+                fontStyle: FontStyle.italic,
+                height: 1.4,
               ),
             ),
+          ),
+          const SizedBox(height: AppSpacing.space5),
+        ],
 
-            // Breathing circle — centered
-            Expanded(
-              child: Center(
-                child: AnimatedBuilder(
-                  animation: _circleAnimation,
-                  builder: (context, _) {
-                    return BreathingCircle(
-                      progress: _circleAnimation.value,
-                      phase: session.currentPhase,
-                      isPaused: session.isPaused,
-                    );
-                  },
-                ),
-              ),
+        // Controls: Pause + End
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _PlayerButton(
+              icon: session.isPaused
+                  ? Icons.play_arrow_rounded
+                  : Icons.pause_rounded,
+              label: session.isPaused ? 'Resume' : 'Pause',
+              onTap: () {
+                ref.read(breatheProvider.notifier).togglePause();
+              },
             ),
+            const SizedBox(width: AppSpacing.space7),
+            _PlayerButton(
+              icon: Icons.stop_rounded,
+              label: 'End',
+              onTap: () {
+                ref.read(breatheProvider.notifier).endSession();
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.space5),
 
-            // Guidance text
-            if (session.guidance != GuidanceLevel.silent &&
-                session.currentPhase != null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  _guidanceText(session),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontStyle: FontStyle.italic,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.space5),
-            ],
+        // Sound selector at bottom
+        SoundSelector(
+          selected: session.bgSound,
+          darkMode: true,
+          onChanged: (sound) {
+            ref.read(breatheProvider.notifier).setBgSound(sound);
+          },
+        ),
+        const SizedBox(height: AppSpacing.space4),
+      ],
+    );
+  }
 
-            // Controls: Pause + End
-            Row(
+  /// Landscape layout: animation left, info + controls right.
+  Widget _buildLandscapeLayout(BreatheSessionState session,
+      BreatheExercise? exercise, BreathAnimationStyle animStyle) {
+    return Row(
+      children: [
+        // Left: animation
+        Expanded(
+          flex: 3,
+          child: Center(
+            child: AnimatedBuilder(
+              animation: _circleAnimation,
+              builder: (context, _) {
+                return _buildAnimationWidget(
+                  _circleAnimation.value,
+                  session.currentPhase,
+                  session.isPaused,
+                  animStyle,
+                );
+              },
+            ),
+          ),
+        ),
+        // Right: info + controls
+        Expanded(
+          flex: 2,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.space4,
+            ),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _PlayerButton(
-                  icon: session.isPaused
-                      ? Icons.play_arrow_rounded
-                      : Icons.pause_rounded,
-                  label: session.isPaused ? 'Resume' : 'Pause',
-                  onTap: () {
-                    ref.read(breatheProvider.notifier).togglePause();
-                  },
+                if (exercise != null)
+                  Text(
+                    exercise.nameEn,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.space2),
+                Text(
+                  'Cycle ${session.currentCycle}/${session.totalCycles}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
                 ),
-                const SizedBox(width: AppSpacing.space7),
-                _PlayerButton(
-                  icon: Icons.stop_rounded,
-                  label: 'End',
-                  onTap: () {
-                    ref.read(breatheProvider.notifier).endSession();
-                  },
+                const SizedBox(height: 4),
+                Text(
+                  session.remainingFormatted,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.space5),
+                if (session.guidance != GuidanceLevel.silent &&
+                    session.currentPhase != null) ...[
+                  Text(
+                    _guidanceText(session),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.space4),
+                ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _PlayerButton(
+                      icon: session.isPaused
+                          ? Icons.play_arrow_rounded
+                          : Icons.pause_rounded,
+                      label: session.isPaused ? 'Resume' : 'Pause',
+                      onTap: () {
+                        ref.read(breatheProvider.notifier).togglePause();
+                      },
+                    ),
+                    const SizedBox(width: AppSpacing.space5),
+                    _PlayerButton(
+                      icon: Icons.stop_rounded,
+                      label: 'End',
+                      onTap: () {
+                        ref.read(breatheProvider.notifier).endSession();
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.space5),
-
-            // Sound selector at bottom
-            SoundSelector(
-              selected: session.bgSound,
-              darkMode: true,
-              onChanged: (sound) {
-                ref.read(breatheProvider.notifier).setBgSound(sound);
-              },
-            ),
-            const SizedBox(height: AppSpacing.space4),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -523,14 +750,12 @@ class _PlayingViewState extends ConsumerState<_PlayingView>
       return session.currentPhase?.labelEn ?? '';
     }
     return switch (phase) {
-      BreathPhase.inhale =>
-        'Let the air fill your lungs gently...',
-      BreathPhase.hold || BreathPhase.holdOut =>
+      BreathPhase.inhale => 'Let the air fill your lungs gently...',
+      BreathPhase.hold ||
+      BreathPhase.holdOut =>
         'Hold softly, no strain...',
-      BreathPhase.exhale =>
-        'Release slowly, let tension melt away...',
-      BreathPhase.hum =>
-        'Hum gently, feel the vibration...',
+      BreathPhase.exhale => 'Release slowly, let tension melt away...',
+      BreathPhase.hum => 'Hum gently, feel the vibration...',
       null => '',
     };
   }
@@ -766,6 +991,8 @@ class _MoodButton extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         ref.read(breatheProvider.notifier).submitMood(mood);
+        // Also record to session history
+        ref.read(breatheProvider.notifier).recordSession(mood);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(

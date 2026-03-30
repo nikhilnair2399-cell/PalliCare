@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
+import '../services/api_service.dart';
 
 /// In-app feedback floating action button for pilot study.
 ///
 /// Displays as a small teal FAB with a chat icon. On tap, opens a
 /// bottom sheet where users can rate the app (1-5 stars) and leave
 /// a free-text comment in Hindi or English.
+///
+/// The [screen] parameter identifies which screen the feedback
+/// originated from (e.g. 'home', 'symptom_logger', 'medication_tracker').
 class FeedbackButton extends StatelessWidget {
-  const FeedbackButton({super.key});
+  const FeedbackButton({super.key, this.screen = 'unknown'});
+
+  /// Identifies the screen this feedback button is placed on.
+  final String screen;
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +35,15 @@ class FeedbackButton extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => const _FeedbackSheet(),
+      builder: (ctx) => _FeedbackSheet(screen: screen),
     );
   }
 }
 
 class _FeedbackSheet extends StatefulWidget {
-  const _FeedbackSheet();
+  const _FeedbackSheet({required this.screen});
+
+  final String screen;
 
   @override
   State<_FeedbackSheet> createState() => _FeedbackSheetState();
@@ -45,6 +54,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
   final _commentController = TextEditingController();
   String _category = 'general';
   bool _submitted = false;
+  bool _isSubmitting = false;
 
   static const _categories = <String, String>{
     'general': 'General / सामान्य',
@@ -61,16 +71,50 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     super.dispose();
   }
 
-  void _submit() {
-    // In production, this would send to Firebase Analytics or backend
-    // For pilot, we store locally and export later
-    setState(() => _submitted = true);
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    });
+    setState(() => _isSubmitting = true);
+
+    try {
+      await ApiService().submitFeedback({
+        'screen': widget.screen,
+        'rating': _rating,
+        'category': _category,
+        'text': _commentController.text,
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      });
+
+      if (!mounted) return;
+
+      setState(() => _submitted = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thank you for your feedback!'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Failed to send feedback. Please try again.',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -293,7 +337,8 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
             SizedBox(
               height: AppSpacing.buttonHeight,
               child: ElevatedButton(
-                onPressed: _rating > 0 ? _submit : null,
+                onPressed:
+                    (_rating > 0 && !_isSubmitting) ? _submit : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -303,13 +348,23 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                         BorderRadius.circular(AppSpacing.radiusButton),
                   ),
                 ),
-                child: const Text(
-                  'Submit Feedback / प्रतिक्रिया भेजें',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Submit Feedback / प्रतिक्रिया भेजें',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ],

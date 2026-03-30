@@ -26,13 +26,13 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
       </Link>
 
       {/* Module Header */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal/10">
             <BookOpen className="h-6 w-6 text-teal" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-teal">{module.title}</h1>
+            <h1 className="font-heading text-lg sm:text-2xl font-bold text-teal">{module.title}</h1>
             <div className="mt-1 flex items-center gap-3">
               <span className="rounded-full bg-teal/10 px-3 py-0.5 text-xs font-semibold text-teal">
                 {module.category}
@@ -64,7 +64,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Module Content */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <p className="text-base leading-relaxed text-charcoal-light">{module.description}</p>
 
         {(module.sections || module.content || []).map((section: any, i: number) => (
@@ -115,26 +115,26 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
         const hasTakeaways = !!(module.key_takeaways && module.key_takeaways.length > 0);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Module Overview</h3>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{readingMins}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{readingMins}</p>
                 <p className="text-xs text-charcoal/50">min read</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{sectionCount}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{sectionCount}</p>
                 <p className="text-xs text-charcoal/50">sections</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{hasTips ? 'Yes' : 'No'}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{hasTips ? 'Yes' : 'No'}</p>
                 <p className="text-xs text-charcoal/50">tips included</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{hasTakeaways ? 'Yes' : 'No'}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{hasTakeaways ? 'Yes' : 'No'}</p>
                 <p className="text-xs text-charcoal/50">takeaways</p>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
         const accessScore = accessibilityFeatures.filter((f) => f.present).length;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <GraduationCap className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Reading Level</h3>
@@ -219,6 +219,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
           'palliative': 'Care focused on comfort and quality of life, not curing disease',
           'opioid': 'Strong pain medication acting on the brain\'s pain receptors',
           'breakthrough pain': 'Sudden pain flare that occurs despite regular medication',
+          'breakthrough dose': 'An extra dose of pain medication taken when pain spikes above the baseline',
           'neuropathic': 'Pain from nerve damage — often burning or tingling',
           'adjuvant': 'Medication used alongside primary treatment to boost its effect',
           'titration': 'Gradually adjusting a dose to find the right amount',
@@ -231,6 +232,21 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
           'advance directive': 'Legal document stating your care wishes',
           'morphine': 'A strong opioid used for severe pain',
           'sedation': 'Using medication to reduce awareness for comfort',
+          'anticipatory grief': 'Grief experienced before a loss fully occurs — for past, present, and future losses',
+          'dignity therapy': 'A therapeutic approach that helps patients create a document of their life story and values',
+          'pain catastrophizing': 'A thinking pattern of rumination, magnification, and helplessness that amplifies pain',
+          'neuromatrix': 'Brain theory explaining that pain is created by combining physical signals with thoughts and emotions',
+          'gate control': 'Theory that the spinal cord has "gates" that can open or close to pain signals',
+          'vagus nerve': 'A major nerve that activates the body\'s calming "rest and digest" response',
+          'diaphragmatic breathing': 'Deep belly breathing that activates the vagus nerve for relaxation',
+          'logotherapy': 'Viktor Frankl\'s approach to finding meaning and purpose in life, even during suffering',
+          'dual process model': 'Grief model showing healthy oscillation between loss-focused and restoration-focused coping',
+          'generativity': 'The desire to create, nurture, and contribute something that outlasts oneself',
+          'spiritual distress': 'Struggling with questions of meaning, purpose, faith, or existence during illness',
+          'caregiver burnout': 'Physical and emotional exhaustion from sustained caregiving without adequate support',
+          'melatonin': 'A natural hormone that regulates your sleep-wake cycle',
+          'cortisol': 'The body\'s primary stress hormone — elevated by anxiety, reduced by relaxation',
+          'sbar': 'Communication format: Situation, Background, Assessment, Request',
         };
         const sections = module.sections || module.content || [];
         const blob = (sections.map((s: any) => s.body || s.content || s.text || '').join(' ') + ' ' + (module.description || '') + ' ' + (module.title || '') + ' ' + (module.category || '')).toLowerCase();
@@ -238,7 +254,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
         const terms = matched.length >= 2 ? matched : Object.entries(GLOSSARY).slice(0, 4);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Key Medical Terms</h3>
@@ -272,7 +288,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
         if (related.length === 0) return null;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <BookMarked className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Related Modules</h3>
@@ -303,6 +319,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
           'Pain Management': [
             { q: 'What is the WHO pain ladder first step?', options: ['Non-opioid analgesics', 'Strong opioids', 'Nerve blocks'], correct: 0 },
             { q: 'When should you take breakthrough medication?', options: ['Only at night', 'When pain spikes above baseline', 'Every 2 hours'], correct: 1 },
+            { q: 'What does "pain catastrophizing" mean?', options: ['Imagining pain that does not exist', 'A thinking pattern that amplifies pain perception', 'Refusing to take medication'], correct: 1 },
           ],
           'Medication': [
             { q: 'Why is it important to take medications on schedule?', options: ['Keeps stable blood levels', 'Reduces cost', 'Makes doctors happy'], correct: 0 },
@@ -311,6 +328,43 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
           'Comfort': [
             { q: 'Which breathing pattern helps with pain?', options: ['Fast shallow breaths', 'Slow diaphragmatic breathing', 'Holding breath'], correct: 1 },
             { q: 'What position often helps reduce pain?', options: ['Supported semi-upright', 'Flat on stomach', 'Standing straight'], correct: 0 },
+          ],
+          'Symptom Management': [
+            { q: 'What should you do if you cannot keep fluids down for 12+ hours?', options: ['Wait another day', 'Contact your care team', 'Drink more water quickly'], correct: 1 },
+            { q: 'Which food helps with nausea?', options: ['Spicy curry', 'Ginger tea', 'Fried snacks'], correct: 1 },
+          ],
+          'Safety': [
+            { q: 'What does SBAR stand for?', options: ['Situation, Background, Assessment, Request', 'Symptoms, Blood, Analysis, Recovery', 'Stop, Breathe, Act, Rest'], correct: 0 },
+            { q: 'Which is a red flag symptom needing immediate attention?', options: ['Mild headache', 'Uncontrolled pain despite breakthrough dose', 'Feeling tired in the afternoon'], correct: 1 },
+          ],
+          'Wellness': [
+            { q: 'What nerve does slow breathing activate?', options: ['Sciatic nerve', 'Vagus nerve', 'Optic nerve'], correct: 1 },
+            { q: 'What is the ideal length for starting a daily breathing practice?', options: ['30 minutes', '3 minutes', '1 hour'], correct: 1 },
+          ],
+          'Nutrition': [
+            { q: 'Which Indian food is ideal for recovery?', options: ['Spicy biryani', 'Khichdi with ghee', 'Fried pakoras'], correct: 1 },
+            { q: 'What improves turmeric absorption in haldi doodh?', options: ['Sugar', 'Black pepper', 'Cardamom'], correct: 1 },
+          ],
+          'Emotional Wellness': [
+            { q: 'What is the "5-4-3-2-1" grounding technique?', options: ['A medication schedule', 'Naming things you sense to stay present', 'A breathing pattern'], correct: 1 },
+            { q: 'What does the "second arrow" concept teach?', options: ['Pain always comes in pairs', 'Self-judgment adds to suffering', 'You should ignore emotions'], correct: 1 },
+            { q: 'What is anticipatory grief?', options: ['Grief only after a loss', 'Grieving losses past, present, and future', 'Grief that lasts exactly 5 stages'], correct: 1 },
+          ],
+          'Life & Meaning': [
+            { q: 'What is dignity therapy?', options: ['Physical therapy for posture', 'Creating a document of your life story and values', 'A type of massage'], correct: 1 },
+            { q: 'Advance care planning is an act of:', options: ['Giving up', 'Love and control', 'Medical procedure'], correct: 1 },
+          ],
+          'Communication': [
+            { q: 'What do children need most when a family member is ill?', options: ['Complete silence about the illness', 'Honest, age-appropriate information', 'To be sent to relatives'], correct: 1 },
+            { q: 'How should you start a difficult family conversation?', options: ['With medical facts and statistics', 'With "I" statements and feelings', 'By avoiding the topic'], correct: 1 },
+          ],
+          'Spiritual Care': [
+            { q: 'What is spiritual distress?', options: ['Disliking your religion', 'Struggling with meaning, purpose, or existential questions', 'Physical pain during prayer'], correct: 1 },
+            { q: 'Which practice is common across spiritual traditions for calming?', options: ['Fasting for a week', 'Repetitive prayer or mantra', 'Avoiding all thoughts'], correct: 1 },
+          ],
+          'Family & Caregiving': [
+            { q: 'What is a sign of caregiver burnout?', options: ['Wanting to help more', 'Persistent exhaustion and irritability', 'Taking regular breaks'], correct: 1 },
+            { q: 'How can you best support your caregiver?', options: ['Never ask for help', 'Accept help gracefully and express appreciation', 'Hide your symptoms'], correct: 1 },
           ],
         };
         const questions = QUIZZES[module.category] || [
@@ -358,7 +412,7 @@ export default function LearnDetailPage({ params }: { params: Promise<{ id: stri
       {!module.completed && (
         <button
           onClick={() => markComplete.mutate({ id, progress: 100 })}
-          className="flex h-14 w-full items-center justify-center rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
+          className="flex h-12 sm:h-14 w-full items-center justify-center rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
         >
           Mark as Complete
         </button>

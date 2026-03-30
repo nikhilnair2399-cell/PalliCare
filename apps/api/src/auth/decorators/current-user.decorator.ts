@@ -5,6 +5,12 @@ export interface CurrentUserPayload {
   role: string;
   phone: string;
   name: string;
+  clinicianRole?: string | null;
+  permissions?: {
+    canPrescribe: boolean;
+    canExportResearch: boolean;
+    canManageUsers: boolean;
+  } | null;
 }
 
 /** Extract the authenticated user from the request */

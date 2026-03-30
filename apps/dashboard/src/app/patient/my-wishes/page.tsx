@@ -202,7 +202,7 @@ export default function MyWishesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-teal">My Wishes</h1>
+          <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">My Wishes</h1>
           <p className="mt-1 text-base text-charcoal-light">
             Your advance care preferences — last updated {wishes.lastUpdated}
           </p>
@@ -235,7 +235,7 @@ export default function MyWishesPage() {
         const needsReview = daysSinceReview > 90;
         return (
           <div className="space-y-3">
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-bold text-charcoal">Completion</span>
                 <span className="text-sm font-bold text-teal">{pct}%</span>
@@ -270,7 +270,7 @@ export default function MyWishesPage() {
       })()}
 
       {/* Sprint 40 — Key Decisions At-a-Glance */}
-      <div className="rounded-2xl bg-white p-5">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
         <h2 className="mb-3 text-sm font-bold text-charcoal">Key Decisions</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -304,7 +304,7 @@ export default function MyWishesPage() {
         const daysUntilReview = Math.ceil((nextReviewDate.getTime() - Date.now()) / 86400000);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-teal" />
@@ -356,7 +356,7 @@ export default function MyWishesPage() {
         const totalTopics = DISCUSSIONS.length;
         const pct = Math.round((discussedCount / totalTopics) * 100);
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Family Discussion Tracker</h3>
@@ -422,7 +422,7 @@ export default function MyWishesPage() {
         const readinessBg = avgConfidence >= 80 ? 'bg-sage/10' : avgConfidence >= 50 ? 'bg-amber/10' : 'bg-terra/10';
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Compass className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Decision Readiness</h3>
@@ -471,7 +471,7 @@ export default function MyWishesPage() {
       {/* ─── Section 1: Goals of Care ─── */}
       <SectionHeader id="goals" title="Goals of Care" icon={Heart} />
       {expandedSection === 'goals' && (
-        <div className="space-y-4 rounded-2xl bg-white p-5">
+        <div className="space-y-4 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <RadioGroup
             name="goalsOfCare"
             value={wishes.goalsOfCare}
@@ -492,7 +492,7 @@ export default function MyWishesPage() {
       {/* ─── Section 2: Medical Preferences ─── */}
       <SectionHeader id="medical" title="Medical Preferences" icon={FileText} count={5} />
       {expandedSection === 'medical' && (
-        <div className="space-y-4 rounded-2xl bg-white p-5">
+        <div className="space-y-4 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div>
             <p className="mb-2 text-base font-semibold text-charcoal">Code Status</p>
             <RadioGroup
@@ -546,7 +546,7 @@ export default function MyWishesPage() {
       {/* ─── Section 3: Preferred Place ─── */}
       <SectionHeader id="place" title="Where I Want to Be" icon={Home} />
       {expandedSection === 'place' && (
-        <div className="space-y-4 rounded-2xl bg-white p-5">
+        <div className="space-y-4 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <p className="text-base text-charcoal-light">Where would you prefer to receive care in the final phase?</p>
           <div className="grid grid-cols-2 gap-3">
             {PLACE_OPTIONS.map((opt) => {
@@ -575,7 +575,7 @@ export default function MyWishesPage() {
       {/* ─── Section 4: My People ─── */}
       <SectionHeader id="people" title="My Decision Makers" icon={Users} />
       {expandedSection === 'people' && (
-        <div className="space-y-4 rounded-2xl bg-white p-5">
+        <div className="space-y-4 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           {(['primarySurrogate', 'alternateSurrogate'] as const).map((type) => (
             <div key={type}>
               <p className="mb-2 text-base font-bold text-charcoal">
@@ -614,7 +614,7 @@ export default function MyWishesPage() {
       {/* ─── Section 5: Spiritual & Cultural ─── */}
       <SectionHeader id="spiritual" title="Spiritual & Cultural Preferences" icon={Heart} />
       {expandedSection === 'spiritual' && (
-        <div className="space-y-3 rounded-2xl bg-white p-5">
+        <div className="space-y-3 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <TextField label="Religion / Faith" value={wishes.religion} onChange={(v) => update('religion', v)} disabled={!editing} />
           <TextField label="Ritual or ceremony preferences" value={wishes.ritualPreferences} onChange={(v) => update('ritualPreferences', v)} multiline disabled={!editing} />
           <TextField label="Dietary restrictions" value={wishes.dietaryRestrictions} onChange={(v) => update('dietaryRestrictions', v)} disabled={!editing} />
@@ -624,7 +624,7 @@ export default function MyWishesPage() {
       {/* ─── Section 6: Legal Documents ─── */}
       <SectionHeader id="legal" title="Legal Documents" icon={FileText} />
       {expandedSection === 'legal' && (
-        <div className="space-y-3 rounded-2xl bg-white p-5">
+        <div className="space-y-3 overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           {[
             { field: 'hasLivingWill' as const, dateField: 'livingWillDate' as const, label: 'Living Will / Advance Directive' },
             { field: 'hasPOA' as const, dateField: 'poaDate' as const, label: 'Power of Attorney (Medical)' },
@@ -664,7 +664,7 @@ export default function MyWishesPage() {
       {/* ─── Section 7: Personal Wishes ─── */}
       <SectionHeader id="personal" title="In My Own Words" icon={Edit3} />
       {expandedSection === 'personal' && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <p className="mb-2 text-sm text-charcoal-light">
             Anything else you want your care team and family to know — in your own words.
           </p>

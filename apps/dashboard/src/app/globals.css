@@ -17,9 +17,15 @@
   --color-lavender-light: #EDE9F5;
   --color-amber: #E8A838;
   --color-amber-light: #F0C56A;
+  --color-dusty-rose: #C9A9A6;
   --color-cream: #FFF8F0;
-  --color-charcoal: #2D2D2D;
-  --color-charcoal-light: #4A4A4A;
+  --color-surface-card: #FFFDF8;
+  --color-surface-secondary: #F5EDE3;
+  --color-charcoal: #332E2B;
+  --color-charcoal-light: #6B5E57;
+  --color-text-tertiary: #948883;
+  --color-border: #E5DDD5;
+  --color-divider: #F0EBE4;
 
   /* Pain Scale Colors */
   --color-pain-0: #7BA68C;
@@ -40,32 +46,55 @@
   --color-alert-info: #2A6B6B;
   --color-alert-success: #7BA68C;
 
-  /* Spacing (8dp grid) */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
+  /* Warm Dark Mode Colors */
+  --color-dark-surface: #1C1A18;
+  --color-dark-card: #282522;
+  --color-dark-secondary: #302D2A;
+  --color-dark-text: #E8E2DA;
+  --color-dark-text-secondary: #B0A89F;
+  --color-dark-border: #3A3530;
+  --color-dark-sage: #9DB89A;
+
+  /* Shadows — warm-tinted, not grey */
+  --shadow-card: 0 1px 3px rgba(62, 45, 35, 0.06);
+  --shadow-elevated: 0 2px 8px rgba(62, 45, 35, 0.08);
 
   /* Font families */
-  --font-heading: 'Georgia', serif;
-  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono: 'Cascadia Code', 'Fira Code', monospace;
+}
+
+/* ── Design System Spacing (8dp grid) — outside @theme to avoid Tailwind collisions ── */
+:root {
+  --ds-spacing-xs: 4px;
+  --ds-spacing-sm: 8px;
+  --ds-spacing-md: 16px;
+  --ds-spacing-lg: 24px;
+  --ds-spacing-xl: 32px;
+  --ds-spacing-2xl: 48px;
+  --ds-spacing-3xl: 64px;
 }
 
 /* ── Base Styles ── */
 body {
   font-family: var(--font-body);
   color: var(--color-charcoal);
-  background: #f8faf9;
+  background: var(--color-cream);
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-teal);
+}
+
+/* ── Warm Card Shadows ── */
+.card-warm {
+  box-shadow: var(--shadow-card);
+}
+.card-elevated {
+  box-shadow: var(--shadow-elevated);
 }
 
 /* ── Scrollbar Styling ── */
@@ -110,6 +139,83 @@ h1, h2, h3, h4, h5, h6 {
   outline: 3px solid var(--color-teal);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ── Dark Mode (Warm Night) ── */
+/*
+ * Activated by .dark class on <html>, toggled via Header button.
+ * Overrides design tokens so ALL Tailwind utilities (bg-cream, text-charcoal,
+ * border-sage-light/30, etc.) automatically adapt — zero component edits needed.
+ */
+html.dark {
+  color-scheme: dark;
+
+  /* Surfaces — warm dark palette (darkest → lightest) */
+  --color-cream: #1C1A18;
+  --color-surface-card: #282522;
+  --color-surface-secondary: #302D2A;
+
+  /* Text — light on dark */
+  --color-charcoal: #E8E2DA;
+  --color-charcoal-light: #B0A89F;
+  --color-text-tertiary: #8A827A;
+
+  /* Borders & dividers */
+  --color-border: #3A3530;
+  --color-divider: #302D2A;
+
+  /* Brand colors — brightened for legibility on dark surfaces */
+  --color-sage: #8FC09C;
+  --color-sage-light: #6A9A7A;
+  --color-sage-dark: #7BAA8C;
+  --color-teal: #4DAFAF;
+  --color-teal-light: #5DC0C0;
+  --color-teal-dark: #3A9090;
+  --color-terra: #E8A088;
+  --color-terra-light: #F0B8A5;
+  --color-lavender: #B8B0D0;
+  --color-lavender-light: #CEC8E0;
+  --color-amber: #F0C050;
+  --color-amber-light: #F5D070;
+  --color-dusty-rose: #D8BEB8;
+
+  /* Alerts — slightly more vivid for dark backgrounds */
+  --color-alert-critical: #D8685A;
+  --color-alert-warning: #F0C050;
+  --color-alert-info: #4DAFAF;
+  --color-alert-success: #8FC09C;
+
+  /* Shadows — stronger for dark surfaces */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-elevated: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/*
+ * bg-white compiles to hardcoded #fff (not a CSS variable), so we override
+ * the Tailwind utility class directly. Only affects background-color —
+ * text-white is a separate class and stays white.
+ */
+html.dark .bg-white {
+  background-color: #282522;
+}
+html.dark .bg-white\/80 {
+  background-color: rgba(40, 37, 34, 0.8);
+}
+
+/* Scrollbar in dark mode */
+html.dark ::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #3A3530;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sage);
+}
+
+/* Focus ring — brighter teal for dark visibility */
+html.dark *:focus-visible {
+  outline-color: var(--color-teal-light);
 }
 
 /* ── Pain Scale Utility Classes ── */

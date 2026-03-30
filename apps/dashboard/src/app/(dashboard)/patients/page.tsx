@@ -64,8 +64,8 @@ function mapApiPatient(p: any) {
 }
 
 const PAIN_COLORS: Record<number, string> = {
-  0: '#7BA68C', 1: '#8FB89E', 2: '#A8C97F', 3: '#C4D94F', 4: '#E8D44D',
-  5: '#E8C033', 6: '#E8A838', 7: '#E89040', 8: '#E87461', 9: '#D94F4F', 10: '#C0392B',
+  0: '#7BA68C', 1: '#8DB89A', 2: '#A0C9A8', 3: '#C5D68E', 4: '#E8D86A',
+  5: '#E8C44A', 6: '#E8A838', 7: '#E08830', 8: '#D4856B', 9: '#C25A45', 10: '#A83232',
 };
 
 const ALERT_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -430,7 +430,7 @@ export default function PatientsPage() {
                   </td>
                   <td className="px-3 py-3.5 text-center">
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold"
-                      style={{ backgroundColor: PAIN_COLORS[patient.pain] || '#ccc', color: patient.pain >= 6 ? '#fff' : '#2D2D2D' }}>
+                      style={{ backgroundColor: PAIN_COLORS[patient.pain] || '#ccc', color: patient.pain >= 6 ? '#fff' : '#332E2B' }}>
                       {patient.pain}
                     </span>
                   </td>

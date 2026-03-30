@@ -16,30 +16,43 @@ import {
   MessageSquare,
   ClipboardList,
   Pill,
+  Shield,
 } from 'lucide-react';
 import { useAlertCounts, useUnreadMessageCount } from '@/lib/hooks';
+import { useAuth, useRoleConfig } from '@/lib/auth';
+import type { SidebarItemKey } from '@/lib/role-config';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Patients', href: '/patients', icon: Users },
-  { name: 'Alerts', href: '/alerts', icon: Bell, badgeKey: 'alerts' },
-  { name: 'Clinical Notes', href: '/notes', icon: FileText },
-  { name: 'Care Plans', href: '/care-plans', icon: ClipboardList },
-  { name: 'Messages', href: '/messages', icon: MessageSquare, badgeKey: 'messages' },
-  { name: 'MDT', href: '/mdt', icon: Users2 },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Med Reference', href: '/medication-db', icon: Pill },
-];
-
-const bottomNav = [
-  { name: 'Settings', href: '/settings', icon: Settings },
+const navigation: Array<{
+  key: SidebarItemKey;
+  name: string;
+  href: string;
+  icon: any;
+  badgeKey?: string;
+}> = [
+  { key: 'dashboard',     name: 'Dashboard',      href: '/',              icon: LayoutDashboard },
+  { key: 'patients',      name: 'Patients',        href: '/patients',      icon: Users },
+  { key: 'alerts',        name: 'Alerts',          href: '/alerts',        icon: Bell, badgeKey: 'alerts' },
+  { key: 'notes',         name: 'Clinical Notes',  href: '/notes',         icon: FileText },
+  { key: 'care_plans',    name: 'Care Plans',      href: '/care-plans',    icon: ClipboardList },
+  { key: 'messages',      name: 'Messages',        href: '/messages',      icon: MessageSquare, badgeKey: 'messages' },
+  { key: 'mdt',           name: 'MDT',             href: '/mdt',           icon: Users2 },
+  { key: 'analytics',     name: 'Analytics',       href: '/analytics',     icon: BarChart3 },
+  { key: 'community',     name: 'Community',       href: '/community',     icon: Shield },
+  { key: 'medication_db', name: 'Med Reference',   href: '/medication-db', icon: Pill },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
+  const roleConfig = useRoleConfig();
+
+  // Filter navigation based on role
+  const filteredNav = navigation.filter((item) =>
+    roleConfig.sidebarItems.includes(item.key),
+  );
 
   // Live alert counts from API
   const alertCountsQuery = useAlertCounts();
@@ -56,6 +69,14 @@ export function Sidebar() {
       router.push('/login');
     }
   }
+
+  // User initials for avatar
+  const initials = user?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() ?? 'CL';
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-sage-light/30 bg-white">
@@ -74,7 +95,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navigation.map((item) => {
+        {filteredNav.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));
@@ -86,7 +107,7 @@ export function Sidebar() {
 
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={clsx(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -110,18 +131,39 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Dev Tools (non-production only) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="border-t border-sage-light/30 px-3 pt-3 pb-1">
+          <p className="px-3 pb-1 text-[9px] font-bold uppercase tracking-wider text-charcoal-light/60">
+            Dev Tools
+          </p>
+          <Link
+            href="/verify"
+            className={clsx(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+              pathname === '/verify'
+                ? 'bg-teal/10 text-teal'
+                : 'text-charcoal-light hover:bg-cream hover:text-charcoal',
+            )}
+          >
+            <Activity className="h-4 w-4" />
+            Verify
+          </Link>
+        </div>
+      )}
+
       {/* Bottom Navigation */}
       <div className="border-t border-sage-light/30 px-3 py-4">
-        {bottomNav.map((item) => (
+        {/* Settings is always shown via roleConfig */}
+        {roleConfig.sidebarItems.includes('settings') && (
           <Link
-            key={item.name}
-            href={item.href}
+            href="/settings"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-charcoal"
           >
-            <item.icon className="h-5 w-5" />
-            {item.name}
+            <Settings className="h-5 w-5" />
+            Settings
           </Link>
-        ))}
+        )}
         <button
           onClick={handleSignOut}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-charcoal-light hover:bg-cream hover:text-alert-critical"
@@ -135,14 +177,14 @@ export function Sidebar() {
       <div className="border-t border-sage-light/30 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sage text-xs font-bold text-white">
-            NN
+            {initials}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-charcoal">
-              Dr. Nikhil Nair
+              {user?.name ?? 'Clinician'}
             </p>
             <p className="truncate text-xs text-charcoal-light">
-              Anaesthesiology
+              {roleConfig.label}
             </p>
           </div>
         </div>

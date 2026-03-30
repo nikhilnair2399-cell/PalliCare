@@ -14,7 +14,7 @@ const phaseConfig: Record<Phase, { label: string; color: string }> = {
   inhale: { label: 'Breathe In', color: '#7BA68C' },
   hold:   { label: 'Hold',       color: '#E8A838' },
   exhale: { label: 'Breathe Out', color: '#2A6B6B' },
-  idle:   { label: 'Ready',      color: '#4A4A4A' },
+  idle:   { label: 'Ready',      color: '#948883' },
 };
 
 export function BreatheCircle({
@@ -91,15 +91,15 @@ export function BreatheCircle({
       {/* Phase indicators */}
       {isRunning && (
         <div className="flex items-center gap-4 text-[12px] font-medium">
-          <span style={{ color: phase === 'inhale' ? '#7BA68C' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'inhale' ? 700 : 400 }}>
+          <span style={{ color: phase === 'inhale' ? '#7BA68C' : 'rgba(51,46,43,0.25)', fontWeight: phase === 'inhale' ? 700 : 400 }}>
             In ({inhale}s)
           </span>
-          <span style={{ color: 'rgba(45,45,45,0.15)' }}>&bull;</span>
-          <span style={{ color: phase === 'hold' ? '#E8A838' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'hold' ? 700 : 400 }}>
+          <span style={{ color: 'rgba(51,46,43,0.15)' }}>&bull;</span>
+          <span style={{ color: phase === 'hold' ? '#E8A838' : 'rgba(51,46,43,0.25)', fontWeight: phase === 'hold' ? 700 : 400 }}>
             Hold ({hold}s)
           </span>
-          <span style={{ color: 'rgba(45,45,45,0.15)' }}>&bull;</span>
-          <span style={{ color: phase === 'exhale' ? '#2A6B6B' : 'rgba(45,45,45,0.25)', fontWeight: phase === 'exhale' ? 700 : 400 }}>
+          <span style={{ color: 'rgba(51,46,43,0.15)' }}>&bull;</span>
+          <span style={{ color: phase === 'exhale' ? '#2A6B6B' : 'rgba(51,46,43,0.25)', fontWeight: phase === 'exhale' ? 700 : 400 }}>
             Out ({exhale}s)
           </span>
         </div>

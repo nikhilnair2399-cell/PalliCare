@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'symptom_log_provider.dart';
@@ -31,14 +32,15 @@ class _NotesCardState extends ConsumerState<NotesCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Anything else to share?',
-            style: TextStyle(
+          Text(
+            l.notesQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -70,7 +72,7 @@ class _NotesCardState extends ConsumerState<NotesCard> {
                 color: AppColors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'e.g. Pain woke me at 3 AM, took extra dose...',
+                hintText: l.notesHintText,
                 hintStyle: TextStyle(
                   fontSize: 15,
                   color: Colors.grey.shade400,
@@ -87,7 +89,7 @@ class _NotesCardState extends ConsumerState<NotesCard> {
 
           // Quick-add prompts
           Text(
-            'Quick prompts:',
+            l.notesPromptsLabel,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -99,11 +101,11 @@ class _NotesCardState extends ConsumerState<NotesCard> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _promptChip('Pain woke me up'),
-              _promptChip('Took extra medicine'),
-              _promptChip('Feeling better today'),
-              _promptChip('Side effects noticed'),
-              _promptChip('Need to talk to doctor'),
+              _promptChip(l.notesPrompt1),
+              _promptChip(l.notesPrompt2),
+              _promptChip(l.notesPrompt3),
+              _promptChip(l.notesPrompt4),
+              _promptChip(l.notesPrompt5),
             ],
           ),
 

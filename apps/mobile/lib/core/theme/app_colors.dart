@@ -23,8 +23,11 @@ class AppColors {
   /// Warm Cream — app background (light mode).
   static const Color surface = Color(0xFFFFF8F0);
 
-  /// White — card backgrounds.
-  static const Color surfaceCard = Color(0xFFFFFFFF);
+  /// Warm Off-White — card backgrounds (not clinical pure white).
+  static const Color surfaceCard = Color(0xFFFFFDF8);
+
+  /// Soft Linen — alternate section backgrounds.
+  static const Color surfaceSecondary = Color(0xFFF5EDE3);
 
   // ---------------------------------------------------------------------------
   // SECONDARY / ACCENT PALETTE
@@ -32,6 +35,9 @@ class AppColors {
 
   /// Soft Terracotta — warm accents, gentle warnings.
   static const Color accentWarm = Color(0xFFD4856B);
+
+  /// Terracotta Dark — caregiver mode headers, emphasis.
+  static const Color accentWarmDark = Color(0xFFB0644E);
 
   /// Lavender Mist — calming elements, breathe module.
   static const Color accentCalm = Color(0xFFD9D4E7);
@@ -42,18 +48,21 @@ class AppColors {
   /// Soft Coral — important alerts (used sparingly).
   static const Color accentAlert = Color(0xFFE87461);
 
+  /// Dusty Rose — secondary warm actions, gentle emphasis.
+  static const Color accentDustyRose = Color(0xFFC9A9A6);
+
   // ---------------------------------------------------------------------------
   // SEMANTIC / TEXT COLORS
   // ---------------------------------------------------------------------------
 
-  /// Deep Charcoal — primary body text.
-  static const Color textPrimary = Color(0xFF2D2D2D);
+  /// Warm Charcoal — primary body text.
+  static const Color textPrimary = Color(0xFF332E2B);
 
-  /// Medium Grey — secondary text, labels.
-  static const Color textSecondary = Color(0xFF6B6B6B);
+  /// Muted Brown — secondary text, labels.
+  static const Color textSecondary = Color(0xFF6B5E57);
 
-  /// Light Grey — hints, placeholders, timestamps.
-  static const Color textTertiary = Color(0xFF9B9B9B);
+  /// Warm Grey — hints, placeholders, timestamps.
+  static const Color textTertiary = Color(0xFF948883);
 
   /// White — text on dark backgrounds.
   static const Color textInverse = Color(0xFFFFFFFF);
@@ -78,11 +87,14 @@ class AppColors {
   // BORDER & DIVIDER
   // ---------------------------------------------------------------------------
 
-  /// Border Grey — card borders, dividers.
-  static const Color border = Color(0xFFE5E5E5);
+  /// Warm Sand — card borders, dividers.
+  static const Color border = Color(0xFFE5DDD5);
 
-  /// Divider Light — section dividers.
-  static const Color divider = Color(0xFFF0F0F0);
+  /// Warm Linen — section dividers.
+  static const Color divider = Color(0xFFF0EBE4);
+
+  /// Warm shadow color for cards and elevation.
+  static const Color shadow = Color(0x143E2D23); // rgba(62, 45, 35, 0.08)
 
   // ---------------------------------------------------------------------------
   // PAIN INTENSITY COLOR SCALE (NRS 0-10)
@@ -143,6 +155,12 @@ class AppColors {
   // LEGACY ALIASES (used across onboarding + widget files)
   // ---------------------------------------------------------------------------
 
+  /// Alias for surface (used as background).
+  static const Color background = surface;
+
+  /// Light error tint — error badge backgrounds.
+  static const Color errorLight = Color(0xFFFDE8E5);
+
   /// Alias for surface (Warm Cream background).
   static const Color warmCream = surface;
 
@@ -179,30 +197,36 @@ class AppColors {
   /// Teal dark variant.
   static const Color tealDark = Color(0xFF1E5555);
 
+  /// Alias for accentDustyRose.
+  static const Color dustyRose = accentDustyRose;
+
   // ---------------------------------------------------------------------------
   // DARK MODE VARIANTS
   // ---------------------------------------------------------------------------
 
-  /// Dark surface — app background (dark mode).
-  static const Color darkSurface = Color(0xFF1A1A2E);
+  /// Dark surface — warm charcoal background (dark mode).
+  static const Color darkSurface = Color(0xFF1C1A18);
 
-  /// Dark surface card — card backgrounds (dark mode).
-  static const Color darkSurfaceCard = Color(0xFF242438);
+  /// Dark surface card — warm dark card backgrounds (dark mode).
+  static const Color darkSurfaceCard = Color(0xFF282522);
 
-  /// Dark text primary.
-  static const Color darkTextPrimary = Color(0xFFE8E8F0);
+  /// Dark surface secondary — warm alternate dark section.
+  static const Color darkSurfaceSecondary = Color(0xFF302D2A);
 
-  /// Dark text secondary.
-  static const Color darkTextSecondary = Color(0xFFA0A0B0);
+  /// Dark text primary — warm off-white.
+  static const Color darkTextPrimary = Color(0xFFE8E2DA);
 
-  /// Dark primary — sage green adjusted for dark mode.
-  static const Color darkPrimary = Color(0xFF8FC4A0);
+  /// Dark text secondary — warm muted.
+  static const Color darkTextSecondary = Color(0xFFB0A89F);
+
+  /// Dark primary — slightly warmer sage for warm dark backgrounds.
+  static const Color darkPrimary = Color(0xFF9DB89A);
 
   /// Dark primary dark — deep teal adjusted for dark mode.
   static const Color darkPrimaryDark = Color(0xFF3A8B8B);
 
-  /// Dark border.
-  static const Color darkBorder = Color(0xFF3A3A50);
+  /// Dark border — warm dark border.
+  static const Color darkBorder = Color(0xFF3A3530);
 
   // ---------------------------------------------------------------------------
   // BREATHE MODULE SPECIFIC

@@ -50,9 +50,9 @@ export default function JourneyPage() {
   const items: any[] = journey[activeTab] || [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Journey</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Journey</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Reflect, set intentions, and celebrate your milestones
         </p>
@@ -62,22 +62,22 @@ export default function JourneyPage() {
       <div className="grid grid-cols-4 gap-3">
         <div className="flex flex-col items-center rounded-2xl bg-white p-4">
           <Target className="mb-1 h-4 w-4 text-teal" />
-          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.goals || []).length}</span>
+          <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{(journey.goals || []).length}</span>
           <span className="text-xs text-charcoal-light">Goals</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl bg-white p-4">
           <Heart className="mb-1 h-4 w-4 text-terra" />
-          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.gratitude || []).length}</span>
+          <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{(journey.gratitude || []).length}</span>
           <span className="text-xs text-charcoal-light">Gratitudes</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl bg-white p-4">
           <Trophy className="mb-1 h-4 w-4 text-amber" />
-          <span className="font-heading text-2xl font-bold text-charcoal">{(journey.milestones || []).length}</span>
+          <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{(journey.milestones || []).length}</span>
           <span className="text-xs text-charcoal-light">Milestones</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl bg-white p-4">
           <Flame className="mb-1 h-4 w-4 text-amber" />
-          <span className="font-heading text-2xl font-bold text-charcoal">
+          <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">
             {Math.max((journey.gratitude || []).length, 1)}
           </span>
           <span className="text-xs text-charcoal-light">Day Streak</span>
@@ -126,7 +126,7 @@ export default function JourneyPage() {
         const rate = total > 0 ? Math.round((done / total) * 100) : 0;
         if (total === 0) return null;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-sage" />
@@ -158,7 +158,7 @@ export default function JourneyPage() {
         const maxEntries = Math.max(...sections.map((s) => s.count), 1);
         const streakDays = gratitudes.length >= 5 ? 7 : gratitudes.length >= 3 ? 4 : gratitudes.length >= 1 ? 2 : 0;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <PieChart className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">Journey Engagement</h3>
@@ -221,7 +221,7 @@ export default function JourneyPage() {
         const avgGapDays = gaps.length > 0 ? Math.round(gaps.reduce((s, v) => s + v, 0) / gaps.length) : null;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <PieChart className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Journey Analytics</h3>
@@ -255,17 +255,17 @@ export default function JourneyPage() {
             {/* Activity stats */}
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">{gratitudes.length}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{gratitudes.length}</p>
                 <p className="text-xs text-charcoal/50">Total reflections</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">
                   {goals.filter((g: any) => g.completed).length}/{goals.length}
                 </p>
                 <p className="text-xs text-charcoal/50">Goals achieved</p>
               </div>
               <div className="rounded-xl bg-cream/50 p-3 text-center">
-                <p className="font-heading text-xl font-bold text-charcoal">
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">
                   {avgGapDays !== null ? `${avgGapDays}d` : '—'}
                 </p>
                 <p className="text-xs text-charcoal/50">Avg milestone gap</p>
@@ -352,7 +352,7 @@ export default function JourneyPage() {
         const topTheme = sorted[0][0];
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Tags className="h-4 w-4 text-lavender" />
               <h3 className="text-sm font-bold text-charcoal">Gratitude Themes</h3>
@@ -393,7 +393,7 @@ export default function JourneyPage() {
       })()}
 
       {/* Tabs */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <div className="flex gap-2">
           {TABS.map((tab) => (
             <button

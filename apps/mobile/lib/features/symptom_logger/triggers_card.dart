@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'symptom_log_provider.dart';
@@ -32,6 +33,7 @@ class TriggersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final entry = ref.watch(symptomLogProvider);
 
     return SingleChildScrollView(
@@ -39,9 +41,9 @@ class TriggersCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'What makes it worse?',
-            style: TextStyle(
+          Text(
+            l.triggersWorsensQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -64,9 +66,9 @@ class TriggersCard extends ConsumerWidget {
 
           const SizedBox(height: 28),
 
-          const Text(
-            'What helps?',
-            style: TextStyle(
+          Text(
+            l.triggersHelpsQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,

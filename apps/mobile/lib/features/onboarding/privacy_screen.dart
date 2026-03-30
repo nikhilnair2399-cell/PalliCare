@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/progress_dots.dart';
@@ -19,6 +20,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -46,38 +48,27 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                     size: 32, color: AppColors.sageGreen),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Your information is safe with us',
+              Text(
+                l.onboardingPrivacyTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: AppColors.deepTeal,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'आपकी जानकारी सुरक्षित है',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16, color: AppColors.deepTeal.withAlpha(180)),
-              ),
               const SizedBox(height: 32),
 
               // Promise cards
-              _promiseCard('🔒', 'Your data is encrypted',
-                  'आपका डेटा एन्क्रिप्टेड है'),
-              _promiseCard('🚫', 'We never sell your data',
-                  'हम आपका डेटा कभी नहीं बेचते'),
-              _promiseCard('👁️', 'Only people you choose can see it',
-                  'सिर्फ़ वही लोग देखेंगे जिन्हें आप अनुमति दें'),
-              _promiseCard('🗑️', 'You can delete your data anytime',
-                  'आप कभी भी अपना डेटा हटा सकते हैं'),
+              _promiseCard('🔒', l.privacyDataEncrypted),
+              _promiseCard('🚫', l.privacyNoSell),
+              _promiseCard('👁️', l.privacyYouChoose),
+              _promiseCard('🗑️', l.privacyDeleteAnytime),
 
               const SizedBox(height: 24),
               PalliCareButton(
-                label: 'I understand / समझ गया',
+                label: l.onboardingPrivacyConfirm,
                 onPressed: () {
                   ref.read(onboardingProvider.notifier).setPrivacyConsented();
                   ref.read(onboardingProvider.notifier).nextStep();
@@ -89,7 +80,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                 child: GestureDetector(
                   onTap: () => setState(() => _showDetails = !_showDetails),
                   child: Text(
-                    _showDetails ? 'Show less' : 'Tell me more / और जानें',
+                    _showDetails ? l.privacyShowLess : l.privacyShowMore,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.sageGreen,
@@ -112,8 +103,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _detailSection('Your rights under DPDPA 2023',
-                          'डेटा सुरक्षा के संबंध में आपके अधिकार'),
+                      _detailSection(l.privacyRightsTitle),
                       const SizedBox(height: 12),
                       _rightItem('Right to access',
                           'Request a copy of all your personal data'),
@@ -164,7 +154,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     );
   }
 
-  Widget _promiseCard(String emoji, String en, String hi) {
+  Widget _promiseCard(String emoji, String text) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -177,34 +167,19 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           Text(emoji, style: const TextStyle(fontSize: 24)),
           const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(en,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                Text(hi,
-                    style: TextStyle(
-                        fontSize: 13, color: Colors.grey.shade600)),
-              ],
-            ),
+            child: Text(text,
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
   }
 
-  Widget _detailSection(String en, String hi) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(en,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.deepTeal)),
-        Text(hi,
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
-      ],
-    );
+  Widget _detailSection(String title) {
+    return Text(title,
+        style: const TextStyle(
+            fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.deepTeal));
   }
 
   Widget _rightItem(String title, String desc) {

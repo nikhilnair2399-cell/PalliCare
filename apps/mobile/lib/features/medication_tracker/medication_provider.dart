@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/sync_provider.dart';
 
 /// Medication schedule type.
 enum MedSchedule { scheduled, prn }
@@ -103,7 +104,9 @@ class MedicationState {
 }
 
 class MedicationNotifier extends StateNotifier<MedicationState> {
-  MedicationNotifier() : super(const MedicationState()) {
+  final Ref _ref;
+
+  MedicationNotifier(this._ref) : super(const MedicationState()) {
     _loadMockData();
   }
 
@@ -214,6 +217,7 @@ class MedicationNotifier extends StateNotifier<MedicationState> {
   }
 
   void markTaken(String medicationId, DateTime scheduledTime) {
+    final now = DateTime.now();
     final logs = List<MedDoseLog>.from(state.todayLogs);
     final index = logs.indexWhere(
       (l) => l.medicationId == medicationId && l.scheduledTime == scheduledTime,
@@ -222,9 +226,17 @@ class MedicationNotifier extends StateNotifier<MedicationState> {
       logs[index] = MedDoseLog(
         medicationId: medicationId,
         scheduledTime: scheduledTime,
-        takenTime: DateTime.now(),
+        takenTime: now,
       );
       state = state.copyWith(todayLogs: logs);
+
+      // Queue for offline-first sync
+      _ref.read(syncProvider.notifier).queueMedicationLog({
+        'medication_id': medicationId,
+        'scheduled_time': scheduledTime.toIso8601String(),
+        'taken_time': now.toIso8601String(),
+        'status': 'taken',
+      });
     }
   }
 
@@ -241,21 +253,39 @@ class MedicationNotifier extends StateNotifier<MedicationState> {
         skipReason: reason,
       );
       state = state.copyWith(todayLogs: logs);
+
+      // Queue for offline-first sync
+      _ref.read(syncProvider.notifier).queueMedicationLog({
+        'medication_id': medicationId,
+        'scheduled_time': scheduledTime.toIso8601String(),
+        'status': 'skipped',
+        'skip_reason': reason,
+      });
     }
   }
 
   void logPrnDose(String medicationId) {
+    final now = DateTime.now();
     final logs = List<MedDoseLog>.from(state.todayLogs);
     logs.add(MedDoseLog(
       medicationId: medicationId,
-      scheduledTime: DateTime.now(),
-      takenTime: DateTime.now(),
+      scheduledTime: now,
+      takenTime: now,
     ));
     state = state.copyWith(todayLogs: logs);
+
+    // Queue PRN dose for offline-first sync
+    _ref.read(syncProvider.notifier).queueMedicationLog({
+      'medication_id': medicationId,
+      'scheduled_time': now.toIso8601String(),
+      'taken_time': now.toIso8601String(),
+      'status': 'taken',
+      'is_prn': true,
+    });
   }
 }
 
 final medicationProvider =
     StateNotifierProvider<MedicationNotifier, MedicationState>(
-  (ref) => MedicationNotifier(),
+  (ref) => MedicationNotifier(ref),
 );

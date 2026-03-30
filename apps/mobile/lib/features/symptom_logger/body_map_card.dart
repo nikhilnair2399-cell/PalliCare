@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/pain_badge.dart';
@@ -27,6 +28,7 @@ class BodyMapCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final entry = ref.watch(symptomLogProvider);
     final locations = entry.painLocations;
     final currentIntensity = entry.painIntensity ?? 5;
@@ -36,9 +38,9 @@ class BodyMapCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Where does it hurt?',
-            style: TextStyle(
+          Text(
+            l.bodyMapQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -122,7 +124,7 @@ class BodyMapCard extends ConsumerWidget {
           const SizedBox(height: 16),
           if (locations.isNotEmpty)
             Text(
-              '${locations.length} location(s) selected',
+              l.bodyMapLocationsSelected(locations.length),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

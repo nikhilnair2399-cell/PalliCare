@@ -46,6 +46,26 @@ export class EducationService {
     return this.repo.getOverallProgress(patientId);
   }
 
+  // ─── Content Attributions ─────────────────────────────────
+
+  async getModuleAttributions(moduleId: string) {
+    return this.repo.findAttributionsByModule(moduleId);
+  }
+
+  async addAttribution(data: {
+    contentType: string;
+    contentId: string;
+    sourceName: string;
+    sourceAuthors?: string;
+    sourceYear?: number;
+    sourceUrl?: string;
+    licenseSpdx?: string;
+    usageType: string;
+    notes?: string;
+  }) {
+    return this.repo.addAttribution(data);
+  }
+
   // ─── Breathe Sessions ─────────────────────────────────────
 
   async createBreatheSession(patientId: string, data: Record<string, any>) {

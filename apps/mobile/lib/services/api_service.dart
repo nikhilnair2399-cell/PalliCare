@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../core/constants/api_endpoints.dart';
+import 'secure_storage_service.dart';
 
 /// Central API client for PalliCare mobile app.
 /// Uses Dio with interceptors for auth, error handling, and retry.
@@ -95,22 +96,139 @@ class ApiService {
 
   // ---- Sync APIs ----
 
-  Future<Response> syncEntries(List<Map<String, dynamic>> entries) =>
-      _dio.post('/sync/batch', data: {'entries': entries});
+  /// Sync offline records to server.
+  /// Format matches NestJS POST /sync: { device_id, records[] }
+  Future<Response> syncEntries(List<Map<String, dynamic>> records) =>
+      _dio.post('/sync', data: {
+        'device_id': records.isNotEmpty ? records.first['device_id'] : '',
+        'records': records,
+      });
+
+  // ---- Feedback APIs ----
+
+  Future<Response> submitFeedback(Map<String, dynamic> feedback) =>
+      _dio.post('/feedback', data: feedback);
+
+  // ---- Consent APIs (DPDPA 2023) ----
+
+  /// Get the user's currently active consents.
+  Future<Response> getActiveConsents() =>
+      _dio.get('/consent');
+
+  /// Get all consents including revoked ones.
+  Future<Response> getAllConsents() =>
+      _dio.get('/consent/all');
+
+  /// Grant a new consent or update an existing one.
+  Future<Response> grantConsent(Map<String, dynamic> consent) =>
+      _dio.post('/consent', data: consent);
+
+  /// Revoke a consent by type (e.g., 'data_sharing', 'analytics').
+  Future<Response> revokeConsent(String consentType) =>
+      _dio.delete('/consent/$consentType');
+
+  /// Get the audit history for a specific consent type.
+  Future<Response> getConsentHistory(String consentType) =>
+      _dio.get('/consent/$consentType/history');
+
+  // ---- Data Portability (DPDPA Section 18) ----
+
+  /// Request an export of the user's data.
+  Future<Response> requestDataExport({
+    String type = 'full',
+    String format = 'json',
+  }) =>
+      _dio.post('/data-portability/export', data: {
+        'export_type': type,
+        'format': format,
+      });
+
+  /// List all pending and completed data exports.
+  Future<Response> getDataExports() =>
+      _dio.get('/data-portability/exports');
+
+  // ---- Data Deletion (DPDPA Section 12) ----
+
+  /// Request deletion of the user's data.
+  Future<Response> requestDataDeletion({String type = 'full_erasure'}) =>
+      _dio.post('/data-deletion/request', data: {
+        'request_type': type,
+      });
+
+  /// List all data deletion requests.
+  Future<Response> getDataDeletionRequests() =>
+      _dio.get('/data-deletion/requests');
 }
 
+/// Reads the access token from [SecureStorageService] on every request
+/// instead of relying on a pre-set header.  This ensures that even if
+/// the token is refreshed mid-session, subsequent requests automatically
+/// pick up the new value.
+///
+/// On 401, attempts a single token refresh using the stored refresh token.
+/// If refresh succeeds, retries the original request with the new token.
+/// If refresh fails, clears tokens (forces re-login on next app interaction).
 class _AuthInterceptor extends Interceptor {
+  final SecureStorageService _secureStorage = SecureStorageService();
+  bool _isRefreshing = false;
+
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Token is already set in headers via setAuthToken
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    final token = await _secureStorage.getAccessToken();
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     handler.next(options);
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      // Token expired — trigger re-auth flow
-      // TODO: Refresh token or redirect to login
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401 &&
+        !_isRefreshing &&
+        !err.requestOptions.path.contains('/auth/')) {
+      _isRefreshing = true;
+      try {
+        final refreshToken = await _secureStorage.getRefreshToken();
+        if (refreshToken == null) {
+          await _secureStorage.clearTokens();
+          handler.next(err);
+          return;
+        }
+
+        // Call refresh endpoint with a fresh Dio instance to avoid interceptor loop
+        final refreshDio = Dio(BaseOptions(
+          baseUrl: ApiEndpoints.baseUrl,
+          headers: {'Content-Type': 'application/json'},
+        ));
+
+        final response = await refreshDio.post(
+          '/auth/token/refresh',
+          data: {'refresh_token': refreshToken},
+        );
+
+        final newAccessToken = response.data['access_token'] as String?;
+        final newRefreshToken = response.data['refresh_token'] as String?;
+
+        if (newAccessToken != null) {
+          await _secureStorage.setAccessToken(newAccessToken);
+          if (newRefreshToken != null) {
+            await _secureStorage.setRefreshToken(newRefreshToken);
+          }
+
+          // Retry the original request with the new token
+          final retryOptions = err.requestOptions;
+          retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+          final retryResponse = await refreshDio.fetch(retryOptions);
+          handler.resolve(retryResponse);
+          return;
+        }
+      } catch (_) {
+        // Refresh failed — clear tokens, user must re-login
+        await _secureStorage.clearTokens();
+      } finally {
+        _isRefreshing = false;
+      }
     }
     handler.next(err);
   }

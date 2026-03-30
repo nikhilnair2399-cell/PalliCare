@@ -140,6 +140,17 @@ export type {
   DoctorReport,
 } from './doctor-report';
 
+// ── Consent ───────────────────────────────────────────────────────────────
+export type {
+  ConsentType,
+  ConsentMethod,
+  ConsentRecord,
+  ConsentRequest,
+  ConsentTypeStatus,
+  ConsentStatus,
+  ConsentSummary,
+} from './consent';
+
 // ── API Types ──────────────────────────────────────────────────────────────
 export type {
   // Common
@@ -147,6 +158,9 @@ export type {
   Pagination,
   PaginatedResponse,
   UserRole,
+  ClinicianRole,
+  ClinicianPermissions,
+  AuthUserExtended,
   // Auth
   OtpRequestBody,
   OtpRequestResponse,

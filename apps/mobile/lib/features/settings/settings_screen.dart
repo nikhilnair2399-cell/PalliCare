@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/l10n/app_localizations.dart';
+import '../caregiver/caregiver_mode_provider.dart';
 import 'settings_provider.dart';
 import 'settings_toggle_row.dart';
 import 'settings_section_card.dart';
@@ -61,6 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
 
@@ -75,20 +78,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: Column(
-          children: [
-            Text(
-              'Settings',
-              style: AppTypography.heading3.copyWith(fontSize: 17),
-            ),
-            const Text(
-              '\u0938\u0947\u091F\u093F\u0902\u0917\u094D\u0938',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+        title: Text(
+          l.settingsTitle,
+          style: AppTypography.heading3.copyWith(fontSize: 17),
         ),
         actions: [
           if (settings.hasChanges)
@@ -97,7 +89,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 notifier.markSaved();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Settings saved'),
+                    content: Text(l.settingsSaved),
                     backgroundColor: AppColors.primary,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -107,9 +99,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 );
               },
-              child: const Text(
-                'Done',
-                style: TextStyle(
+              child: Text(
+                l.commonDone,
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
@@ -141,29 +133,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             // [D] Privacy & Data
             SettingsSectionCard(
-              titleEn: 'Privacy & Data',
-              titleHi:
-                  '\u0917\u094B\u092A\u0928\u0940\u092F\u0924\u093E \u0914\u0930 \u0921\u0947\u091F\u093E',
+              titleEn: l.settingsPrivacy,
+              titleHi: l.settingsPrivacy,
               icon: Icons.shield_outlined,
               onTap: () {
                 // Placeholder navigation
-                _showPlaceholder(context, 'Privacy & Data');
+                _showPlaceholder(context, l.settingsPrivacy);
               },
               child: const SizedBox.shrink(),
             ),
             const SizedBox(height: AppSpacing.cardGap),
 
-            // [E] Caregiver Management
-            SettingsSectionCard(
-              titleEn: 'Caregiver Management',
-              titleHi:
-                  '\u0926\u0947\u0916\u092D\u093E\u0932\u0915\u0930\u094D\u0924\u093E \u092A\u094D\u0930\u092C\u0902\u0927\u0928',
-              icon: Icons.people_outline,
-              onTap: () {
-                _showPlaceholder(context, 'Caregiver Management');
-              },
-              child: const SizedBox.shrink(),
-            ),
+            // [E] Caregiver Management — Mode Switch
+            _buildCaregiverModeCard(ref),
             const SizedBox(height: AppSpacing.cardGap),
 
             // [F] Accessibility
@@ -197,6 +179,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildProfileCard() {
+    final l = AppLocalizations.of(context);
     const profile = mockProfile;
 
     return Container(
@@ -331,21 +314,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // View Full Profile link
               GestureDetector(
                 onTap: () {
-                  _showPlaceholder(context, 'Full Profile');
+                  _showPlaceholder(context, l.settingsProfile);
                 },
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'View Full Profile',
-                      style: TextStyle(
+                      l.settingsProfile,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.primary,
                       ),
                     ),
-                    SizedBox(width: 2),
-                    Icon(
+                    const SizedBox(width: 2),
+                    const Icon(
                       Icons.arrow_forward_ios,
                       size: 12,
                       color: AppColors.primary,
@@ -361,10 +344,138 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // =========================================================================
+  // [E] CAREGIVER MODE SWITCH
+  // =========================================================================
+
+  Widget _buildCaregiverModeCard(WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final modeState = ref.watch(caregiverModeProvider);
+    final modeNotifier = ref.read(caregiverModeProvider.notifier);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+        border: Border.all(
+          color: modeState.isCaregiverMode
+              ? AppColors.accentWarm.withAlpha(80)
+              : AppColors.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: modeState.isCaregiverMode
+                      ? AppColors.accentWarm.withAlpha(25)
+                      : AppColors.primaryDark.withAlpha(15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.people_outline,
+                  size: 20,
+                  color: modeState.isCaregiverMode
+                      ? AppColors.accentWarm
+                      : AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.space3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.caregiverTitle,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.space4),
+
+          // Mode switch row
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.space3),
+            decoration: BoxDecoration(
+              color: modeState.isCaregiverMode
+                  ? AppColors.accentWarm.withAlpha(12)
+                  : AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusPainButton),
+              border: Border.all(
+                color: modeState.isCaregiverMode
+                    ? AppColors.accentWarm.withAlpha(40)
+                    : AppColors.border,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  modeState.isCaregiverMode
+                      ? Icons.toggle_on
+                      : Icons.toggle_off_outlined,
+                  size: 32,
+                  color: modeState.isCaregiverMode
+                      ? AppColors.accentWarm
+                      : AppColors.textTertiary,
+                ),
+                const SizedBox(width: AppSpacing.space3),
+                Expanded(
+                  child: Text(
+                    l.caregiverModeLabel,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: modeState.isCaregiverMode
+                          ? AppColors.accentWarm
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Switch(
+                  value: modeState.isCaregiverMode,
+                  onChanged: (_) => modeNotifier.toggleMode(),
+                  activeColor: AppColors.accentWarm,
+                ),
+              ],
+            ),
+          ),
+
+          if (modeState.isCaregiverMode) ...[
+            const SizedBox(height: AppSpacing.space3),
+            Text(
+              'Interface switches to caregiver-optimized layout with warm amber theme, task coordination, burnout monitoring, and care tools.',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
   // [B] LANGUAGE SECTION
   // =========================================================================
 
   Widget _buildLanguageSection(SettingsState s, SettingsNotifier n) {
+    final l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -375,20 +486,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Language',
-            style: TextStyle(
+          Text(
+            l.settingsLanguageLabel,
+            style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          const Text(
-            '\u092D\u093E\u0937\u093E',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.space4),
@@ -420,10 +523,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Dual-language toggle
           SettingsToggleRow(
-            titleEn: 'Dual Language Display',
-            titleHi:
-                '\u0926\u094D\u0935\u093F\u092D\u093E\u0937\u0940 \u092A\u094D\u0930\u0926\u0930\u094D\u0936\u0928',
-            subtitleEn: 'Show Hindi and English together',
+            titleEn: l.settingsDualLanguageLabel,
+            titleHi: l.settingsDualLanguageLabel,
+            subtitleEn: l.settingsDualLanguageHint,
             value: s.dualLanguage,
             onChanged: n.toggleDualLanguage,
           ),
@@ -437,18 +539,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildNotificationSection(SettingsState s, SettingsNotifier n) {
+    final l = AppLocalizations.of(context);
     return SettingsSectionCard(
-      titleEn: 'Notification Preferences',
-      titleHi:
-          '\u0938\u0942\u091A\u0928\u093E \u092A\u094D\u0930\u093E\u0925\u092E\u093F\u0915\u0924\u093E\u090F\u0901',
+      titleEn: l.settingsNotificationsLabel,
+      titleHi: l.settingsNotificationsLabel,
       icon: Icons.notifications_outlined,
       initiallyExpanded: false,
       child: Column(
         children: [
           SettingsToggleRow(
-            titleEn: 'Medication Reminders',
-            titleHi:
-                '\u0926\u0935\u093E \u0930\u093F\u092E\u093E\u0907\u0902\u0921\u0930',
+            titleEn: l.settingsMedRemindersLabel,
+            titleHi: l.settingsMedRemindersLabel,
             value: s.medReminders,
             onChanged: n.toggleMedReminders,
           ),
@@ -456,9 +557,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Morning check-in
           SettingsToggleRow(
-            titleEn: 'Morning Check-in',
-            titleHi:
-                '\u0938\u0941\u092C\u0939 \u091A\u0947\u0915-\u0907\u0928',
+            titleEn: l.settingsMorningCheckinLabel,
+            titleHi: l.settingsMorningCheckinLabel,
             value: s.morningCheckin,
             onChanged: n.toggleMorningCheckin,
           ),
@@ -472,9 +572,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Evening check-in
           SettingsToggleRow(
-            titleEn: 'Evening Check-in',
-            titleHi:
-                '\u0936\u093E\u092E \u091A\u0947\u0915-\u0907\u0928',
+            titleEn: l.settingsEveningCheckin,
+            titleHi: l.settingsEveningCheckin,
             value: s.eveningCheckin,
             onChanged: n.toggleEveningCheckin,
           ),
@@ -487,36 +586,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Education Nudges',
-            titleHi:
-                '\u0936\u093F\u0915\u094D\u0937\u093E \u0928\u091C',
+            titleEn: l.settingsEducationNudges,
+            titleHi: l.settingsEducationNudges,
             value: s.educationNudges,
             onChanged: n.toggleEducationNudges,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Goal Reminders',
-            titleHi:
-                '\u0932\u0915\u094D\u0937\u094D\u092F \u0930\u093F\u092E\u093E\u0907\u0902\u0921\u0930',
+            titleEn: l.settingsGoalReminders,
+            titleHi: l.settingsGoalReminders,
             value: s.goalReminders,
             onChanged: n.toggleGoalReminders,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Wellness Tips',
-            titleHi:
-                '\u0938\u094D\u0935\u093E\u0938\u094D\u0925\u094D\u092F \u0938\u0941\u091D\u093E\u0935',
+            titleEn: l.settingsWellnessTips,
+            titleHi: l.settingsWellnessTips,
             value: s.wellnessTips,
             onChanged: n.toggleWellnessTips,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Visit Reminders',
-            titleHi:
-                '\u092E\u0941\u0932\u093E\u0915\u093E\u0924 \u0930\u093F\u092E\u093E\u0907\u0902\u0921\u0930',
+            titleEn: l.settingsVisitReminders,
+            titleHi: l.settingsVisitReminders,
             value: s.visitReminders,
             onChanged: n.toggleVisitReminders,
           ),
@@ -524,9 +619,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Quiet hours
           SettingsToggleRow(
-            titleEn: 'Quiet Hours',
-            titleHi:
-                '\u0936\u093E\u0902\u0924 \u0938\u092E\u092F',
+            titleEn: l.settingsQuietHours,
+            titleHi: l.settingsQuietHours,
             subtitleEn: s.quietHoursEnabled
                 ? '${_formatTime(s.quietHoursStart)} \u2013 ${_formatTime(s.quietHoursEnd)}'
                 : null,
@@ -555,30 +649,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildAccessibilitySection(SettingsState s, SettingsNotifier n) {
+    final l = AppLocalizations.of(context);
     return SettingsSectionCard(
-      titleEn: 'Accessibility',
-      titleHi:
-          '\u0938\u0941\u0932\u092D\u0924\u093E',
+      titleEn: l.settingsAccessibility,
+      titleHi: l.settingsAccessibility,
       icon: Icons.accessibility_new,
       initiallyExpanded: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Text size slider
-          const Text(
-            'Text Size',
-            style: TextStyle(
+          Text(
+            l.settingsTextSize,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 1),
-          const Text(
-            '\u091F\u0947\u0915\u094D\u0938\u094D\u091F \u0906\u0915\u093E\u0930',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.space2),
@@ -628,36 +714,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'High Contrast',
-            titleHi:
-                '\u0909\u091A\u094D\u091A \u0915\u0902\u091F\u094D\u0930\u093E\u0938\u094D\u091F',
+            titleEn: l.settingsHighContrast,
+            titleHi: l.settingsHighContrast,
             value: s.highContrast,
             onChanged: n.toggleHighContrast,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Reduce Motion',
-            titleHi:
-                '\u0917\u0924\u093F \u0915\u092E \u0915\u0930\u0947\u0902',
+            titleEn: l.settingsReduceMotion,
+            titleHi: l.settingsReduceMotion,
             value: s.reduceMotion,
             onChanged: n.toggleReduceMotion,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Voice Input',
-            titleHi:
-                '\u0935\u0949\u0907\u0938 \u0907\u0928\u092A\u0941\u091F',
+            titleEn: l.settingsVoiceInput,
+            titleHi: l.settingsVoiceInput,
             value: s.voiceInput,
             onChanged: n.toggleVoiceInput,
           ),
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'Haptic Feedback',
-            titleHi:
-                '\u0939\u0948\u092A\u094D\u091F\u093F\u0915 \u092B\u0940\u0921\u092C\u0948\u0915',
+            titleEn: l.settingsHapticFeedback,
+            titleHi: l.settingsHapticFeedback,
             value: s.hapticFeedback,
             onChanged: n.toggleHapticFeedback,
           ),
@@ -671,45 +753,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildAppPreferencesSection(SettingsState s, SettingsNotifier n) {
+    final l = AppLocalizations.of(context);
     return SettingsSectionCard(
-      titleEn: 'App Preferences',
-      titleHi:
-          '\u090F\u092A \u092A\u094D\u0930\u093E\u0925\u092E\u093F\u0915\u0924\u093E\u090F\u0901',
+      titleEn: l.settingsAppearance,
+      titleHi: l.settingsAppearance,
       icon: Icons.tune,
       initiallyExpanded: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Logging mode radio
-          const Text(
-            'Logging Mode',
-            style: TextStyle(
+          Text(
+            l.settingsLoggingMode,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 1),
-          const Text(
-            '\u0932\u0949\u0917\u093F\u0902\u0917 \u092E\u094B\u0921',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.space2),
           _buildRadioRow<String>(
             value: 'quick',
             groupValue: s.loggingMode,
-            labelEn: 'Quick',
-            labelHi: '\u0924\u094D\u0935\u0930\u093F\u0924',
+            labelEn: l.settingsLoggingQuick,
+            labelHi: l.settingsLoggingQuick,
             onChanged: (v) => n.setLoggingMode(v!),
           ),
           _buildRadioRow<String>(
             value: 'full',
             groupValue: s.loggingMode,
-            labelEn: 'Full',
-            labelHi: '\u092A\u0942\u0930\u094D\u0923',
+            labelEn: l.settingsLoggingFull,
+            labelHi: l.settingsLoggingFull,
             onChanged: (v) => n.setLoggingMode(v!),
           ),
 
@@ -718,43 +792,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: AppSpacing.space2),
 
           // Dark mode radio
-          const Text(
-            'Dark Mode',
-            style: TextStyle(
+          Text(
+            l.settingsDarkMode,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
               color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 1),
-          const Text(
-            '\u0921\u093E\u0930\u094D\u0915 \u092E\u094B\u0921',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.space2),
           _buildRadioRow<String>(
             value: 'off',
             groupValue: s.darkModePreference,
-            labelEn: 'Off',
-            labelHi: '\u092C\u0902\u0926',
+            labelEn: l.settingsDarkModeOff,
+            labelHi: l.settingsDarkModeOff,
             onChanged: (v) => n.setDarkModePreference(v!),
           ),
           _buildRadioRow<String>(
             value: 'on',
             groupValue: s.darkModePreference,
-            labelEn: 'On',
-            labelHi: '\u091A\u093E\u0932\u0942',
+            labelEn: l.settingsDarkModeOn,
+            labelHi: l.settingsDarkModeOn,
             onChanged: (v) => n.setDarkModePreference(v!),
           ),
           _buildRadioRow<String>(
             value: 'auto',
             groupValue: s.darkModePreference,
-            labelEn: 'Auto (follow system)',
-            labelHi:
-                '\u0911\u091F\u094B (\u0938\u093F\u0938\u094D\u091F\u092E \u0915\u0947 \u0905\u0928\u0941\u0938\u093E\u0930)',
+            labelEn: l.settingsDarkModeAuto,
+            labelHi: l.settingsDarkModeAuto,
             onChanged: (v) => n.setDarkModePreference(v!),
           ),
 
@@ -762,9 +827,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(color: AppColors.divider, height: 1),
 
           SettingsToggleRow(
-            titleEn: 'App Sounds',
-            titleHi:
-                '\u090F\u092A \u0927\u094D\u0935\u0928\u093F',
+            titleEn: l.settingsAppSounds,
+            titleHi: l.settingsAppSounds,
             value: s.appSounds,
             onChanged: n.toggleAppSounds,
           ),
@@ -778,15 +842,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppSpacing.radiusPainButton),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.storage, size: 18, color: AppColors.textTertiary),
-                SizedBox(width: AppSpacing.space2),
+                const Icon(Icons.storage, size: 18, color: AppColors.textTertiary),
+                const SizedBox(width: AppSpacing.space2),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Data & Storage',
                         style: TextStyle(
                           fontSize: 13,
@@ -794,8 +858,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Local data: 24 MB \u00B7 Last sync: Today 2:30 PM',
                         style: TextStyle(
                           fontSize: 11,
@@ -818,6 +882,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildMedicalInfoCard() {
+    final l = AppLocalizations.of(context);
     const profile = mockProfile;
 
     return Container(
@@ -848,27 +913,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               const SizedBox(width: AppSpacing.space3),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Medical Info',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 1),
-                    Text(
-                      '\u091A\u093F\u0915\u093F\u0924\u094D\u0938\u093E \u091C\u093E\u0928\u0915\u093E\u0930\u0940',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: Text(
+                  l.settingsProfile,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -941,6 +993,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildAboutLegalCard() {
+    final l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -969,27 +1022,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               const SizedBox(width: AppSpacing.space3),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'About & Legal',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 1),
-                    Text(
-                      '\u091C\u093E\u0928\u0915\u093E\u0930\u0940 \u0914\u0930 \u0915\u093E\u0928\u0942\u0928\u0940',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: Text(
+                  l.settingsAbout,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -997,28 +1037,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: AppSpacing.space4),
 
           // App version
-          const Center(
+          Center(
             child: Column(
               children: [
                 Text(
-                  'PalliCare',
-                  style: TextStyle(
+                  l.appName,
+                  style: const TextStyle(
                     fontFamily: AppTypography.headingFontFamily,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryDark,
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
+                const SizedBox(height: 2),
+                const Text(
                   'Version 0.1.0 (Build 1)',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textTertiary,
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
+                const SizedBox(height: 2),
+                const Text(
                   'AIIMS Bhopal Palliative Care',
                   style: TextStyle(
                     fontSize: 11,
@@ -1134,6 +1174,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // =========================================================================
 
   Widget _buildAccountActions(BuildContext ctx) {
+    final l = AppLocalizations.of(ctx);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -1149,12 +1190,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             height: AppSpacing.buttonHeight,
             child: OutlinedButton.icon(
               onPressed: () {
-                _showPlaceholder(ctx, 'Switch Profile');
+                _showPlaceholder(ctx, l.settingsProfile);
               },
               icon: const Icon(Icons.swap_horiz, size: 20),
-              label: const Text(
-                'Switch Profile',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              label: Text(
+                l.settingsProfile,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primaryDark,
@@ -1177,9 +1218,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _showLogoutDialog(ctx);
               },
               icon: const Icon(Icons.logout, size: 20),
-              label: const Text(
-                'Logout',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              label: Text(
+                l.settingsLogout,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accentAlert,
@@ -1208,9 +1249,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       BorderRadius.circular(AppSpacing.radiusButton),
                 ),
               ),
-              child: const Text(
-                'Delete Account',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+              child: Text(
+                l.settingsDataDelete,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
               ),
             ),
           ),
@@ -1340,22 +1381,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showLogoutDialog(BuildContext ctx) {
+    final l = AppLocalizations.of(ctx);
     showDialog(
       context: ctx,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         ),
-        title: const Text('Logout?'),
+        title: Text('${l.settingsLogout}?'),
         content: const Text(
           'Your data is saved locally and will be available when you log back in.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
+            child: Text(
+              l.commonCancel,
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
@@ -1363,9 +1405,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Navigator.pop(context);
               // Would navigate to login screen
             },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: AppColors.accentAlert),
+            child: Text(
+              l.settingsLogout,
+              style: const TextStyle(color: AppColors.accentAlert),
             ),
           ),
         ],
@@ -1374,13 +1416,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showDeleteDialog(BuildContext ctx) {
+    final l = AppLocalizations.of(ctx);
     showDialog(
       context: ctx,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         ),
-        title: const Text('Delete Account?'),
+        title: Text('${l.settingsDataDelete}?'),
         content: const Text(
           'This action is permanent. All your data including symptom logs, '
           'pain diary entries, and settings will be permanently deleted. '
@@ -1389,9 +1432,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
+            child: Text(
+              l.commonCancel,
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
@@ -1399,9 +1442,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Navigator.pop(context);
               // Would delete account
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: AppColors.accentAlert),
+            child: Text(
+              l.commonDelete,
+              style: const TextStyle(color: AppColors.accentAlert),
             ),
           ),
         ],

@@ -20,6 +20,24 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix(prefix);
 
+  // Root route — serves API info at GET / (before prefix/helmet/CORS)
+  const startTime = Date.now();
+  app.use((req: any, res: any, next: any) => {
+    if (req.method === 'GET' && req.path === '/') {
+      return res.json({
+        app: 'PalliCare API',
+        description: 'AIIMS Bhopal Palliative Care & Pain Management Platform',
+        version: '1.0.0',
+        status: 'running',
+        uptime: Math.floor((Date.now() - startTime) / 1000),
+        timestamp: new Date().toISOString(),
+        docs: '/docs',
+        health: `${prefix}/health`,
+      });
+    }
+    next();
+  });
+
   // Security
   app.use(helmet());
   app.enableCors({

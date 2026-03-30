@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'symptom_log_provider.dart';
@@ -25,6 +26,7 @@ class PainQualityCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final selected = ref.watch(symptomLogProvider).painQualities;
 
     return SingleChildScrollView(
@@ -32,9 +34,9 @@ class PainQualityCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'What does the pain feel like?',
-            style: TextStyle(
+          Text(
+            l.painQualityQuestion,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryDark,
@@ -115,7 +117,7 @@ class PainQualityCard extends ConsumerWidget {
           if (selected.isNotEmpty) ...[
             const SizedBox(height: 20),
             Text(
-              '${selected.length} selected',
+              l.painQualitySelected(selected.length),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

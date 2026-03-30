@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'task_assignment_card.dart';
 
 // ---------------------------------------------------------------------------
 // DATA MODELS
@@ -6,6 +7,139 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Wellness check response options.
 enum WellnessResponse { fine, tired, stressed, needHelp }
+
+/// Mood tags for caregiver journal entries.
+enum JournalMood { relieved, stressed, grateful, overwhelmed, hopeful }
+
+/// A single caregiver journal entry.
+class JournalEntry {
+  final String id;
+  final String text;
+  final JournalMood mood;
+  final DateTime dateTime;
+
+  const JournalEntry({
+    required this.id,
+    required this.text,
+    required this.mood,
+    required this.dateTime,
+  });
+}
+
+/// A single visitor log entry.
+class VisitorLogEntry {
+  final String id;
+  final String visitorName;
+  final String purpose;
+  final DateTime dateTime;
+  final String notes;
+
+  const VisitorLogEntry({
+    required this.id,
+    required this.visitorName,
+    required this.purpose,
+    required this.dateTime,
+    this.notes = '',
+  });
+}
+
+/// A single Zarit Burden Interview question.
+class BurnoutQuestion {
+  final String id;
+  final String textEn;
+  final String textHi;
+
+  const BurnoutQuestion({
+    required this.id,
+    required this.textEn,
+    required this.textHi,
+  });
+}
+
+/// Adapted Zarit Burden Interview — 12 key questions.
+const List<BurnoutQuestion> zbiQuestions = [
+  BurnoutQuestion(
+    id: 'zbi_1',
+    textEn: 'Do you feel your relative asks for more help than needed?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0906\u092A\u0915\u093E \u0930\u093F\u0936\u094D\u0924\u0947\u0926\u093E\u0930 \u091C\u0930\u0942\u0930\u0924 \u0938\u0947 \u0905\u0927\u093F\u0915 \u092E\u0926\u0926 \u092E\u093E\u0901\u0917\u0924\u093E \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_2',
+    textEn: 'Do you feel you don\'t have enough time for yourself?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0906\u092A\u0915\u0947 \u092A\u093E\u0938 \u0905\u092A\u0928\u0947 \u0932\u093F\u090F \u092A\u0930\u094D\u092F\u093E\u092A\u094D\u0924 \u0938\u092E\u092F \u0928\u0939\u0940\u0902 \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_3',
+    textEn:
+        'Do you feel stressed between caregiving and other responsibilities?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A \u0926\u0947\u0916\u092D\u093E\u0932 \u0914\u0930 \u0905\u0928\u094D\u092F \u091C\u093F\u092E\u094D\u092E\u0947\u0926\u093E\u0930\u093F\u092F\u094B\u0902 \u0915\u0947 \u092C\u0940\u091A \u0924\u0928\u093E\u0935 \u092E\u0939\u0938\u0942\u0938 \u0915\u0930\u0924\u0947 \u0939\u0948\u0902?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_4',
+    textEn:
+        'Do you feel embarrassed by your relative\'s behavior?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0905\u092A\u0928\u0947 \u0930\u093F\u0936\u094D\u0924\u0947\u0926\u093E\u0930 \u0915\u0947 \u0935\u094D\u092F\u0935\u0939\u093E\u0930 \u0938\u0947 \u0936\u0930\u094D\u092E\u093F\u0902\u0926\u0917\u0940 \u0939\u094B\u0924\u0940 \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_5',
+    textEn: 'Do you feel angry when you are around your relative?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0905\u092A\u0928\u0947 \u0930\u093F\u0936\u094D\u0924\u0947\u0926\u093E\u0930 \u0915\u0947 \u092A\u093E\u0938 \u0939\u094B\u0928\u0947 \u092A\u0930 \u0917\u0941\u0938\u094D\u0938\u093E \u0906\u0924\u093E \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_6',
+    textEn:
+        'Do you feel your health has suffered because of caregiving?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0926\u0947\u0916\u092D\u093E\u0932 \u0938\u0947 \u0906\u092A\u0915\u0947 \u0938\u094D\u0935\u093E\u0938\u094D\u0925\u094D\u092F \u092A\u0930 \u0905\u0938\u0930 \u092A\u0921\u093C\u093E \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_7',
+    textEn:
+        'Do you feel you don\'t have enough privacy because of caregiving?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0926\u0947\u0916\u092D\u093E\u0932 \u0915\u0947 \u0915\u093E\u0930\u0923 \u0906\u092A\u0915\u0940 \u0928\u093F\u091C\u0924\u093E \u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u0939\u094B\u0924\u0940 \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_8',
+    textEn:
+        'Do you feel your social life has suffered because of caregiving?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0926\u0947\u0916\u092D\u093E\u0932 \u0938\u0947 \u0906\u092A\u0915\u093E \u0938\u093E\u092E\u093E\u091C\u093F\u0915 \u091C\u0940\u0935\u0928 \u092A\u094D\u0930\u092D\u093E\u0935\u093F\u0924 \u0939\u0941\u0906 \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_9',
+    textEn:
+        'Do you feel you have lost control of your life since your relative\'s illness?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u092C\u0940\u092E\u093E\u0930\u0940 \u0915\u0947 \u092C\u093E\u0926 \u0938\u0947 \u0906\u092A\u0928\u0947 \u0905\u092A\u0928\u0947 \u091C\u0940\u0935\u0928 \u092A\u0930 \u0928\u093F\u092F\u0902\u0924\u094D\u0930\u0923 \u0916\u094B \u0926\u093F\u092F\u093E \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_10',
+    textEn:
+        'Do you feel uncertain about what to do for your relative?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0905\u092A\u0928\u0947 \u0930\u093F\u0936\u094D\u0924\u0947\u0926\u093E\u0930 \u0915\u0947 \u0932\u093F\u090F \u0915\u094D\u092F\u093E \u0915\u0930\u0928\u093E \u0939\u0948 \u092F\u0939 \u0905\u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0932\u0917\u0924\u093E \u0939\u0948?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_11',
+    textEn:
+        'Do you feel you should be doing more for your relative?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0906\u092A\u0915\u094B \u0905\u092A\u0928\u0947 \u0930\u093F\u0936\u094D\u0924\u0947\u0926\u093E\u0930 \u0915\u0947 \u0932\u093F\u090F \u0914\u0930 \u0905\u0927\u093F\u0915 \u0915\u0930\u0928\u093E \u091A\u093E\u0939\u093F\u090F?',
+  ),
+  BurnoutQuestion(
+    id: 'zbi_12',
+    textEn:
+        'Do you feel you could do a better job of caregiving?',
+    textHi:
+        '\u0915\u094D\u092F\u093E \u0906\u092A\u0915\u094B \u0932\u0917\u0924\u093E \u0939\u0948 \u0915\u093F \u0906\u092A \u0926\u0947\u0916\u092D\u093E\u0932 \u0915\u093E \u0915\u093E\u092E \u092C\u0947\u0939\u0924\u0930 \u0915\u0930 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902?',
+  ),
+];
 
 /// A single caregiver medication entry (caregiver perspective).
 class CaregiverMedication {
@@ -158,13 +292,27 @@ class CaregiverState {
   // Last logged info
   final String lastLoggedInfo;
 
+  // Journal
+  final List<JournalEntry> journalEntries;
+
+  // Burnout assessment
+  final List<int> burnoutResponses; // 12 items, 0-4 each
+  final int? lastBurnoutScore;
+  final DateTime? lastBurnoutDate;
+
+  // Task coordination
+  final List<CareTask> tasks;
+
+  // Visitor log
+  final List<VisitorLogEntry> visitorLog;
+
   final bool isLoading;
 
   const CaregiverState({
     this.patientName = 'Ramesh',
-    this.patientNameHindi = 'रमेश',
+    this.patientNameHindi = '\u0930\u092E\u0947\u0936',
     this.caregiverName = 'Priya',
-    this.caregiverNameHindi = 'प्रिया',
+    this.caregiverNameHindi = '\u092A\u094D\u0930\u093F\u092F\u093E',
     this.relationship = 'daughter',
     this.todayWellness,
     this.consecutiveTiredCount = 0,
@@ -182,8 +330,17 @@ class CaregiverState {
     this.educationModules = const [],
     this.resources = const [],
     this.lastLoggedInfo = '3 hrs ago',
+    this.journalEntries = const [],
+    this.burnoutResponses = const [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    this.lastBurnoutScore,
+    this.lastBurnoutDate,
+    this.tasks = const [],
+    this.visitorLog = const [],
     this.isLoading = false,
   });
+
+  /// Computed burnout total from current responses.
+  int get burnoutTotal => burnoutResponses.fold(0, (a, b) => a + b);
 
   CaregiverState copyWith({
     String? patientName,
@@ -202,6 +359,12 @@ class CaregiverState {
     List<CaregiverEducationModule>? educationModules,
     List<ResourceEntry>? resources,
     String? lastLoggedInfo,
+    List<JournalEntry>? journalEntries,
+    List<int>? burnoutResponses,
+    int? lastBurnoutScore,
+    DateTime? lastBurnoutDate,
+    List<CareTask>? tasks,
+    List<VisitorLogEntry>? visitorLog,
     bool? isLoading,
   }) {
     return CaregiverState(
@@ -223,6 +386,12 @@ class CaregiverState {
       educationModules: educationModules ?? this.educationModules,
       resources: resources ?? this.resources,
       lastLoggedInfo: lastLoggedInfo ?? this.lastLoggedInfo,
+      journalEntries: journalEntries ?? this.journalEntries,
+      burnoutResponses: burnoutResponses ?? this.burnoutResponses,
+      lastBurnoutScore: lastBurnoutScore ?? this.lastBurnoutScore,
+      lastBurnoutDate: lastBurnoutDate ?? this.lastBurnoutDate,
+      tasks: tasks ?? this.tasks,
+      visitorLog: visitorLog ?? this.visitorLog,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -476,6 +645,99 @@ class CaregiverNotifier extends StateNotifier<CaregiverState> {
 
   void markMedicationLater(String medicationId) {
     // No-op for now; medication stays in pending state
+  }
+
+  // -----------------------------------------------------------------------
+  // JOURNAL
+  // -----------------------------------------------------------------------
+
+  void addJournalEntry(String text, JournalMood mood) {
+    final entry = JournalEntry(
+      id: 'j_${DateTime.now().millisecondsSinceEpoch}',
+      text: text,
+      mood: mood,
+      dateTime: DateTime.now(),
+    );
+    state = state.copyWith(
+      journalEntries: [entry, ...state.journalEntries],
+    );
+  }
+
+  void deleteJournalEntry(String entryId) {
+    state = state.copyWith(
+      journalEntries:
+          state.journalEntries.where((e) => e.id != entryId).toList(),
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // BURNOUT ASSESSMENT
+  // -----------------------------------------------------------------------
+
+  void setBurnoutResponse(int questionIndex, int value) {
+    final responses = List<int>.from(state.burnoutResponses);
+    responses[questionIndex] = value.clamp(0, 4);
+    state = state.copyWith(burnoutResponses: responses);
+  }
+
+  void submitBurnoutAssessment() {
+    final total = state.burnoutResponses.fold<int>(0, (a, b) => a + b);
+    state = state.copyWith(
+      lastBurnoutScore: total,
+      lastBurnoutDate: DateTime.now(),
+    );
+  }
+
+  void resetBurnoutResponses() {
+    state = state.copyWith(
+      burnoutResponses: List.filled(12, 0),
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // TASK COORDINATION
+  // -----------------------------------------------------------------------
+
+  void addTask(CareTask task) {
+    state = state.copyWith(tasks: [...state.tasks, task]);
+  }
+
+  void toggleTask(String taskId) {
+    final tasks = state.tasks.map((t) {
+      if (t.id == taskId) return t.copyWith(isCompleted: !t.isCompleted);
+      return t;
+    }).toList();
+    state = state.copyWith(tasks: tasks);
+  }
+
+  void deleteTask(String taskId) {
+    state = state.copyWith(
+      tasks: state.tasks.where((t) => t.id != taskId).toList(),
+    );
+  }
+
+  // -----------------------------------------------------------------------
+  // VISITOR LOG
+  // -----------------------------------------------------------------------
+
+  void addVisitorEntry(String name, String purpose, {String notes = ''}) {
+    final entry = VisitorLogEntry(
+      id: 'v_${DateTime.now().millisecondsSinceEpoch}',
+      visitorName: name,
+      purpose: purpose,
+      dateTime: DateTime.now(),
+      notes: notes,
+    );
+    state = state.copyWith(
+      visitorLog: [entry, ...state.visitorLog],
+    );
+  }
+
+  void deleteVisitorEntry(String entryId) {
+    state = state.copyWith(
+      visitorLog:
+          state.visitorLog.where((e) => e.id != entryId).toList(),
+    );
   }
 }
 

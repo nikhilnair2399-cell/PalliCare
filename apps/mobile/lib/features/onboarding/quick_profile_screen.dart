@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/progress_dots.dart';
@@ -49,11 +50,12 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
   }
 
   void _sendOtp() {
+    final l = AppLocalizations.of(context);
     setState(() {
       _nameError =
-          _nameCtrl.text.trim().isEmpty ? 'Please enter your name' : null;
+          _nameCtrl.text.trim().isEmpty ? l.validationNameRequired : null;
       _phoneError = !_validatePhone(_phoneCtrl.text.trim())
-          ? 'Enter a valid 10-digit number'
+          ? l.validationPhoneInvalid
           : null;
     });
 
@@ -81,9 +83,10 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
   }
 
   void _verifyOtp() {
+    final l = AppLocalizations.of(context);
     final otp = _otpCtrls.map((c) => c.text).join();
     if (otp.length != 6 || !RegExp(r'^\d{6}$').hasMatch(otp)) {
-      setState(() => _otpError = 'Please enter a valid 6-digit OTP');
+      setState(() => _otpError = l.validationOtpInvalid);
       return;
     }
 
@@ -102,6 +105,7 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -118,10 +122,10 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
                 totalSteps: state.totalSteps,
               ),
               const SizedBox(height: 32),
-              const Text(
-                "Let's set up your account",
+              Text(
+                l.onboardingProfileTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -130,15 +134,15 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Just your name and phone number — that\'s it!',
+                l.onboardingProfileSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 32),
 
               // Name
-              const Text('Your first name / आपका नाम',
-                  style: TextStyle(
+              Text(l.onboardingProfileNameLabel,
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextField(
@@ -146,7 +150,7 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
                 textCapitalization: TextCapitalization.words,
                 style: const TextStyle(fontSize: 20),
                 decoration: InputDecoration(
-                  hintText: 'e.g., Ramesh / रमेश',
+                  hintText: l.onboardingProfileNameHint,
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   filled: true,
                   fillColor: Colors.white,
@@ -164,8 +168,8 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
               const SizedBox(height: 20),
 
               // Phone
-              const Text('Phone number / फ़ोन नंबर',
-                  style: TextStyle(
+              Text(l.onboardingProfilePhoneLabel,
+                  style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextField(
@@ -180,7 +184,7 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
                   prefixText: '+91 ',
                   prefixStyle: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.w600),
-                  hintText: '10-digit mobile number',
+                  hintText: l.onboardingProfilePhoneHint,
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   filled: true,
                   fillColor: Colors.white,
@@ -198,14 +202,14 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
 
               if (!state.otpSent)
                 PalliCareButton(
-                    label: 'Send OTP / OTP भेजें', onPressed: _sendOtp),
+                    label: l.onboardingProfileSendOtp, onPressed: _sendOtp),
 
               // OTP section
               if (state.otpSent && !state.otpVerified) ...[
                 const SizedBox(height: 12),
-                const Text('Enter 6-digit OTP',
+                Text(l.onboardingProfileOtpPrompt,
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -263,18 +267,18 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_resendCountdown > 0)
-                      Text('Resend in ${_resendCountdown}s',
+                      Text(l.onboardingOtpResendCountdown(_resendCountdown),
                           style: TextStyle(
                               fontSize: 13, color: Colors.grey.shade500))
                     else
                       TextButton(
                         onPressed: _sendOtp,
-                        child: const Text('Resend OTP'),
+                        child: Text(l.onboardingOtpResend),
                       ),
                     const SizedBox(width: 16),
                     TextButton(
                       onPressed: () {},
-                      child: Text('Call me instead',
+                      child: Text(l.onboardingOtpCallInstead,
                           style: TextStyle(color: Colors.grey.shade600)),
                     ),
                   ],
@@ -287,9 +291,9 @@ class _QuickProfileScreenState extends ConsumerState<QuickProfileScreen> {
                 const Icon(Icons.check_circle,
                     color: AppColors.sageGreen, size: 48),
                 const SizedBox(height: 12),
-                const Text('Verified!',
+                Text(l.onboardingOtpVerified,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.sageGreen)),

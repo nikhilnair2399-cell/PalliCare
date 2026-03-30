@@ -43,6 +43,9 @@ class AppSpacing {
   // LEGACY ALIASES (used across screen files)
   // ---------------------------------------------------------------------------
 
+  /// Alias for space1 (4dp).
+  static const double xs = space1;
+
   /// Alias for space2 (8dp).
   static const double sm = space2;
 

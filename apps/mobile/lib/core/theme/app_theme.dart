@@ -70,10 +70,11 @@ class AppTheme {
         elevation: 0,
       ),
 
-      // Cards
-      cardTheme: CardTheme(
+      // Cards — warm off-white with subtle warm shadow
+      cardTheme: CardThemeData(
         color: AppColors.surfaceCard,
         elevation: 0,
+        shadowColor: AppColors.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
           side: const BorderSide(color: AppColors.border, width: 1),
@@ -244,10 +245,11 @@ class AppTheme {
         elevation: 0,
       ),
 
-      // Cards
-      cardTheme: CardTheme(
+      // Cards — warm dark card with subtle warm shadow
+      cardTheme: CardThemeData(
         color: AppColors.darkSurfaceCard,
         elevation: 0,
+        shadowColor: AppColors.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
           side: const BorderSide(color: AppColors.darkBorder, width: 1),

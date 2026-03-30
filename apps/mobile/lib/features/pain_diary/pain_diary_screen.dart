@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../widgets/section_header.dart';
 import 'pain_diary_provider.dart';
 import 'metric_cards.dart';
@@ -15,6 +16,7 @@ class PainDiaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final diary = ref.watch(painDiaryProvider);
 
     return Scaffold(
@@ -26,9 +28,9 @@ class PainDiaryScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Pain Diary · दर्द डायरी',
-          style: TextStyle(
+        title: Text(
+          l.painDiaryTitle,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.primaryDark,
@@ -43,7 +45,7 @@ class PainDiaryScreen extends ConsumerWidget {
             onPressed: () {
               // TODO: Navigate to report generator
             },
-            tooltip: 'Generate Report',
+            tooltip: l.reportGenerate,
           ),
         ],
       ),
@@ -72,9 +74,8 @@ class PainDiaryScreen extends ConsumerWidget {
                   MetricCards(diary: diary),
 
                   // Chart section
-                  const SectionHeader(
-                    title: 'Pain Trend',
-                    subtitle: 'दर्द का रुझान',
+                  SectionHeader(
+                    title: l.painTrend,
                   ),
                   if (diary.range == DiaryRange.week)
                     PainWeekChart(entries: diary.entries)
@@ -82,9 +83,8 @@ class PainDiaryScreen extends ConsumerWidget {
                     PainMonthHeatmap(entries: diary.entries),
 
                   // Daily entries
-                  const SectionHeader(
-                    title: 'Daily Log',
-                    subtitle: 'दैनिक रिकॉर्ड',
+                  SectionHeader(
+                    title: l.painDiaryDailyLog,
                   ),
                   ...diary.entries.reversed.take(14).map(
                         (entry) => DailyEntryCard(
@@ -116,6 +116,7 @@ class _RangeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -126,9 +127,9 @@ class _RangeSelector extends StatelessWidget {
         children: DiaryRange.values.map((range) {
           final isSelected = range == current;
           final label = switch (range) {
-            DiaryRange.week => '7 Days',
-            DiaryRange.month => '30 Days',
-            DiaryRange.threeMonths => '3 Months',
+            DiaryRange.week => l.painDays7,
+            DiaryRange.month => l.painDays30,
+            DiaryRange.threeMonths => l.painDiary3Months,
           };
           return Expanded(
             child: GestureDetector(

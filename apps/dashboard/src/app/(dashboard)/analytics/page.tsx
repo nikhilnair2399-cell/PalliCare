@@ -428,7 +428,7 @@ export default function AnalyticsPage() {
               <div key={item.nrs} className="flex items-center gap-3">
                 <div className="w-8 text-right">
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded text-xs font-bold"
-                    style={{ backgroundColor: PAIN_COLORS[item.nrs], color: item.nrs >= 6 ? '#fff' : '#2D2D2D' }}>
+                    style={{ backgroundColor: PAIN_COLORS[item.nrs], color: item.nrs >= 6 ? '#fff' : '#332E2B' }}>
                     {item.nrs}
                   </span>
                 </div>

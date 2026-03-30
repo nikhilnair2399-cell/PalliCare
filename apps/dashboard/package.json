@@ -7,34 +7,37 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.1",
+    "@tanstack/react-query": "^5.65.0",
+    "axios": "^1.8.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^0.476.0",
     "next": "^15.2.0",
+    "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@tanstack/react-query": "^5.65.0",
-    "zustand": "^5.0.3",
     "recharts": "^2.15.1",
-    "date-fns": "^4.1.0",
-    "zod": "^3.24.2",
-    "axios": "^1.8.1",
-    "next-auth": "^5.0.0-beta.25",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^3.0.1",
-    "lucide-react": "^0.476.0",
-    "@headlessui/react": "^2.2.1"
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "@eslint/eslintrc": "^3.2.0",
+    "@tailwindcss/postcss": "^4.0.6",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "tailwindcss": "^4.0.6",
-    "@tailwindcss/postcss": "^4.0.6",
-    "postcss": "^8.5.2",
     "eslint": "^9.20.0",
     "eslint-config-next": "^15.2.0",
-    "@eslint/eslintrc": "^3.2.0"
+    "postcss": "^8.5.2",
+    "tailwindcss": "^4.0.6",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
   }
 }

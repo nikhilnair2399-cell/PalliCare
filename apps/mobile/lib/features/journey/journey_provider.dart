@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/sync_provider.dart';
 
 // ---------------------------------------------------------------------------
 // DATA MODELS
@@ -225,7 +226,9 @@ const List<IntentionSuggestion> intentionSuggestions = [
 // ---------------------------------------------------------------------------
 
 class JourneyNotifier extends StateNotifier<JourneyState> {
-  JourneyNotifier() : super(const JourneyState()) {
+  final Ref _ref;
+
+  JourneyNotifier(this._ref) : super(const JourneyState()) {
     _loadMockData();
   }
 
@@ -345,6 +348,13 @@ class JourneyNotifier extends StateNotifier<JourneyState> {
       todayIntention: text,
       selectedSuggestion: null,
     );
+
+    // Queue intention for offline-first sync
+    _ref.read(syncProvider.notifier).queueJournalEntry({
+      'type': 'intention',
+      'text': text,
+      'date': DateTime.now().toIso8601String(),
+    });
   }
 
   void selectSuggestion(String suggestion) {
@@ -352,10 +362,22 @@ class JourneyNotifier extends StateNotifier<JourneyState> {
       todayIntention: suggestion,
       selectedSuggestion: suggestion,
     );
+
+    _ref.read(syncProvider.notifier).queueJournalEntry({
+      'type': 'intention',
+      'text': suggestion,
+      'date': DateTime.now().toIso8601String(),
+    });
   }
 
   void completeIntention() {
     state = state.copyWith(intentionCompleted: true);
+
+    _ref.read(syncProvider.notifier).queueJournalEntry({
+      'type': 'intention_completed',
+      'text': state.todayIntention ?? '',
+      'date': DateTime.now().toIso8601String(),
+    });
   }
 
   void clearIntention() {
@@ -377,14 +399,22 @@ class JourneyNotifier extends StateNotifier<JourneyState> {
 
   void addGratitude(String text) {
     if (text.trim().isEmpty) return;
+    final now = DateTime.now();
     final entry = GratitudeEntry(
-      id: 'gr_${DateTime.now().millisecondsSinceEpoch}',
-      date: DateTime.now(),
+      id: 'gr_${now.millisecondsSinceEpoch}',
+      date: now,
       text: text.trim(),
     );
     state = state.copyWith(
       gratitudeEntries: [entry, ...state.gratitudeEntries],
     );
+
+    // Queue for offline-first sync
+    _ref.read(syncProvider.notifier).queueJournalEntry({
+      'type': 'gratitude',
+      'text': text.trim(),
+      'date': now.toIso8601String(),
+    });
   }
 
   // -- Goals --
@@ -437,5 +467,5 @@ class JourneyNotifier extends StateNotifier<JourneyState> {
 
 final journeyProvider =
     StateNotifierProvider<JourneyNotifier, JourneyState>(
-  (ref) => JourneyNotifier(),
+  (ref) => JourneyNotifier(ref),
 );

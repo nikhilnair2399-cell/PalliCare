@@ -16,12 +16,23 @@ export class PatientsRepository extends BaseRepository {
     search?: string;
     page?: number;
     perPage?: number;
+    clinicianUserId?: string;
+    role?: string;
   }) {
-    const { statusFilter, sortBy, search, page = 1, perPage = 20 } = params;
+    const { statusFilter, sortBy, search, page = 1, perPage = 20, clinicianUserId, role } = params;
     const offset = (page - 1) * perPage;
     const conditions: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
+
+    // When clinicianUserId is provided and the user is not an admin,
+    // restrict to patients assigned to this clinician
+    let assignmentJoin = '';
+    if (clinicianUserId && role !== 'admin') {
+      assignmentJoin = `JOIN patient_clinician_assignments pca ON pca.patient_id = p.id AND pca.clinician_user_id = $${paramIndex} AND pca.status = 'active'`;
+      values.push(clinicianUserId);
+      paramIndex++;
+    }
 
     if (search) {
       conditions.push(`(u.name ILIKE $${paramIndex} OR u.phone ILIKE $${paramIndex})`);
@@ -49,6 +60,7 @@ export class PatientsRepository extends BaseRepository {
       `SELECT COUNT(*)::int as total
        FROM patients p
        JOIN users u ON u.id = p.user_id
+       ${assignmentJoin}
        ${whereClause}`,
       values,
     );
@@ -79,6 +91,7 @@ export class PatientsRepository extends BaseRepository {
           ) AS active_alerts_count
        FROM patients p
        JOIN users u ON u.id = p.user_id
+       ${assignmentJoin}
        ${whereClause}
        ${orderClause}
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
@@ -252,5 +265,46 @@ export class PatientsRepository extends BaseRepository {
       [patientId, days],
     );
     return result.rows;
+  }
+
+  // ── Patient-Clinician Assignments ──────────────────────
+
+  async createAssignment(patientId: string, clinicianUserId: string) {
+    return this.queryOne(
+      `INSERT INTO patient_clinician_assignments (patient_id, clinician_user_id, status, assigned_at)
+       VALUES ($1, $2, 'pending_consent', NOW())
+       ON CONFLICT (patient_id, clinician_user_id) WHERE status = 'active' OR status = 'pending_consent'
+       DO NOTHING
+       RETURNING *`,
+      [patientId, clinicianUserId],
+    );
+  }
+
+  async findAssignment(patientId: string, clinicianUserId: string) {
+    return this.queryOne(
+      `SELECT * FROM patient_clinician_assignments
+       WHERE patient_id = $1 AND clinician_user_id = $2
+       AND status IN ('active', 'pending_consent')
+       ORDER BY assigned_at DESC LIMIT 1`,
+      [patientId, clinicianUserId],
+    );
+  }
+
+  async updateAssignmentStatus(patientId: string, clinicianUserId: string, status: string) {
+    return this.queryOne(
+      `UPDATE patient_clinician_assignments
+       SET status = $3, consent_granted_at = CASE WHEN $3 = 'active' THEN NOW() ELSE consent_granted_at END
+       WHERE patient_id = $1 AND clinician_user_id = $2 AND status = 'pending_consent'
+       RETURNING *`,
+      [patientId, clinicianUserId, status],
+    );
+  }
+
+  async getPatientUserIdFromPatientId(patientId: string) {
+    const result = await this.queryOne(
+      `SELECT user_id FROM patients WHERE id = $1`,
+      [patientId],
+    );
+    return result?.user_id;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../widgets/section_header.dart';
@@ -17,6 +18,7 @@ class JourneyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final journey = ref.watch(journeyProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -27,25 +29,14 @@ class JourneyScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Column(
-          children: [
-            Text(
-              'My Journey',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryDark,
-                fontFamily: 'Georgia',
-              ),
-            ),
-            Text(
-              'मेरी यात्रा',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+        title: Text(
+          l.journeyTitle,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+            fontFamily: 'Georgia',
+          ),
         ),
         centerTitle: true,
       ),
@@ -66,18 +57,16 @@ class JourneyScreen extends ConsumerWidget {
             // ---------------------------------------------------------------
             // 2. GRATITUDE JOURNAL
             // ---------------------------------------------------------------
-            const SectionHeader(
-              title: 'Gratitude Journal',
-              subtitle: 'कृतज्ञता पत्रिका',
+            SectionHeader(
+              title: l.journeyGratitudeJournal,
             ),
             const GratitudeCard(),
 
             // ---------------------------------------------------------------
             // 3. MY GOALS
             // ---------------------------------------------------------------
-            const SectionHeader(
-              title: 'My Goals',
-              subtitle: 'मेरे लक्ष्य',
+            SectionHeader(
+              title: l.journeyMyGoals,
             ),
             ...journey.activeGoals.map(
               (goal) => Padding(
@@ -90,9 +79,8 @@ class JourneyScreen extends ConsumerWidget {
             // ---------------------------------------------------------------
             // 4. MILESTONES TIMELINE
             // ---------------------------------------------------------------
-            const SectionHeader(
-              title: 'Milestones',
-              subtitle: 'उपलब्धियां',
+            SectionHeader(
+              title: l.journeyMilestones,
             ),
             MilestoneTimeline(milestones: journey.milestones),
 
@@ -121,6 +109,8 @@ class _LegacySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+
     // Consent gate
     if (!journey.legacyEnabled) {
       return _LegacyGate(
@@ -133,9 +123,8 @@ class _LegacySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(
-          title: 'Legacy & Meaning',
-          subtitle: 'विरासत और अर्थ',
+        SectionHeader(
+          title: l.journeyLegacy,
         ),
         Container(
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -148,26 +137,20 @@ class _LegacySection extends ConsumerWidget {
             children: [
               _LegacySubSection(
                 icon: Icons.favorite,
-                title: 'My Values',
-                titleHi: 'मेरे मूल्य',
-                description:
-                    'What matters most to you? Write about the values that guide your life.',
+                title: l.journeyMyValues,
+                description: l.journeyMyValuesDesc,
               ),
               const Divider(height: 24, color: AppColors.divider),
               _LegacySubSection(
                 icon: Icons.mail_outline,
-                title: 'Messages for Loved Ones',
-                titleHi: 'प्रियजनों के लिए संदेश',
-                description:
-                    'Write letters or messages for the people you care about.',
+                title: l.journeyMessages,
+                description: l.journeyMessagesDesc,
               ),
               const Divider(height: 24, color: AppColors.divider),
               _LegacySubSection(
                 icon: Icons.auto_stories,
-                title: 'Life Story Prompts',
-                titleHi: 'जीवन कहानी',
-                description:
-                    'Guided prompts to help you reflect on your life story.',
+                title: l.journeyLifeStory,
+                description: l.journeyLifeStoryDesc,
               ),
             ],
           ),
@@ -186,6 +169,8 @@ class _LegacyGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -209,27 +194,15 @@ class _LegacyGate extends StatelessWidget {
                     color: AppColors.primaryDark, size: 20),
               ),
               const SizedBox(width: AppSpacing.space3),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Legacy & Meaning',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryDark,
-                        fontFamily: 'Georgia',
-                      ),
-                    ),
-                    Text(
-                      'विरासत और अर्थ',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: Text(
+                  l.journeyLegacy,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark,
+                    fontFamily: 'Georgia',
+                  ),
                 ),
               ),
             ],
@@ -241,15 +214,15 @@ class _LegacyGate extends StatelessWidget {
               color: AppColors.accentCalm.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppSpacing.radiusInput),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline,
+                const Icon(Icons.info_outline,
                     size: 18, color: AppColors.primaryDark),
-                SizedBox(width: AppSpacing.space2),
+                const SizedBox(width: AppSpacing.space2),
                 Expanded(
                   child: Text(
-                    'This section contains prompts about values, messages for loved ones, and life reflections. Open it only when you feel ready.',
-                    style: TextStyle(
+                    l.journeyLegacyDesc,
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
                       height: 1.4,
@@ -275,10 +248,10 @@ class _LegacyGate extends StatelessWidget {
                             BorderRadius.circular(AppSpacing.radiusButton),
                       ),
                     ),
-                    child: const Text(
-                      "I'm ready",
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    child: Text(
+                      l.journeyImReady,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -297,10 +270,10 @@ class _LegacyGate extends StatelessWidget {
                             BorderRadius.circular(AppSpacing.radiusButton),
                       ),
                     ),
-                    child: const Text(
-                      'Not right now',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    child: Text(
+                      l.journeyNotRightNow,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -317,18 +290,18 @@ class _LegacyGate extends StatelessWidget {
 class _LegacySubSection extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String titleHi;
   final String description;
 
   const _LegacySubSection({
     required this.icon,
     required this.title,
-    required this.titleHi,
     required this.description,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -346,13 +319,6 @@ class _LegacySubSection extends StatelessWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Text(
-                titleHi,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textTertiary,
-                ),
-              ),
               const SizedBox(height: 4),
               Text(
                 description,
@@ -367,9 +333,9 @@ class _LegacySubSection extends StatelessWidget {
                 onTap: () {
                   // TODO: Navigate to specific legacy sub-section
                 },
-                child: const Text(
-                  'Start writing',
-                  style: TextStyle(
+                child: Text(
+                  l.journeyStartWriting,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,

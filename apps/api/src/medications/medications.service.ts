@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { MedicationsRepository } from './medications.repository';
+import { ClinicalAlertsService } from '../clinical-alerts/clinical-alerts.service';
 
 @Injectable()
 export class MedicationsService {
-  constructor(private readonly medsRepo: MedicationsRepository) {}
+  private readonly logger = new Logger('MedicationsService');
+
+  constructor(
+    private readonly medsRepo: MedicationsRepository,
+    private readonly alertsService: ClinicalAlertsService,
+  ) {}
 
   async listForPatient(patientId: string, status: string = 'active') {
     return this.medsRepo.findByPatient(patientId, status);
@@ -27,7 +33,14 @@ export class MedicationsService {
     pain_before?: number;
     pain_after?: number;
   }) {
-    return this.medsRepo.createMedLog(data);
+    const log = await this.medsRepo.createMedLog(data);
+    // Evaluate clinical alert rules after medication log (adherence + MEDD rules)
+    try {
+      await this.alertsService.evaluateRules(data.patient_id);
+    } catch (err) {
+      this.logger.warn(`Alert evaluation failed after med log: ${err}`);
+    }
+    return log;
   }
 
   async getMedLogs(medicationId: string, page?: number, perPage?: number) {

@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { DatabaseModule } from './database/database.module';
+import { RedisModule } from './common/redis/redis.module';
+import { SmsModule } from './common/sms/sms.module';
+import { PushModule } from './common/push/push.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { PatientsModule } from './patients/patients.module';
@@ -22,6 +26,15 @@ import { DevicesModule } from './devices/devices.module';
 import { MedicationDbModule } from './medication-db/medication-db.module';
 import { ConsentModule } from './consent/consent.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { FeedbackModule } from './feedback/feedback.module';
+
+// DPDPA 2023 Compliance
+import { DataPortabilityModule } from './data-portability/data-portability.module';
+import { DataDeletionModule } from './data-deletion/data-deletion.module';
+import { BreachNotificationModule } from './breach-notification/breach-notification.module';
+
+// Dev Tools
+import { VerificationModule } from './verification/verification.module';
 
 @Module({
   imports: [
@@ -46,7 +59,11 @@ import { UploadsModule } from './uploads/uploads.module';
     ]),
 
     // Core infrastructure
+    ScheduleModule.forRoot(),
     DatabaseModule,
+    RedisModule,
+    SmsModule,
+    PushModule,
     HealthModule,
 
     // Feature modules — Auth & Core
@@ -70,6 +87,17 @@ import { UploadsModule } from './uploads/uploads.module';
     MedicationDbModule,
     ConsentModule,
     UploadsModule,
+
+    // Pilot study
+    FeedbackModule,
+
+    // DPDPA 2023 Compliance
+    DataPortabilityModule,
+    DataDeletionModule,
+    BreachNotificationModule,
+
+    // Dev Tools (non-production only)
+    ...(process.env.NODE_ENV !== 'production' ? [VerificationModule] : []),
   ],
   providers: [
     {

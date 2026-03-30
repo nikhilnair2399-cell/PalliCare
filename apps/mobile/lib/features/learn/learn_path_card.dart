@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_typography.dart';
 import 'learn_provider.dart';
 import 'learn_module_card.dart';
@@ -14,7 +15,6 @@ import 'learn_module_card.dart';
 class LearnPathCard extends StatefulWidget {
   final String phaseLabel;
   final String titleEn;
-  final String titleHi;
   final List<LearnModule> modules;
   final Color accentColor;
   final bool isSensitive;
@@ -26,7 +26,6 @@ class LearnPathCard extends StatefulWidget {
     super.key,
     required this.phaseLabel,
     required this.titleEn,
-    required this.titleHi,
     required this.modules,
     required this.accentColor,
     this.isSensitive = false,
@@ -74,25 +73,13 @@ class _LearnPathCardState extends State<LearnPathCard>
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  // Titles
+                  // Title
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${widget.phaseLabel}: ${widget.titleEn}',
-                          style: AppTypography.heading4.copyWith(
-                            color: AppColors.teal,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.titleHi,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.charcoalLight,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      '${widget.phaseLabel}: ${widget.titleEn}',
+                      style: AppTypography.heading4.copyWith(
+                        color: AppColors.teal,
+                      ),
                     ),
                   ),
                   // Completion count
@@ -139,6 +126,7 @@ class _LearnPathCardState extends State<LearnPathCard>
   // ---------------------------------------------------------------------------
 
   Widget _buildLockedNotice() {
+    final l = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
@@ -157,9 +145,8 @@ class _LearnPathCardState extends State<LearnPathCard>
           Expanded(
             child: Text(
               widget.daysUntilUnlock > 0
-                  ? 'Unlocks in ${widget.daysUntilUnlock} days. '
-                      'Keep going at your own pace.'
-                  : 'This phase will unlock soon.',
+                  ? l.learnLockedUnlocks(widget.daysUntilUnlock)
+                  : l.learnLockedSoon,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.charcoalLight,
               ),
@@ -175,6 +162,7 @@ class _LearnPathCardState extends State<LearnPathCard>
   // ---------------------------------------------------------------------------
 
   Widget _buildSensitiveNotice() {
+    final l = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
@@ -191,7 +179,7 @@ class _LearnPathCardState extends State<LearnPathCard>
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'These topics are personal. Take your time \u2014 there\'s no rush.',
+              l.learnSensitiveNotice,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.charcoalLight,
                 fontStyle: FontStyle.italic,

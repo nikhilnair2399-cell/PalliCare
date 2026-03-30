@@ -48,14 +48,14 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       {/* Page Header */}
       {(() => {
         const unread = messages.filter((m: any) => !m.is_patient && m.sender !== 'patient' && !m.read).length;
         return (
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-heading text-3xl font-bold text-teal">Messages</h1>
+              <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Messages</h1>
               <p className="mt-1 text-base text-charcoal-light">
                 Communicate with your care team
               </p>
@@ -100,22 +100,22 @@ export default function MessagesPage() {
         const patientMsgs = messages.filter((m: any) => m.sender === 'patient' || m.is_patient);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Response Time</h3>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
-                <p className="font-heading text-2xl font-bold text-teal">{formatTime(avgMs)}</p>
+                <p className="font-heading text-lg sm:text-2xl font-bold text-teal">{formatTime(avgMs)}</p>
                 <p className="text-xs text-charcoal/50">Avg response</p>
               </div>
               <div className="text-center">
-                <p className="font-heading text-2xl font-bold text-sage-dark">{formatTime(fastestMs)}</p>
+                <p className="font-heading text-lg sm:text-2xl font-bold text-sage-dark">{formatTime(fastestMs)}</p>
                 <p className="text-xs text-charcoal/50">Fastest</p>
               </div>
               <div className="text-center">
-                <p className="font-heading text-2xl font-bold text-charcoal">{responseTimes.length}</p>
+                <p className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{responseTimes.length}</p>
                 <p className="text-xs text-charcoal/50">Replies tracked</p>
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function MessagesPage() {
         const totalTagged = Object.values(topicCounts).reduce((s, v) => s + v, 0);
         const sorted = TOPIC_KEYWORDS.map((t) => ({ ...t, count: topicCounts[t.topic] })).filter((t) => t.count > 0).sort((a, b) => b.count - a.count);
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Conversation Topics</h3>
@@ -223,7 +223,7 @@ export default function MessagesPage() {
         const totalTeam = dailyCounts.reduce((s, d) => s + d.team, 0);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <CalendarDays className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Message Activity</h3>
@@ -294,7 +294,7 @@ export default function MessagesPage() {
         const teamSupportPct = teamMsgs.length > 0 ? Math.round((teamPos / teamMsgs.length) * 100) : 0;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <HeartPulse className="h-5 w-5 text-teal" />
               <h3 className="text-base font-semibold text-charcoal">Conversation Tone</h3>
@@ -317,17 +317,17 @@ export default function MessagesPage() {
             </div>
             <div className="mt-3 rounded-xl bg-cream/50 p-3 flex items-center gap-3">
               <div className="text-center flex-1">
-                <p className="font-heading text-xl font-bold text-sage-dark">{teamSupportPct}%</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-sage-dark">{teamSupportPct}%</p>
                 <p className="text-[10px] text-charcoal/40">Team supportive tone</p>
               </div>
               <div className="w-px h-8 bg-charcoal/10" />
               <div className="text-center flex-1">
-                <p className="font-heading text-xl font-bold text-charcoal">{pos}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-charcoal">{pos}</p>
                 <p className="text-[10px] text-charcoal/40">Positive exchanges</p>
               </div>
               <div className="w-px h-8 bg-charcoal/10" />
               <div className="text-center flex-1">
-                <p className="font-heading text-xl font-bold text-amber">{con}</p>
+                <p className="font-heading text-base sm:text-xl font-bold text-amber">{con}</p>
                 <p className="text-[10px] text-charcoal/40">Concern messages</p>
               </div>
             </div>

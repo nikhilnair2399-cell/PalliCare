@@ -122,10 +122,10 @@ export default function SleepPage() {
   /* ─────── LOG NEW ENTRY ─────── */
   if (mode === 'log') {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-teal">Log Sleep</h1>
+            <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Log Sleep</h1>
             <p className="mt-1 text-base text-charcoal-light">How did you sleep last night?</p>
           </div>
           <button onClick={() => setMode('home')} className="rounded-xl bg-cream px-4 py-2 text-sm font-medium text-charcoal-light hover:bg-charcoal/5">
@@ -134,7 +134,7 @@ export default function SleepPage() {
         </div>
 
         {/* Bedtime & Wake time */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-charcoal-light">
@@ -168,7 +168,7 @@ export default function SleepPage() {
         </div>
 
         {/* Sleep Quality */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <label className="mb-3 block text-base font-semibold text-charcoal">
             Sleep Quality: <span className={qualityText(quality)}>{quality}/10</span>
           </label>
@@ -187,7 +187,7 @@ export default function SleepPage() {
         </div>
 
         {/* Disturbances */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <p className="mb-3 text-base font-semibold text-charcoal">What disturbed your sleep?</p>
           <div className="flex flex-wrap gap-2">
             {DISTURBANCE_OPTIONS.map((opt) => {
@@ -213,7 +213,7 @@ export default function SleepPage() {
           <span className="text-base font-semibold text-charcoal">Took sleep medication?</span>
           <button
             onClick={() => setSleepMed(!sleepMed)}
-            className={clsx('relative h-7 w-12 rounded-full transition-colors', sleepMed ? 'bg-teal' : 'bg-charcoal/20')}
+            className={clsx('relative h-6 w-10 sm:h-7 sm:w-12 rounded-full transition-colors', sleepMed ? 'bg-teal' : 'bg-charcoal/20')}
           >
             <span
               className={clsx(
@@ -225,7 +225,7 @@ export default function SleepPage() {
         </div>
 
         {/* Notes */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <label className="mb-1.5 block text-sm font-semibold text-charcoal-light">Notes (optional)</label>
           <textarea
             value={notes}
@@ -239,7 +239,7 @@ export default function SleepPage() {
         {/* Save */}
         <button
           onClick={handleSave}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
+          className="flex h-12 sm:h-14 w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal text-base font-bold text-white transition-colors hover:bg-teal/90"
         >
           <CheckCircle2 className="h-5 w-5" /> Save Sleep Log
         </button>
@@ -249,10 +249,10 @@ export default function SleepPage() {
 
   /* ─────── HOME / DASHBOARD ─────── */
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-teal">Sleep Tracker</h1>
+          <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Sleep Tracker</h1>
           <p className="mt-1 text-base text-charcoal-light">Track your sleep patterns to help manage symptoms</p>
         </div>
         <button
@@ -308,7 +308,7 @@ export default function SleepPage() {
         const qualityDiff = Math.round((avgNoPainQ - avgPainQ) * 10) / 10;
         const hoursDiff = Math.round((avgNoPainH - avgPainH) * 10) / 10;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="h-4 w-4 text-terra" />
               <h2 className="text-base font-semibold text-charcoal">Pain vs Sleep Correlation</h2>
@@ -374,7 +374,7 @@ export default function SleepPage() {
       })()}
 
       {/* Week-over-Week Comparison */}
-      <div className="rounded-2xl bg-white p-5">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
         <h2 className="mb-3 text-base font-semibold text-charcoal">This Week vs Last Week</h2>
         <div className="grid grid-cols-2 gap-3">
           {(() => {
@@ -441,7 +441,7 @@ export default function SleepPage() {
           { label: 'Awake', avg: avgAwake, color: 'bg-terra/60', ideal: '<0.5h', key: 'awake' as const },
         ];
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-4">
               <Layers className="h-4 w-4 text-teal" />
               <h2 className="text-base font-semibold text-charcoal">Sleep Architecture</h2>
@@ -511,7 +511,7 @@ export default function SleepPage() {
         const distFreeNights = history.filter((h) => h.disturbances.length === 0).length;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Grid3x3 className="h-4 w-4 text-terra" />
               <h2 className="text-base font-semibold text-charcoal">Disturbance Heatmap</h2>
@@ -611,7 +611,7 @@ export default function SleepPage() {
         const avgBedMinute = avgBedMin % 60;
         const isConsistent = variance < 45;
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <h2 className="mb-3 text-base font-semibold text-charcoal">Bedtime Consistency</h2>
             <div className="flex items-center justify-between">
               <div>
@@ -634,7 +634,7 @@ export default function SleepPage() {
       })()}
 
       {/* Sleep Quality Chart */}
-      <div className="rounded-2xl bg-white p-5">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
         <h2 className="mb-3 text-base font-semibold text-charcoal">Sleep Quality (last 14 nights)</h2>
         <div className="flex items-end gap-1.5" style={{ height: '120px' }}>
           {history.slice(-14).map((h) => {

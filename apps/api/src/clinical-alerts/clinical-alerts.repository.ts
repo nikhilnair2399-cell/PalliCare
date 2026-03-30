@@ -142,4 +142,99 @@ export class ClinicalAlertsRepository extends BaseRepository {
     );
     return result.rows;
   }
+
+  // ── Alert Rule Engine Queries ────────────────────────────────
+
+  /** Check if an active alert of this trigger rule already exists */
+  async hasActiveAlert(patientId: string, triggerRule: string): Promise<boolean> {
+    const result = await this.queryOne(
+      `SELECT 1 FROM alerts
+       WHERE patient_id = $1 AND trigger_rule = $2 AND status = 'active'
+       LIMIT 1`,
+      [patientId, triggerRule],
+    );
+    return !!result;
+  }
+
+  /** Create an auto-generated alert, assigned to patient's primary clinician */
+  async createAutoAlert(data: {
+    patientId: string;
+    type: 'critical' | 'warning' | 'info';
+    triggerRule: string;
+    message: string;
+    details: Record<string, unknown>;
+  }) {
+    return this.queryOne(
+      `INSERT INTO alerts (patient_id, type, trigger_rule, message, details, status, auto_generated, assigned_to)
+       SELECT $1, $2, $3, $4, $5::jsonb, 'active', TRUE, p.primary_clinician_id
+       FROM patients p WHERE p.id = $1
+       RETURNING *`,
+      [data.patientId, data.type, data.triggerRule, data.message, JSON.stringify(data.details)],
+    );
+  }
+
+  /** Get recent symptom logs for rule evaluation */
+  async getRecentSymptomLogs(patientId: string, days: number) {
+    const result = await this.query(
+      `SELECT * FROM symptom_logs
+       WHERE patient_id = $1 AND timestamp >= NOW() - make_interval(days => $2)
+       ORDER BY timestamp DESC`,
+      [patientId, days],
+    );
+    return result.rows;
+  }
+
+  /** Get medication adherence stats over N days */
+  async getMedAdherenceData(patientId: string, days: number): Promise<{ taken: number; total: number }> {
+    const result = await this.queryOne(
+      `SELECT
+         COUNT(*) FILTER (WHERE status IN ('taken', 'taken_late'))::int AS taken,
+         COUNT(*)::int AS total
+       FROM medication_logs
+       WHERE patient_id = $1 AND scheduled_time >= NOW() - make_interval(days => $2)`,
+      [patientId, days],
+    );
+    return { taken: result?.taken || 0, total: result?.total || 0 };
+  }
+
+  /** Calculate total daily MEDD from active opioid medications */
+  async getTotalMedd(patientId: string): Promise<number> {
+    const result = await this.queryOne(
+      `SELECT COALESCE(SUM(
+         dose * COALESCE(medd_factor, 0) * CASE frequency
+           WHEN 'once_daily' THEN 1 WHEN 'twice_daily' THEN 2 WHEN 'thrice_daily' THEN 3
+           WHEN 'four_times_daily' THEN 4 WHEN 'every_4h' THEN 6 WHEN 'every_6h' THEN 4
+           WHEN 'every_8h' THEN 3 WHEN 'every_12h' THEN 2 WHEN 'prn' THEN 2
+           WHEN 'weekly' THEN 0.143 WHEN 'alternate_days' THEN 0.5 WHEN 'stat' THEN 1
+           ELSE 1 END
+       ), 0)::float AS total_medd
+       FROM medications
+       WHERE patient_id = $1 AND status = 'active' AND category = 'opioid'`,
+      [patientId],
+    );
+    return Math.round((result?.total_medd || 0) * 100) / 100;
+  }
+
+  /** Get clinician user IDs who should be notified about a patient's alerts */
+  async getClinicianIdsForPatient(patientId: string): Promise<string[]> {
+    const result = await this.query(
+      `SELECT DISTINCT uid FROM (
+         SELECT primary_clinician_id AS uid FROM patients WHERE id = $1 AND primary_clinician_id IS NOT NULL
+         UNION
+         SELECT UNNEST(care_team_ids) AS uid FROM patients WHERE id = $1
+       ) sub WHERE uid IS NOT NULL`,
+      [patientId],
+    );
+    return result.rows.map((r: any) => r.uid);
+  }
+
+  /** Get all active patient IDs (for cron-based rule evaluation) */
+  async getActivePatientIds(): Promise<string[]> {
+    const result = await this.query(
+      `SELECT p.id FROM patients p
+       JOIN users u ON u.id = p.user_id
+       WHERE u.is_active = TRUE`,
+    );
+    return result.rows.map((r: any) => r.id);
+  }
 }

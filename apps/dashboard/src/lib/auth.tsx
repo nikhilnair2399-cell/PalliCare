@@ -20,6 +20,14 @@ interface User {
   name: string;
   role: 'clinician' | 'admin';
   phone: string;
+  clinicianRole?: string;
+  permissions?: {
+    canPrescribe: boolean;
+    canExportResearch: boolean;
+    canManageUsers: boolean;
+  };
+  department?: string;
+  designation?: string;
 }
 
 interface AuthState {
@@ -109,6 +117,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: 'Dr. Nikhil Nair',
           role: 'clinician',
           phone,
+          clinicianRole: 'physician',
+          permissions: {
+            canPrescribe: true,
+            canExportResearch: true,
+            canManageUsers: false,
+          },
+          department: 'Palliative Care & Pain Management',
+          designation: 'Assistant Professor',
         };
         const devToken = 'dev-jwt-token';
 
@@ -177,4 +193,15 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return ctx;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Role Config Hook                                                    */
+/* ------------------------------------------------------------------ */
+
+import { getRoleConfig, type RoleConfig } from './role-config';
+
+export function useRoleConfig(): RoleConfig {
+  const { user } = useAuth();
+  return getRoleConfig(user?.clinicianRole);
 }

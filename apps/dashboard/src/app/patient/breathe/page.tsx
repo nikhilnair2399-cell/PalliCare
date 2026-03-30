@@ -86,10 +86,10 @@ export default function BreathePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="font-heading text-3xl font-bold text-teal">Breathe</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Breathe</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Find calm and comfort through guided breathing
         </p>
@@ -135,7 +135,7 @@ export default function BreathePage() {
       {/* Session Complete */}
       {sessionComplete && (
         <div className="rounded-2xl bg-white p-8 text-center">
-          <p className="font-heading text-2xl font-bold text-sage-dark">Session Complete!</p>
+          <p className="font-heading text-lg sm:text-2xl font-bold text-sage-dark">Session Complete!</p>
           <p className="mt-2 text-base text-charcoal-light">
             {minutes} min {seconds}s of mindful breathing
           </p>
@@ -147,7 +147,7 @@ export default function BreathePage() {
                   key={star}
                   onClick={() => setRating(star)}
                   className="text-3xl transition-all"
-                  style={{ color: star <= rating ? '#E8A838' : 'rgba(45,45,45,0.15)' }}
+                  style={{ color: star <= rating ? '#E8A838' : 'rgba(51,46,43,0.15)' }}
                 >
                   ★
                 </button>
@@ -176,17 +176,17 @@ export default function BreathePage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center rounded-2xl bg-white p-4">
             <TrendingUp className="mb-1 h-4 w-4 text-teal" />
-            <span className="font-heading text-2xl font-bold text-charcoal">{s.total_sessions ?? 12}</span>
+            <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{s.total_sessions ?? 12}</span>
             <span className="text-xs text-charcoal-light">Total Sessions</span>
           </div>
           <div className="flex flex-col items-center rounded-2xl bg-white p-4">
             <Clock className="mb-1 h-4 w-4 text-sage" />
-            <span className="font-heading text-2xl font-bold text-charcoal">{s.total_minutes ?? 48}</span>
+            <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{s.total_minutes ?? 48}</span>
             <span className="text-xs text-charcoal-light">Minutes Breathed</span>
           </div>
           <div className="flex flex-col items-center rounded-2xl bg-white p-4">
             <Flame className="mb-1 h-4 w-4 text-amber" />
-            <span className="font-heading text-2xl font-bold text-charcoal">{s.streak ?? s.current_streak ?? 3}</span>
+            <span className="font-heading text-lg sm:text-2xl font-bold text-charcoal">{s.streak ?? s.current_streak ?? 3}</span>
             <span className="text-xs text-charcoal-light">Day Streak</span>
           </div>
         </div>
@@ -238,7 +238,7 @@ export default function BreathePage() {
           : 0;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Calendar className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">Session Patterns</h3>
@@ -281,8 +281,8 @@ export default function BreathePage() {
 
       {/* Technique Selector */}
       {!isRunning && !sessionComplete && (
-        <div className="rounded-2xl bg-white p-6">
-          <h2 className="font-heading text-xl font-bold text-charcoal">Choose a Technique</h2>
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
+          <h2 className="font-heading text-base sm:text-xl font-bold text-charcoal">Choose a Technique</h2>
           <div className="mt-4 space-y-3">
             {techniques.map((t) => (
               <button
@@ -340,7 +340,7 @@ export default function BreathePage() {
         const colors = ['bg-teal', 'bg-sage', 'bg-amber', 'bg-lavender'];
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-teal" />
@@ -418,7 +418,7 @@ export default function BreathePage() {
         const consistencyPct = Math.round((activeDays / days) * 100);
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">Streak Calendar</h3>
@@ -494,7 +494,7 @@ export default function BreathePage() {
         const shorterAvgDrop = shorterSessions.length > 0 ? shorterSessions.reduce((s, p) => s + (p.painBefore - p.painAfter), 0) / shorterSessions.length : 0;
 
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <HeartPulse className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">Breathing & Pain Impact</h3>
@@ -554,10 +554,10 @@ export default function BreathePage() {
 
       {/* Recent Sessions Log */}
       {!isRunning && !sessionComplete && (
-        <div className="rounded-2xl bg-white p-6">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <History className="h-5 w-5 text-teal" />
-            <h2 className="font-heading text-xl font-bold text-charcoal">Recent Sessions</h2>
+            <h2 className="font-heading text-base sm:text-xl font-bold text-charcoal">Recent Sessions</h2>
           </div>
           {(() => {
             const recentSessions = (s.recent_sessions || s.sessions || [

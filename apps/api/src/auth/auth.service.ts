@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthRepository, UserRow } from './auth.repository';
+import { AuthRepository, UserRow, ClinicianRow } from './auth.repository';
+import { Msg91Service } from '../common/sms/msg91.service';
 import { OtpRequestDto } from './dto/otp-request.dto';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
 
@@ -14,6 +15,12 @@ export interface JwtPayload {
   sub: string; // user ID
   role: string;
   phone: string;
+  clinicianRole?: string;
+  permissions?: {
+    canPrescribe: boolean;
+    canExportResearch: boolean;
+    canManageUsers: boolean;
+  };
   iat?: number;
   exp?: number;
 }
@@ -26,6 +33,7 @@ export class AuthService {
     private readonly authRepo: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly smsService: Msg91Service,
   ) {}
 
   /**
@@ -43,12 +51,14 @@ export class AuthService {
     // Store OTP
     await this.authRepo.storeOtp(phone, otp, ttl);
 
-    // In development, log the OTP. In production, send via SMS gateway.
+    // In development, log the OTP. In production, send via MSG91 SMS gateway.
     if (this.config.get('NODE_ENV') !== 'production') {
       this.logger.log(`[DEV] OTP for ${phone}: ${otp}`);
     } else {
-      // TODO: Integrate MSG91 SMS gateway
-      this.logger.log(`OTP sent to ${phone} via SMS`);
+      const sent = await this.smsService.sendOtp({ phone, otp });
+      if (!sent) {
+        this.logger.error(`Failed to send OTP to ${phone}`);
+      }
     }
 
     await this.authRepo.logAuthEvent(null, 'otp_requested', { phone });
@@ -88,8 +98,14 @@ export class AuthService {
     await this.authRepo.updateLastLogin(user.id);
     await this.authRepo.logAuthEvent(user.id, 'login_success', { phone });
 
+    // Fetch clinician sub-role if user is a clinician
+    let clinicianData: ClinicianRow | null = null;
+    if (user.type === 'clinician') {
+      clinicianData = await this.authRepo.findClinicianByUserId(user.id);
+    }
+
     // Generate tokens
-    const tokens = this.generateTokens(user);
+    const tokens = this.generateTokens(user, clinicianData);
 
     return {
       ...tokens,
@@ -97,6 +113,16 @@ export class AuthService {
         id: user.id,
         role: user.type,
         name: user.name,
+        ...(clinicianData && {
+          clinicianRole: clinicianData.role,
+          permissions: {
+            canPrescribe: clinicianData.can_prescribe,
+            canExportResearch: clinicianData.can_export_research,
+            canManageUsers: clinicianData.can_manage_users,
+          },
+          department: clinicianData.department,
+          designation: clinicianData.designation,
+        }),
       },
     };
   }
@@ -113,7 +139,12 @@ export class AuthService {
         throw new UnauthorizedException('User not found or inactive');
       }
 
-      return this.generateTokens(user);
+      let clinicianData: ClinicianRow | null = null;
+      if (user.type === 'clinician') {
+        clinicianData = await this.authRepo.findClinicianByUserId(user.id);
+      }
+
+      return this.generateTokens(user, clinicianData);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -146,11 +177,19 @@ export class AuthService {
     return clean;
   }
 
-  private generateTokens(user: UserRow) {
+  private generateTokens(user: UserRow, clinician?: ClinicianRow | null) {
     const payload: JwtPayload = {
       sub: user.id,
       role: user.type,
       phone: user.phone,
+      ...(clinician && {
+        clinicianRole: clinician.role,
+        permissions: {
+          canPrescribe: clinician.can_prescribe,
+          canExportResearch: clinician.can_export_research,
+          canManageUsers: clinician.can_manage_users,
+        },
+      }),
     };
 
     const accessToken = this.jwtService.sign(payload);

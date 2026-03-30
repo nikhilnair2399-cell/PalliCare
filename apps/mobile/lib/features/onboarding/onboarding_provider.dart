@@ -14,7 +14,7 @@ class OnboardingState {
   final String caregiverFirstName;
   final String caregiverPhone;
   final String caregiverRelationship;
-  final bool privacyConsented;
+  final Map<String, bool> consents;
   final bool isComplete;
   final int currentStep;
   final bool otpSent;
@@ -30,7 +30,7 @@ class OnboardingState {
     this.caregiverFirstName = '',
     this.caregiverPhone = '',
     this.caregiverRelationship = '',
-    this.privacyConsented = false,
+    this.consents = const {},
     this.isComplete = false,
     this.currentStep = 0,
     this.otpSent = false,
@@ -47,7 +47,7 @@ class OnboardingState {
     String? caregiverFirstName,
     String? caregiverPhone,
     String? caregiverRelationship,
-    bool? privacyConsented,
+    Map<String, bool>? consents,
     bool? isComplete,
     int? currentStep,
     bool? otpSent,
@@ -64,7 +64,7 @@ class OnboardingState {
       caregiverPhone: caregiverPhone ?? this.caregiverPhone,
       caregiverRelationship:
           caregiverRelationship ?? this.caregiverRelationship,
-      privacyConsented: privacyConsented ?? this.privacyConsented,
+      consents: consents ?? this.consents,
       isComplete: isComplete ?? this.isComplete,
       currentStep: currentStep ?? this.currentStep,
       otpSent: otpSent ?? this.otpSent,
@@ -87,6 +87,11 @@ class OnboardingState {
   }
 
   bool get showWhatHelps => emotionalState == EmotionalState.okay;
+
+  /// Check if all required DPDPA consents have been granted.
+  bool get requiredConsentsGranted =>
+      consents['data_collection'] == true &&
+      consents['clinician_data_access'] == true;
 }
 
 class OnboardingNotifier extends StateNotifier<OnboardingState> {
@@ -128,8 +133,16 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   void markOtpSent() => state = state.copyWith(otpSent: true);
   void markOtpVerified() => state = state.copyWith(otpVerified: true);
 
-  void setPrivacyConsented() =>
-      state = state.copyWith(privacyConsented: true);
+  /// Set a single consent toggle.
+  void setConsent(String type, bool granted) {
+    final updated = Map<String, bool>.from(state.consents);
+    updated[type] = granted;
+    state = state.copyWith(consents: updated);
+  }
+
+  /// Bulk-set all consents at once.
+  void setConsents(Map<String, bool> consents) =>
+      state = state.copyWith(consents: Map<String, bool>.from(consents));
 
   void nextStep() =>
       state = state.copyWith(currentStep: state.currentStep + 1);

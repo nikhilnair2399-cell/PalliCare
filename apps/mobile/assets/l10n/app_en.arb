@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "@@last_modified": "2026-02-19",
+  "@@last_modified": "2026-03-04",
 
   "appName": "PalliCare",
   "appTagline": "Today, You Matter",
@@ -26,17 +26,26 @@
   "commonToday": "Today",
   "commonYesterday": "Yesterday",
   "commonTomorrow": "Tomorrow",
+  "commonViewAll": "View all",
+  "commonSubmit": "Submit",
+  "commonSelect": "Select",
+  "commonShare": "Share",
+  "commonCopy": "Copy",
+  "commonRefresh": "Refresh",
 
   "navHome": "Home",
+  "navToday": "Today",
   "navPainDiary": "Pain Diary",
   "navLogSymptom": "Log",
   "navMedications": "Medications",
+  "navMeds": "Meds",
   "navSettings": "Settings",
   "navLearn": "Learn",
   "navBreathe": "Breathe",
   "navJourney": "My Journey",
   "navCaregiver": "Caregiver",
   "navNotifications": "Notifications",
+  "navMore": "More",
 
   "onboardingLanguageTitle": "Choose Your Language",
   "onboardingLanguageSubtitle": "You can change this anytime in Settings",
@@ -63,10 +72,23 @@
   "homeGreetingMorning": "Good Morning",
   "homeGreetingAfternoon": "Good Afternoon",
   "homeGreetingEvening": "Good Evening",
+  "homeGreetingUser": "{greeting}, {name}",
+  "@homeGreetingUser": {
+    "placeholders": { "greeting": { "type": "String" }, "name": { "type": "String" } }
+  },
   "homeComfortScore": "Comfort Score",
   "homeQuickLog": "Quick Log",
   "homeFullLog": "Full Check-in",
   "homeBreakthroughLog": "Breakthrough Pain",
+  "homeHeroTitle": "How are you feeling?",
+  "homeHeroSubtitle": "Last log: {time}  \u2022  Pain {score}/10",
+  "@homeHeroSubtitle": {
+    "placeholders": { "time": { "type": "String" }, "score": { "type": "int" } }
+  },
+  "homeLogNow": "Log now",
+  "homeMedTitle": "Evening Medications",
+  "homeMedMorning": "Morning Medications",
+  "homeMedAfternoon": "Afternoon Medications",
   "homeMedicationsDue": "{count} medications due",
   "@homeMedicationsDue": {
     "placeholders": { "count": { "type": "int" } }
@@ -80,6 +102,8 @@
   "@homeStreak": {
     "placeholders": { "days": { "type": "int" } }
   },
+  "homeComfortQuote": "A moment of calm is always within reach.",
+  "homeTryBreathing": "Try breathing \u2192",
 
   "painTitle": "Pain Assessment",
   "painIntensity": "Pain Intensity",
@@ -111,6 +135,10 @@
   "painDays7": "7 Days",
   "painDays30": "30 Days",
   "painDaysAll": "All",
+  "painScoreOutOf": "{score}/10",
+  "@painScoreOutOf": {
+    "placeholders": { "score": { "type": "int" } }
+  },
 
   "painDiaryTitle": "Pain Diary",
   "painDiaryNoEntries": "No entries yet. Start logging to see your history.",
@@ -135,6 +163,7 @@
   "medPRN": "As Needed (PRN)",
   "medDue": "Due",
   "medTaken": "Taken",
+  "medTake": "Take",
   "medMissed": "Missed",
   "medSkipped": "Skipped",
   "medPending": "Pending",
@@ -150,6 +179,10 @@
   "medOpioid": "Opioid",
   "medNonOpioid": "Non-Opioid",
   "medAdjuvant": "Adjuvant",
+  "medDoseTime": "{dose} at {time}",
+  "@medDoseTime": {
+    "placeholders": { "dose": { "type": "String" }, "time": { "type": "String" } }
+  },
 
   "symptomTitle": "Symptoms",
   "symptomMood": "How is your mood?",
@@ -174,6 +207,8 @@
   "symptomWellbeing": "Overall Wellbeing",
   "symptomNotes": "Additional Notes",
   "symptomNotesHint": "Anything else you want to tell your care team?",
+  "symptomLogSaved": "Symptom log saved",
+  "symptomLogSubmitted": "Log submitted successfully",
 
   "esasTitle": "ESAS-r Assessment",
   "esasInstruction": "Rate each symptom from 0 (none) to 10 (worst possible)",
@@ -191,6 +226,7 @@
   "learnCompleted": "Completed",
   "learnLocked": "Locked",
   "learnContinue": "Continue Reading",
+  "learnLibrary": "Disease Library",
 
   "breatheTitle": "Breathe & Comfort",
   "breatheDescription": "Guided breathing exercises for comfort",
@@ -210,6 +246,10 @@
   "@breatheSessionMinutes": {
     "placeholders": { "minutes": { "type": "int" } }
   },
+  "breatheCycles": "{count} cycles",
+  "@breatheCycles": {
+    "placeholders": { "count": { "type": "int" } }
+  },
 
   "journeyTitle": "My Journey",
   "journeyTimeline": "Timeline",
@@ -221,6 +261,29 @@
   },
   "journeySetGoal": "Set a Goal",
   "journeyGoalPlaceholder": "What's your small goal for today?",
+  "journeyGratitude": "Gratitude",
+  "journeyGratitudePlaceholder": "What are you grateful for today?",
+  "journeyIntention": "Today's Intention",
+  "journeyIntentionPlaceholder": "What is your intention for today?",
+  "journeyGoalCompleted": "Goal completed!",
+  "journeyStreakDays": "{count} day streak",
+  "@journeyStreakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "communityTitle": "Community",
+  "communitySubtitle": "Connect with others on a similar journey",
+  "communityJoin": "Join Community",
+  "communityPost": "Share your story",
+  "communitySupport": "Support Circle",
+  "communityAnonymous": "Post anonymously",
+  "communityLike": "Support",
+  "communityReply": "Reply",
+  "communityReport": "Report",
+  "communityGuidelines": "Community Guidelines",
+  "communityEmpty": "Be the first to share your story",
+  "communityNewPost": "New Post",
+  "communityPostPlaceholder": "Share something with the community...",
 
   "caregiverTitle": "Caregiver Hub",
   "caregiverDistress": "Caregiver Distress",
@@ -232,6 +295,9 @@
   "@caregiverSharedWith": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "caregiverProxyLog": "Log on behalf of patient",
+  "caregiverWellnessCheck": "Your Wellness Check",
+  "caregiverBurnoutWarning": "Remember to take care of yourself too",
 
   "settingsTitle": "Settings",
   "settingsProfile": "Profile",
@@ -319,12 +385,59 @@
   "@offlinePending": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "offlineConflict": "{count} sync conflicts",
+  "@offlineConflict": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "offlineConflictTitle": "Sync Conflict",
+  "offlineConflictMessage": "This record was changed on another device. Which version would you like to keep?",
+  "offlineKeepLocal": "Keep my version",
+  "offlineKeepServer": "Use latest from server",
+  "offlineRetrying": "Retrying sync...",
+  "offlineSyncFailed": "Sync failed. Will retry automatically.",
+  "offlineForceSync": "Sync now",
+  "offlineLastSync": "Last synced {time}",
+  "@offlineLastSync": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+
+  "authEnterPhone": "Enter your phone number",
+  "authSendOtp": "Send OTP",
+  "authEnterOtp": "Enter the 6-digit OTP",
+  "authVerify": "Verify",
+  "authResendOtp": "Resend OTP",
+  "authResendIn": "Resend in {seconds}s",
+  "@authResendIn": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "authPhoneHint": "+91 98765 43210",
+  "authOtpSent": "OTP sent to {phone}",
+  "@authOtpSent": {
+    "placeholders": { "phone": { "type": "String" } }
+  },
+
+  "voiceTitle": "Voice & Comfort",
+  "voiceListening": "Listening...",
+  "voiceProcessing": "Processing...",
+  "voiceTapToSpeak": "Tap to speak",
+  "voiceNotAvailable": "Voice input not available",
+  "voicePermissionNeeded": "Microphone permission needed",
+  "voiceLanguageHindi": "Speaking in Hindi",
+  "voiceLanguageEnglish": "Speaking in English",
+
+  "moreVoiceComfort": "Voice & Comfort",
+  "moreBreatheComfort": "Breathe & Comfort",
+  "moreDiseaseLibrary": "Disease Library",
+  "morePainDiary": "Pain Diary",
+  "moreCaregiverHub": "Caregiver Hub",
 
   "errorNetwork": "No internet connection",
   "errorServer": "Server error. Please try again later.",
   "errorTimeout": "Connection timed out",
   "errorUnknown": "Something went wrong",
   "errorRetry": "Tap to retry",
+  "errorSessionExpired": "Session expired. Please login again.",
+  "errorPermission": "Permission denied",
 
   "a11yPainSlider": "Pain intensity slider, current value {value}",
   "@a11yPainSlider": {
@@ -337,5 +450,212 @@
   "a11yNotificationBadge": "{count} unread notifications",
   "@a11yNotificationBadge": {
     "placeholders": { "count": { "type": "int" } }
-  }
+  },
+  "a11yNavBar": "Main navigation",
+  "a11yMoreMenu": "More options menu",
+  "a11yCloseMenu": "Close menu",
+  "a11yConnectivityStatus": "Connection status: {status}",
+  "@a11yConnectivityStatus": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "a11yVoiceRecording": "Voice recording active",
+  "a11yBodyMap": "Body map for pain location",
+
+  "medTodayAdherence": "Today's Adherence",
+  "medAdherenceStatus": "{taken} taken \u00B7 {pending} pending",
+  "@medAdherenceStatus": {
+    "placeholders": { "taken": { "type": "int" }, "pending": { "type": "int" } }
+  },
+  "medSideEffectsWatch": "Side Effects Watch",
+
+  "painDiaryDailyLog": "Daily Log",
+  "painDiary3Months": "3 Months",
+
+  "learnLibraryDesc": "Learn about your condition in detail",
+  "learnFaqCorner": "FAQ Corner",
+  "learnSearchTopics": "Search Topics",
+  "learnRecommended": "Recommended For You",
+  "learnPaths": "Learning Paths",
+  "learnPathsDone": "{completed} / {total} done",
+  "@learnPathsDone": {
+    "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "learnPhase1Title": "Understanding Your Pain",
+  "learnPhase2Title": "Tools for Your Journey",
+  "learnPhase3Title": "Living with Purpose",
+  "learnBrowseAll": "Browse All Topics",
+  "learnAllTopics": "All Topics",
+  "learnSensitiveTitle": "A Gentle Note",
+  "learnSensitiveBody": "This topic covers sensitive themes. You can come back to this any time you feel ready.\n\nWould you like to continue?",
+  "learnNotRightNow": "Not right now",
+  "learnImReady": "Yes, I'm ready",
+  "learnLockedUnlocks": "Unlocks in {days} days. Keep going at your own pace.",
+  "@learnLockedUnlocks": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "learnLockedSoon": "This phase will unlock soon.",
+  "learnSensitiveNotice": "These topics are personal. Take your time \u2014 there's no rush.",
+
+  "breatheQuickStartTitle": "1-Minute Calm",
+  "breatheQuickStartTap": "Tap to start",
+  "breathePrograms": "Programs",
+  "breatheHistory": "History",
+  "breatheBreathingExercises": "Breathing Exercises",
+  "breatheGuidedMeditations": "Guided Meditations",
+  "breatheRelaxation": "Relaxation",
+  "breatheAnimationStyle": "Animation Style",
+  "breatheAmbientSounds": "Ambient Sounds",
+  "breatheStatsWeek": "{sessions} sessions this week",
+  "@breatheStatsWeek": {
+    "placeholders": { "sessions": { "type": "int" } }
+  },
+  "breatheStatsMinutes": "{minutes} min total",
+  "@breatheStatsMinutes": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+
+  "journeyGratitudeJournal": "Gratitude Journal",
+  "journeyMyGoals": "My Goals",
+  "journeyLegacy": "Legacy & Meaning",
+  "journeyMyValues": "My Values",
+  "journeyMyValuesDesc": "What matters most to you? Write about the values that guide your life.",
+  "journeyMessages": "Messages for Loved Ones",
+  "journeyMessagesDesc": "Write letters or messages for the people you care about.",
+  "journeyLifeStory": "Life Story Prompts",
+  "journeyLifeStoryDesc": "Guided prompts to help you reflect on your life story.",
+  "journeyLegacyDesc": "This section contains prompts about values, messages for loved ones, and life reflections. Open it only when you feel ready.",
+  "journeyImReady": "I'm ready",
+  "journeyNotRightNow": "Not right now",
+  "journeyStartWriting": "Start writing",
+
+  "communityBannerTitle": "You Are Not Alone",
+  "communityBannerDesc": "Connect with others who truly understand your journey. Share, support, and find comfort together.",
+  "communitySupportChannels": "Support Channels",
+  "communityNeedHelp": "Need Help Now?",
+
+  "caregiverHome": "Caregiver Home",
+  "caregiverBadge": "Caregiver",
+  "caregiverCareLabel": "{patient}'s care \u00B7 Managed by {caregiver}",
+  "@caregiverCareLabel": {
+    "placeholders": { "patient": { "type": "String" }, "caregiver": { "type": "String" } }
+  },
+  "caregiverModeLabel": "Caregiver Mode",
+  "caregiverQuickActions": "Quick Actions",
+  "caregiverJournal": "Journal",
+  "caregiverBurnout": "Burnout",
+  "caregiverTasks": "Tasks",
+  "caregiverEmergency": "Emergency",
+  "caregiverMedManagement": "Medication Management",
+  "caregiverCommunity": "Caregiver Community",
+  "caregiverTaskBoard": "Task Board",
+  "caregiverNoTasks": "No tasks yet",
+  "caregiverAddTasks": "Add Tasks",
+  "caregiverViewAllTasks": "View all {count} tasks",
+  "@caregiverViewAllTasks": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "caregiverResourcesLabel": "Resources",
+  "caregiverFinancial": "Financial",
+  "caregiverRespite": "Respite",
+  "caregiverGrief": "Grief",
+  "caregiverMedsGiven": "{given}/{total} given",
+  "@caregiverMedsGiven": {
+    "placeholders": { "given": { "type": "int" }, "total": { "type": "int" } }
+  },
+
+  "symptomCheckinTitle": "Check-in",
+  "symptomPainLabel": "Pain: {intensity}/10",
+  "@symptomPainLabel": {
+    "placeholders": { "intensity": { "type": "int" } }
+  },
+  "symptomLocationsMarked": "{count} location(s) marked",
+  "@symptomLocationsMarked": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "symptomQuickSaveTip": "Tap Done to save your quick log",
+  "painIntensityQuestion": "How is your pain right now?",
+  "painScaleMin": "0 \u2014 No pain",
+  "painScaleMax": "10 \u2014 Worst possible",
+  "bodyMapQuestion": "Where does it hurt?",
+  "bodyMapLocationsSelected": "{count} location(s) selected",
+  "@bodyMapLocationsSelected": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "painQualityQuestion": "What does the pain feel like?",
+  "painQualitySelected": "{count} selected",
+  "@painQualitySelected": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "triggersWorsensQuestion": "What makes it worse?",
+  "triggersHelpsQuestion": "What helps?",
+  "esasQuestion": "How are these symptoms?",
+  "moodQuestion": "How are you feeling?",
+  "sleepQualityQuestion": "How did you sleep last night?",
+  "sleepHoursLabel": "Hours of sleep",
+  "notesQuestion": "Anything else to share?",
+  "notesHintText": "e.g. Pain woke me at 3 AM, took extra dose...",
+  "notesPromptsLabel": "Quick prompts:",
+  "notesPrompt1": "Pain woke me up",
+  "notesPrompt2": "Took extra medicine",
+  "notesPrompt3": "Feeling better today",
+  "notesPrompt4": "Side effects noticed",
+  "notesPrompt5": "Need to talk to doctor",
+
+  "onboardingLanguageTitle": "Choose your language",
+  "onboardingWhoTitle": "Who is using this app today?",
+  "onboardingWhoSubtitle": "We want to create the right experience for you",
+  "onboardingEmotionalTitle": "How are you feeling today?",
+  "onboardingEmotionalSubtitle": "There are no right or wrong answers",
+  "onboardingEmotionalThankYou": "Thank you for sharing that",
+  "onboardingHelpTitle": "What would help you most?",
+  "onboardingHelpSubtitle": "Choose one or more \u00B7 You can always change later",
+  "onboardingHelpContinue": "Continue ({count} selected)",
+  "@onboardingHelpContinue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "onboardingProfileTitle": "Let's set up your account",
+  "onboardingProfileSubtitle": "Just your name and phone number \u2014 that's it!",
+  "onboardingProfileNameLabel": "Your first name",
+  "onboardingProfileNameHint": "e.g., Ramesh",
+  "onboardingProfilePhoneLabel": "Phone number",
+  "onboardingProfilePhoneHint": "10-digit mobile number",
+  "onboardingProfileSendOtp": "Send OTP",
+  "onboardingProfileOtpPrompt": "Enter 6-digit OTP",
+  "validationNameRequired": "Please enter your name",
+  "validationPhoneInvalid": "Enter a valid 10-digit number",
+  "validationOtpInvalid": "Please enter a valid 6-digit OTP",
+  "onboardingOtpResendCountdown": "Resend in {seconds}s",
+  "@onboardingOtpResendCountdown": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "onboardingOtpResend": "Resend OTP",
+  "onboardingOtpCallInstead": "Call me instead",
+  "onboardingOtpVerified": "Verified!",
+  "onboardingPrivacyTitle": "Your information is safe with us",
+  "privacyDataEncrypted": "Your data is encrypted",
+  "privacyNoSell": "We never sell your data",
+  "privacyYouChoose": "Only people you choose can see it",
+  "privacyDeleteAnytime": "You can delete your data anytime",
+  "onboardingPrivacyConfirm": "I understand",
+  "privacyShowLess": "Show less",
+  "privacyShowMore": "Tell me more",
+  "privacyRightsTitle": "Your rights under DPDPA 2023",
+  "welcomeGreeting": "Welcome, {name}",
+  "@welcomeGreeting": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "welcomeSubtitle": "We're glad you're here. This app is your companion on this journey \u2014 at your pace, on your terms.",
+  "welcomeToughDayMessage": "Today, just one small step is enough.",
+  "welcomePrimaryAction": "Tell us about your pain today \u2192",
+  "welcomePrimaryActionHint": "It takes less than 2 minutes",
+  "welcomeSecondaryBreath": "Take a deep breath",
+  "welcomeSecondaryExplore": "Explore the app",
+  "welcomeSkip": "I'll do this later",
+
+  "settingsLanguageLabel": "Language",
+  "settingsDualLanguageLabel": "Dual Language Display",
+  "settingsDualLanguageHint": "Show Hindi and English together",
+  "settingsNotificationsLabel": "Notification Preferences",
+  "settingsMedRemindersLabel": "Medication Reminders",
+  "settingsMorningCheckinLabel": "Morning Check-in"
 }

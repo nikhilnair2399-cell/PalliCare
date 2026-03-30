@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../widgets/section_header.dart';
 import 'medication_provider.dart';
 import 'medication_row.dart';
@@ -15,6 +16,7 @@ class MedicationTrackerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final medState = ref.watch(medicationProvider);
 
     final scheduled = medState.medications
@@ -33,9 +35,9 @@ class MedicationTrackerScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.primaryDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Medications · दवाइयाँ',
-          style: TextStyle(
+        title: Text(
+          l.medTitle,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.primaryDark,
@@ -64,9 +66,8 @@ class MedicationTrackerScreen extends ConsumerWidget {
                     MeddDisplay(medd: medState.totalMedd),
 
                   // Scheduled meds
-                  const SectionHeader(
-                    title: 'Scheduled',
-                    subtitle: 'नियमित दवाइयाँ',
+                  SectionHeader(
+                    title: l.medScheduled,
                   ),
                   ...scheduled.map((med) => MedicationRow(
                         medication: med,
@@ -77,17 +78,15 @@ class MedicationTrackerScreen extends ConsumerWidget {
 
                   // PRN meds
                   if (prn.isNotEmpty) ...[
-                    const SectionHeader(
-                      title: 'As Needed (PRN)',
-                      subtitle: 'ज़रूरत के अनुसार',
+                    SectionHeader(
+                      title: l.medPRN,
                     ),
                     PrnSection(medications: prn, logs: medState.todayLogs),
                   ],
 
                   // Side effects
-                  const SectionHeader(
-                    title: 'Side Effects Watch',
-                    subtitle: 'दुष्प्रभावों पर नज़र',
+                  SectionHeader(
+                    title: l.medSideEffectsWatch,
                   ),
                   SideEffectsSection(medications: medState.medications),
 
@@ -106,6 +105,7 @@ class _AdherenceBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final pct = (state.adherence * 100).round();
     final color = pct >= 80
         ? AppColors.primary
@@ -153,7 +153,7 @@ class _AdherenceBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Today\'s Adherence',
+                  l.medTodayAdherence,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -162,7 +162,7 @@ class _AdherenceBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${state.takenDoses} taken · ${state.pendingDoses} pending',
+                  l.medAdherenceStatus(state.takenDoses, state.pendingDoses),
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade600,

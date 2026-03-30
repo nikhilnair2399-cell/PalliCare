@@ -10,6 +10,7 @@ import {
   medicationDbApi,
   notificationsApi,
   healthApi,
+  verificationApi,
 } from './api';
 
 /* ================================================================== */
@@ -68,6 +69,9 @@ export const queryKeys = {
     unreadCount: ['notifications', 'unread-count'] as const,
   },
   health: ['health'] as const,
+  verification: {
+    report: ['verification', 'report'] as const,
+  },
 };
 
 /* ================================================================== */
@@ -398,5 +402,15 @@ export function useHealthCheck() {
     queryFn: () => healthApi.check().then((r) => r.data),
     refetchInterval: 60_000, // Check health every minute
     retry: 1,
+  });
+}
+
+/* ================================================================== */
+/*  Verification (dev-only)                                            */
+/* ================================================================== */
+
+export function useRunVerification() {
+  return useMutation({
+    mutationFn: () => verificationApi.run().then((r) => r.data),
   });
 }

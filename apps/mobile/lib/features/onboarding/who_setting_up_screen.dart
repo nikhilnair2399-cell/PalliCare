@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/selection_card.dart';
 import '../../widgets/progress_dots.dart';
@@ -11,6 +12,7 @@ class WhoSettingUpScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -28,32 +30,25 @@ class WhoSettingUpScreen extends ConsumerWidget {
                 label: 'Step 1 of ${state.totalSteps}',
               ),
               const SizedBox(height: 40),
-              const Text(
-                'Who is using this app today?',
+              Text(
+                l.onboardingWhoTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: AppColors.deepTeal,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'आज यह ऐप कौन इस्तेमाल कर रहा है?',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: AppColors.deepTeal.withAlpha(180)),
-              ),
               const SizedBox(height: 12),
               Text(
-                'We want to create the right experience for you',
+                l.onboardingWhoSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 36),
               SelectionCard(
-                title: 'I am the patient',
-                subtitle: 'मैं मरीज़ हूँ',
+                title: l.onboardingWhoPatient,
                 emoji: '🙂',
                 accentColor: AppColors.sageGreen,
                 isSelected: state.userType == UserType.patient,
@@ -64,8 +59,7 @@ class WhoSettingUpScreen extends ConsumerWidget {
                 },
               ),
               SelectionCard(
-                title: "I'm helping someone set up",
-                subtitle: 'मैं किसी की मदद कर रहा/रही हूँ',
+                title: l.onboardingWhoCaregiver,
                 emoji: '🤝',
                 accentColor: const Color(0xFFD4856B), // Terra
                 isSelected: state.userType == UserType.caregiver,
@@ -76,8 +70,7 @@ class WhoSettingUpScreen extends ConsumerWidget {
                 },
               ),
               SelectionCard(
-                title: "We're doing this together",
-                subtitle: 'हम साथ में कर रहे हैं',
+                title: l.onboardingWhoFamily,
                 emoji: '👫',
                 accentColor: const Color(0xFFE8A838), // Amber
                 isSelected: state.userType == UserType.together,

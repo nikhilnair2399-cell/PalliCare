@@ -63,17 +63,17 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4 sm:space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="font-heading text-3xl font-bold text-teal">Medications</h1>
+        <h1 className="font-heading text-xl sm:text-3xl font-bold text-teal">Medications</h1>
         <p className="mt-1 text-base text-charcoal-light">
           Track your daily medication schedule
         </p>
       </div>
 
       {/* Adherence Banner */}
-      <div className="rounded-2xl bg-white p-6">
+      <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-charcoal-light">Today&apos;s Adherence</p>
@@ -104,7 +104,7 @@ export default function MedicationsPage() {
       {/* Sprint 40 — 7-Day Adherence Trend + Next Dose */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {/* Weekly trend */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-4 w-4 text-teal" />
             <h3 className="text-sm font-bold text-charcoal">7-Day Trend</h3>
@@ -127,7 +127,7 @@ export default function MedicationsPage() {
           </div>
         </div>
         {/* Next dose countdown */}
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Timer className="h-4 w-4 text-amber" />
             <h3 className="text-sm font-bold text-charcoal">Next Dose</h3>
@@ -172,7 +172,7 @@ export default function MedicationsPage() {
         const totalMissed = timeSlots.reduce((s, t) => s + t.missed, 0);
         const worstSlot = timeSlots.reduce((w, t) => t.missed > w.missed ? t : w, timeSlots[0]);
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Calendar className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">Adherence Patterns</h3>
@@ -237,7 +237,7 @@ export default function MedicationsPage() {
         }
         const weeklyAvg = Math.round(calendar.reduce((s, d) => s + d.pct, 0) / days);
         return (
-          <div className="rounded-2xl bg-white p-5">
+          <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <CalendarDays className="h-4 w-4 text-teal" />
               <h3 className="text-sm font-bold text-charcoal">14-Day Adherence Calendar</h3>
@@ -320,7 +320,7 @@ export default function MedicationsPage() {
           <div className="space-y-3">
             {/* Interactions */}
             {relevant.length > 0 && (
-              <div className="rounded-2xl bg-white p-5">
+              <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <ShieldAlert className="h-5 w-5 text-amber" />
                   <h3 className="text-sm font-bold text-charcoal">Interaction Awareness</h3>
@@ -340,7 +340,7 @@ export default function MedicationsPage() {
             )}
 
             {/* Refill Tracker */}
-            <div className="rounded-2xl bg-white p-5">
+            <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <RefreshCw className="h-5 w-5 text-teal" />
                 <h3 className="text-sm font-bold text-charcoal">Refill Tracker</h3>
@@ -386,7 +386,7 @@ export default function MedicationsPage() {
         if (groupDoses.length === 0) return null;
 
         return (
-          <div key={group.key} className="rounded-2xl bg-white p-5">
+          <div key={group.key} className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-charcoal">{group.label}</h3>
               <p className="text-sm text-charcoal-light">{group.range}</p>
@@ -474,7 +474,7 @@ export default function MedicationsPage() {
 
       {/* PRN Medications */}
       {prnMeds.length > 0 && (
-        <div className="rounded-2xl bg-white p-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 sm:p-5">
           <div className="mb-4 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber" />
             <h3 className="text-lg font-semibold text-charcoal">As-Needed (PRN)</h3>

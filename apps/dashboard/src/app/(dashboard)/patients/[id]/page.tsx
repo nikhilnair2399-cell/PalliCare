@@ -57,8 +57,11 @@ import {
   Utensils,
   ScrollText,
   Calculator,
+  Smile,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth, useRoleConfig } from '@/lib/auth';
+import type { PatientTabKey } from '@/lib/role-config';
 import {
   usePatient,
   usePatientPainTrends,
@@ -360,6 +363,19 @@ const MOCK_FUNCTIONAL_DETAIL = {
   lastAssessed: '19 Feb 2026',
 };
 
+const MOCK_MOOD_ASSESSMENTS = {
+  currentMood: { score: 4, label: 'Low', trend: 'declining' as const },
+  phq9: { score: 14, severity: 'Moderate', lastAssessed: '18 Feb 2026' },
+  gad7: { score: 10, severity: 'Moderate', lastAssessed: '18 Feb 2026' },
+  recentSessions: [
+    { date: '19 Feb 2026', type: 'Individual Counseling', therapist: 'Dr. Priya M.', notes: 'Discussed coping with disease progression. Expressed fear about burden on family.' },
+    { date: '15 Feb 2026', type: 'Grief Therapy', therapist: 'Dr. Priya M.', notes: 'Pre-bereavement session. Patient processing end-of-life awareness.' },
+    { date: '10 Feb 2026', type: 'Family Session', therapist: 'Dr. Priya M.', notes: 'Joint session with wife. Addressed communication gaps around care preferences.' },
+  ],
+  caregiverDistress: { name: 'Sunita Kumar', score: 7, level: 'High', lastScreened: '17 Feb 2026' },
+  riskFlags: ['Persistent low mood (>7 days)', 'Sleep disturbance', 'Caregiver burnout risk'],
+};
+
 const MOCK_WISHES_SUMMARY = {
   goalsOfCare: 'Comfort-focused',
   preferredPlace: 'Home',
@@ -370,7 +386,18 @@ const MOCK_WISHES_SUMMARY = {
   lastUpdated: '15 Feb 2026',
 };
 
-type DetailTab = 'care_plan' | 'caregivers' | 'education' | 'messages' | 'vitals' | 'documents';
+type DetailTab = 'care_plan' | 'caregivers' | 'education' | 'messages' | 'vitals' | 'documents' | 'mood_assessment';
+
+// -- All available tabs (order matters for display) ----------------------------
+const ALL_TABS: Array<{ key: DetailTab; roleKey: PatientTabKey; label: string; icon: any }> = [
+  { key: 'care_plan',       roleKey: 'care_plan',       label: 'Care Plan',       icon: ClipboardList },
+  { key: 'caregivers',      roleKey: 'caregivers',      label: 'Caregivers',      icon: Users },
+  { key: 'vitals',          roleKey: 'vitals',           label: 'Vitals & Labs',   icon: Stethoscope },
+  { key: 'documents',       roleKey: 'documents',        label: 'Documents',       icon: Paperclip },
+  { key: 'education',       roleKey: 'education',        label: 'Education',       icon: BookOpen },
+  { key: 'messages',        roleKey: 'messages',         label: 'Messages',        icon: MessageSquare },
+  { key: 'mood_assessment', roleKey: 'mood_assessment',  label: 'Mood & Psych',    icon: Smile },
+];
 
 // -- Alert type ---------------------------------------------------------------
 interface PatientAlert {
@@ -591,10 +618,19 @@ export default function PatientDetailPage() {
   const patientId = (params?.id as string) || '';
 
   const router = useRouter();
+  const { user } = useAuth();
+  const roleConfig = useRoleConfig();
+
+  // Filter tabs based on role
+  const visibleTabs = ALL_TABS.filter((tab) =>
+    roleConfig.patientTabs.includes(tab.roleKey),
+  );
+  const defaultTab = (roleConfig.defaultPatientTab as DetailTab) || visibleTabs[0]?.key || 'messages';
+
   const [painRange, setPainRange] = useState<'7d' | '30d' | 'all'>('30d');
   const [localAlertOverrides, setLocalAlertOverrides] = useState<Record<string, string>>({});
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<DetailTab>('care_plan');
+  const [activeTab, setActiveTab] = useState<DetailTab>(defaultTab);
 
   // Sprint 20 — Modal states
   const [showAddNote, setShowAddNote] = useState(false);
@@ -1019,7 +1055,7 @@ export default function PatientDetailPage() {
                 className="flex h-20 w-20 items-center justify-center rounded-2xl text-3xl font-bold"
                 style={{
                   backgroundColor: PAIN_COLORS[PAIN_DATA.currentNRS] || '#ccc',
-                  color: PAIN_DATA.currentNRS >= 6 ? '#fff' : '#2D2D2D',
+                  color: PAIN_DATA.currentNRS >= 6 ? '#fff' : '#332E2B',
                 }}
               >
                 {PAIN_DATA.currentNRS}
@@ -1947,6 +1983,7 @@ export default function PatientDetailPage() {
               <Download className="h-4 w-4 flex-shrink-0" />
               Generate Report
             </button>
+            {roleConfig.capabilities.canPrescribe && (
             <button
               onClick={() => setShowAdjustMeds(true)}
               className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-amber text-white hover:bg-amber/90 hover:shadow-md active:scale-[0.98]"
@@ -1954,6 +1991,7 @@ export default function PatientDetailPage() {
               <Pill className="h-4 w-4 flex-shrink-0" />
               Adjust Meds
             </button>
+            )}
             <button
               onClick={() => { setActiveTab('messages'); setShowNewMessage(true); }}
               className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-xs font-semibold transition-all bg-teal text-white hover:bg-teal/90 hover:shadow-md active:scale-[0.98]"
@@ -1968,6 +2006,7 @@ export default function PatientDetailPage() {
               <Calendar className="h-4 w-4 flex-shrink-0" />
               Schedule Visit
             </button>
+            {roleConfig.capabilities.canViewMDT && (
             <button
               onClick={handleFlagMDT}
               disabled={mdtFlagged}
@@ -1981,6 +2020,7 @@ export default function PatientDetailPage() {
               <Flag className="h-4 w-4 flex-shrink-0" />
               {mdtFlagged ? '✓ Flagged!' : 'Flag for MDT'}
             </button>
+            )}
           </div>
         </div>
       </div>
@@ -1989,14 +2029,7 @@ export default function PatientDetailPage() {
       <div className="rounded-xl border border-sage-light/30 bg-white shadow-sm">
         {/* Tab bar — horizontally scrollable on mobile */}
         <div className="flex overflow-x-auto border-b border-sage-light/20 scrollbar-hide">
-          {([
-            { key: 'care_plan' as DetailTab, label: 'Care Plan', icon: ClipboardList },
-            { key: 'caregivers' as DetailTab, label: 'Caregivers', icon: Users },
-            { key: 'vitals' as DetailTab, label: 'Vitals & Labs', icon: Stethoscope },
-            { key: 'documents' as DetailTab, label: 'Documents', icon: Paperclip },
-            { key: 'education' as DetailTab, label: 'Education', icon: BookOpen },
-            { key: 'messages' as DetailTab, label: 'Messages', icon: MessageSquare },
-          ]).map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -2514,6 +2547,120 @@ export default function PatientDetailPage() {
                   className="text-xs font-semibold text-teal hover:underline"
                 >
                   View All Messages &rarr;
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Mood & Psych Tab (Psychologist-specific) ── */}
+          {activeTab === 'mood_assessment' && (
+            <div className="space-y-5">
+              {/* Screening Scores */}
+              <div>
+                <h3 className="font-heading text-lg font-bold text-teal">Psychological Assessment</h3>
+                <p className="text-xs text-charcoal/40 mt-0.5">Last screened: {MOCK_MOOD_ASSESSMENTS.phq9.lastAssessed}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Current Mood */}
+                <div className="rounded-lg border border-sage-light/30 p-4">
+                  <p className="text-xs font-semibold text-charcoal/50 uppercase">Current Mood</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-amber">{MOCK_MOOD_ASSESSMENTS.currentMood.score}/10</span>
+                    <span className="text-xs text-charcoal/50">{MOCK_MOOD_ASSESSMENTS.currentMood.label}</span>
+                  </div>
+                  <p className="mt-1 text-[10px] text-charcoal/40">Trend: {MOCK_MOOD_ASSESSMENTS.currentMood.trend}</p>
+                </div>
+
+                {/* PHQ-9 */}
+                <div className="rounded-lg border border-sage-light/30 p-4">
+                  <p className="text-xs font-semibold text-charcoal/50 uppercase">PHQ-9 (Depression)</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-alert-critical">{MOCK_MOOD_ASSESSMENTS.phq9.score}/27</span>
+                    <span className="text-xs text-charcoal/50">{MOCK_MOOD_ASSESSMENTS.phq9.severity}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-sage-light/30">
+                    <div className="h-full rounded-full bg-alert-critical/70" style={{ width: `${(MOCK_MOOD_ASSESSMENTS.phq9.score / 27) * 100}%` }} />
+                  </div>
+                </div>
+
+                {/* GAD-7 */}
+                <div className="rounded-lg border border-sage-light/30 p-4">
+                  <p className="text-xs font-semibold text-charcoal/50 uppercase">GAD-7 (Anxiety)</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-amber">{MOCK_MOOD_ASSESSMENTS.gad7.score}/21</span>
+                    <span className="text-xs text-charcoal/50">{MOCK_MOOD_ASSESSMENTS.gad7.severity}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-sage-light/30">
+                    <div className="h-full rounded-full bg-amber/70" style={{ width: `${(MOCK_MOOD_ASSESSMENTS.gad7.score / 21) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Flags */}
+              {MOCK_MOOD_ASSESSMENTS.riskFlags.length > 0 && (
+                <div className="rounded-lg border border-amber/30 bg-amber/5 p-4">
+                  <p className="text-xs font-semibold text-amber uppercase flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Risk Flags
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {MOCK_MOOD_ASSESSMENTS.riskFlags.map((flag, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-charcoal/70">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber flex-shrink-0" />
+                        {flag}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Caregiver Distress */}
+              <div className="rounded-lg border border-sage-light/30 p-4">
+                <p className="text-xs font-semibold text-charcoal/50 uppercase">Caregiver Distress Screening</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-charcoal">{MOCK_MOOD_ASSESSMENTS.caregiverDistress.name}</p>
+                    <p className="text-xs text-charcoal/40">Last screened: {MOCK_MOOD_ASSESSMENTS.caregiverDistress.lastScreened}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-bold',
+                      MOCK_MOOD_ASSESSMENTS.caregiverDistress.level === 'High' ? 'bg-alert-critical/10 text-alert-critical' :
+                      MOCK_MOOD_ASSESSMENTS.caregiverDistress.level === 'Moderate' ? 'bg-amber/10 text-amber' :
+                      'bg-sage/10 text-sage',
+                    )}>
+                      {MOCK_MOOD_ASSESSMENTS.caregiverDistress.level} ({MOCK_MOOD_ASSESSMENTS.caregiverDistress.score}/10)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Sessions */}
+              <div>
+                <p className="text-xs font-semibold text-charcoal/50 uppercase mb-3">Recent Sessions</p>
+                <div className="space-y-3">
+                  {MOCK_MOOD_ASSESSMENTS.recentSessions.map((session, i) => (
+                    <div key={i} className="rounded-lg border border-sage-light/20 p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-semibold text-teal">{session.type}</span>
+                          <span className="text-xs text-charcoal/40">{session.therapist}</span>
+                        </div>
+                        <span className="text-[10px] text-charcoal/40">{session.date}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-charcoal/70 leading-relaxed">{session.notes}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Actions for Psychologist */}
+              <div className="flex gap-2">
+                <button className="flex items-center gap-1.5 rounded-lg bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal/90">
+                  <FileText className="h-3.5 w-3.5" /> New Assessment
+                </button>
+                <button className="flex items-center gap-1.5 rounded-lg border border-sage/30 px-4 py-2 text-xs font-semibold text-charcoal/60 hover:bg-sage/5">
+                  <Calendar className="h-3.5 w-3.5" /> Schedule Session
                 </button>
               </div>
             </div>

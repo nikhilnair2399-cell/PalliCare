@@ -207,7 +207,7 @@ class ReportGeneratorScreen extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _ShareButton(
-                          icon: Icons.whatsapp,
+                          icon: Icons.chat,
                           label: 'WhatsApp',
                           onTap: () {
                             // TODO: Share via WhatsApp

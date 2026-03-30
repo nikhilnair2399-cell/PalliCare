@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../widgets/selection_card.dart';
 import '../../widgets/progress_dots.dart';
@@ -46,6 +47,7 @@ class _EmotionalCheckinScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
@@ -63,33 +65,25 @@ class _EmotionalCheckinScreenState
                 label: 'Step 2 of ${state.totalSteps}',
               ),
               const SizedBox(height: 48),
-              const Text(
-                'How are you feeling today?',
+              Text(
+                l.onboardingEmotionalTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Georgia',
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppColors.deepTeal,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'आज आप कैसा महसूस कर रहे हैं?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16, color: AppColors.deepTeal.withAlpha(180)),
-              ),
               const SizedBox(height: 8),
               Text(
-                'There are no right or wrong answers',
+                l.onboardingEmotionalSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 36),
               SelectionCard(
                 title: 'Doing okay',
-                subtitle: 'ठीक हूँ',
                 emoji: '😊',
                 accentColor: AppColors.sageGreen,
                 isSelected: state.emotionalState == EmotionalState.okay,
@@ -97,7 +91,6 @@ class _EmotionalCheckinScreenState
               ),
               SelectionCard(
                 title: 'A bit tired',
-                subtitle: 'थोड़ा थका हुआ',
                 emoji: '😐',
                 accentColor: const Color(0xFFD9D4E7), // Lavender
                 isSelected: state.emotionalState == EmotionalState.tired,
@@ -105,7 +98,6 @@ class _EmotionalCheckinScreenState
               ),
               SelectionCard(
                 title: 'Having a tough day',
-                subtitle: 'मुश्किल दिन है',
                 emoji: '😔',
                 accentColor: const Color(0xFFD4856B), // Terra/coral
                 isSelected: state.emotionalState == EmotionalState.toughDay,
@@ -118,21 +110,12 @@ class _EmotionalCheckinScreenState
                 child: Column(
                   children: [
                     Text(
-                      'Thank you for sharing that',
+                      l.onboardingEmotionalThankYou,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
                         color: AppColors.deepTeal.withAlpha(160),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'शुक्रिया कि आपने बताया',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.deepTeal.withAlpha(130),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -141,7 +124,7 @@ class _EmotionalCheckinScreenState
                         _autoAdvance?.cancel();
                         _advance(state.emotionalState!);
                       },
-                      child: const Text('Continue →'),
+                      child: Text(l.commonContinue),
                     ),
                   ],
                 ),

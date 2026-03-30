@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:dashboard"],
+      "port": 3000
+    },
+    {
+      "name": "API",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:api"],
+      "port": 3001
+    },
+    {
+      "name": "Infrastructure (Docker)",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "-f", "infrastructure/docker/docker-compose.yml", "up", "-d"],
+      "port": 5432
+    },
+    {
+      "name": "MinIO Console",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "-f", "infrastructure/docker/docker-compose.yml", "up", "-d", "minio"],
+      "port": 9001
+    },
+    {
+      "name": "MailHog",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "-f", "infrastructure/docker/docker-compose.yml", "up", "-d", "mailhog"],
+      "port": 8025
+    }
+  ]
+}
