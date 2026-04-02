@@ -79,7 +79,19 @@ export default function LoginPage() {
     await new Promise((r) => setTimeout(r, 1000));
     // Dev bypass: 000000 always works
     if (code === '000000' || code === '123456') {
-      localStorage.setItem('token', 'dev-jwt-token');
+      localStorage.setItem('pallicare_token', 'dev-jwt-token');
+      localStorage.setItem('pallicare_user', JSON.stringify({
+        id: 'dev-clinician-001',
+        name: 'Dr. Nikhil Nair',
+        role: 'clinician',
+        phone,
+        clinicianRole: 'physician',
+        permissions: { canPrescribe: true, canExportResearch: true, canManageUsers: false },
+        department: 'Palliative Care & Pain Management',
+        designation: 'Assistant Professor',
+      }));
+      // Set session cookie so middleware allows access in production
+      document.cookie = 'pallicare_session=dev-jwt-token; path=/; max-age=86400; SameSite=Lax';
       setStage('success');
       setLoading(false);
       setTimeout(() => router.push('/'), 800);
