@@ -99,12 +99,12 @@ export default function LoginPage() {
               P
             </div>
             <div>
-              <h1 className="font-heading text-3xl font-bold">PalliCare</h1>
+              <h1 className="font-heading text-3xl font-bold text-white">PalliCare</h1>
               <p className="text-sm text-white/70">AIIMS Bhopal</p>
             </div>
           </div>
           <div className="mt-16 max-w-md">
-            <h2 className="text-2xl font-bold leading-snug">
+            <h2 className="text-2xl font-bold leading-snug text-white">
               Palliative Care & Pain Management Platform
             </h2>
             <p className="mt-4 text-white/70 leading-relaxed">
