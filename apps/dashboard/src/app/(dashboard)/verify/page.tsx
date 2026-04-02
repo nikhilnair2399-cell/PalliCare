@@ -30,8 +30,8 @@ export default function VerifyPage() {
     const data = await runMutation.mutateAsync();
     setReport(data);
     // Auto-expand categories with failures
-    const failedCategories = new Set(
-      data.results.filter((r: VerificationResult) => !r.passed).map((r: VerificationResult) => r.category),
+    const failedCategories = new Set<string>(
+      data.results.filter((r: VerificationResult) => !r.passed).map((r: VerificationResult) => r.category as string),
     );
     setExpandedCategories(failedCategories);
   };
